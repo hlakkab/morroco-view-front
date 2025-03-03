@@ -1,0 +1,96 @@
+import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import Logo2Svg from '../assets/img/morroco-view-logo2.svg';
+import Button from '../components/Button';
+
+const { width } = Dimensions.get('window');
+
+const OnboardingScreen = () => {
+  const navigation = useNavigation();
+
+  const handleGetStarted = () => {
+    navigation.navigate('Home' as never);
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Logo2Svg width={width * 0.5} height={width * 0.15} />
+      </View>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>See Morocco</Text>
+        <Text style={styles.subtitle}>Like Never Before.</Text>
+      </View>
+      <View style={styles.contentContainer}>
+        <View style={styles.imageContainer}>
+          {/* Add your decorative background images here */}
+          <View style={[styles.imageBox, styles.image1]} />
+          <View style={[styles.imageBox, styles.image2]} />
+          <View style={[styles.imageBox, styles.image3]} />
+        </View>
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button title="Get Started" onPress={handleGetStarted} />
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    padding: 20,
+  },
+  logoContainer: {
+    marginTop: 100,
+    alignItems: 'flex-start',
+  },
+  titleContainer: {
+    marginTop: 30,
+    alignItems: 'flex-start',
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 45,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  subtitle: {
+    fontSize: 26,
+    color: '#000',
+    marginBottom: 40,
+  },
+  imageContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  imageBox: {
+    width: width * 0.25,
+    height: width * 0.25,
+    borderRadius: 12,
+  },
+  image1: {
+    backgroundColor: '#FFE4E4',
+    transform: [{ rotate: '-15deg' }],
+  },
+  image2: {
+    backgroundColor: '#F18D8F',
+    transform: [{ rotate: '5deg' }],
+  },
+  image3: {
+    backgroundColor: '#AE1913',
+    transform: [{ rotate: '15deg' }],
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+});
+
+export default OnboardingScreen; 
