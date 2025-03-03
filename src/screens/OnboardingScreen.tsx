@@ -1,3 +1,4 @@
+// src/screens/OnboardingScreen.tsx
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
@@ -10,7 +11,7 @@ const OnboardingScreen = () => {
   const navigation = useNavigation();
 
   const handleGetStarted = () => {
-    navigation.navigate('Home' as never);
+    navigation.navigate('Login' as never);
   };
 
   return (
@@ -24,14 +25,13 @@ const OnboardingScreen = () => {
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.imageContainer}>
-          {/* Add your decorative background images here */}
           <View style={[styles.imageBox, styles.image1]} />
           <View style={[styles.imageBox, styles.image2]} />
           <View style={[styles.imageBox, styles.image3]} />
         </View>
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Get Started" onPress={handleGetStarted} />
+        <Button title="Get Started" onPress={handleGetStarted} style={styles.fullWidthButton} />
       </View>
     </View>
   );
@@ -40,11 +40,11 @@ const OnboardingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFF7F7',
     padding: 20,
   },
   logoContainer: {
-    marginTop: 100,
+    marginTop: 50, // Adjust to position logo at the top
     alignItems: 'flex-start',
   },
   titleContainer: {
@@ -91,6 +91,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
+  fullWidthButton: {
+    width: '100%',
+  },
 });
 
-export default OnboardingScreen; 
+export default OnboardingScreen;

@@ -1,7 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Dimensions, Image, StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
+import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import BackgroundSvg from '../assets/img/lanch-screen-frame.svg';
 import LogoSvg from '../assets/img/morroco-view-logo.svg';
 
@@ -9,35 +10,44 @@ const { width, height } = Dimensions.get('window');
 
 const LaunchScreen = () => {
   const navigation = useNavigation();
+  
+  // Initial position in the center
+  const logoTranslateY = useSharedValue(0);
+  const logoTranslateX = useSharedValue(0);
+  const logoScale = useSharedValue(1);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.navigate('Onboarding' as never);
+      // Animate logo to top left
+      logoTranslateY.value = withTiming(-height / 2 + 90, { duration: 700, easing: Easing.out(Easing.exp) });
+      logoTranslateX.value = withTiming(-width / 2 + 80, { duration: 700, easing: Easing.out(Easing.exp) });
+      logoScale.value = withTiming(0.6, { duration: 700, easing: Easing.out(Easing.exp) });
+
+      setTimeout(() => {
+        navigation.navigate('Onboarding' as never);
+      }, 700);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, logoTranslateY, logoTranslateX, logoScale]);
+
+  const animatedLogoStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: logoTranslateY.value },
+      { translateX: logoTranslateX.value },
+      { scale: logoScale.value }
+    ],
+  }));
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#AE191300', '#AE191344', '#F18D8F']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#AE191300', '#AE191344', '#F18D8F']} style={styles.gradient}>
         <View style={styles.backgroundContainer}>
-          <BackgroundSvg
-            width={width}
-            height={height}
-            style={styles.backgroundImage}
-          />
+          <BackgroundSvg width={width} height={height} style={styles.backgroundImage} />
         </View>
-        <View style={styles.logoContainer}>
-          <LogoSvg
-            width={width * 0.3}
-            height={width * 0.3}
-            style={styles.logo}
-          />
-        </View>
+        <Animated.View style={[styles.logoContainer, animatedLogoStyle]}>
+          <LogoSvg width={width * 0.3} height={width * 0.3} />
+        </Animated.View>
       </LinearGradient>
     </View>
   );
@@ -59,13 +69,11 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   logoContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logo: {
-    width: width * 0.3,
-    height: width * 0.3,
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -width * 0.15,
+    marginLeft: -width * 0.15,
   },
 });
 

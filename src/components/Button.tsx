@@ -1,13 +1,15 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, TouchableOpacityProps } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, TouchableOpacityProps, View } from 'react-native';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
+  icon?: React.ReactNode;
 }
 
-const Button = ({ title, style, ...props }: ButtonProps) => {
+const Button = ({ title, icon, style, ...props }: ButtonProps) => {
   return (
     <TouchableOpacity style={[styles.button, style]} {...props}>
+      {icon && <View style={styles.icon}>{icon}</View>}
       <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
   );
@@ -17,11 +19,14 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#AE1913',
     paddingVertical: 16,
-    paddingHorizontal: 32,
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '90%',
+    flexDirection: 'row',
+    width: '100%', // Ensure button takes full width
+  },
+  icon: {
+    marginRight: 8,
   },
   text: {
     color: 'white',
@@ -30,4 +35,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Button; 
+export default Button;
