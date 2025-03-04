@@ -47,7 +47,7 @@ export function AppNavigator() {
       <Stack.Screen 
         name="Home" 
         component={HomeScreen}
-        options={{ title: 'Welcome Home' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen 
         name="Details" 
