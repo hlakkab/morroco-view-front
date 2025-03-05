@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import DetailsScreen from '../screens/DetailsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -10,7 +9,6 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   Home: undefined;
-  Details: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -48,11 +46,6 @@ export function AppNavigator() {
         name="Home" 
         component={HomeScreen}
         options={{ headerShown: false }}
-      />
-      <Stack.Screen 
-        name="Details" 
-        component={DetailsScreen}
-        options={{ title: 'Details Page' }}
       />
     </Stack.Navigator>
   );

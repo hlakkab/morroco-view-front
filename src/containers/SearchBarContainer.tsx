@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 26,
+    marginTop: 36,
     marginBottom: 20,
   },
   searchBar: {
