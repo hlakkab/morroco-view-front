@@ -1,14 +1,19 @@
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import ESIMScreen from '../screens/ESIMScreen';
+import QRCodesScreen from '../screens/QRCodesScreen';
 
 export type RootStackParamList = {
   Launch: undefined;
   Onboarding: undefined;
   Login: undefined;
   Home: undefined;
+  ESIM: undefined;
+  QRCodes: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -47,6 +52,16 @@ export function AppNavigator() {
         component={HomeScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen 
+        name="ESIM" 
+        component={ESIMScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="QRCodes" 
+        component={QRCodesScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
-} 
+}

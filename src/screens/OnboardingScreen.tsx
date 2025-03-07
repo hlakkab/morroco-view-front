@@ -1,17 +1,19 @@
 // src/screens/OnboardingScreen.tsx
 import { useNavigation } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Logo2Svg from '../assets/img/morroco-view-logo2.svg';
 import Button from '../components/Button';
+import { RootStackParamList } from '../types/navigation';
 
 const { width } = Dimensions.get('window');
 
 const OnboardingScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleGetStarted = () => {
-    navigation.navigate('Login' as never);
+    navigation.navigate('Login');
   };
 
   return (

@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    width: '100%', // Ensure button takes full width
+    width: '100%', 
   },
   icon: {
     marginRight: 8,

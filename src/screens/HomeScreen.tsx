@@ -10,53 +10,39 @@ import ServiceCardsContainer from '../containers/ServiceCardsContainer';
 import ExploreCardsContainer from '../containers/ExploreCardsContainer';
 import EmergencyContactsButton from '../containers/EmergencyContactsButton';
 import BottomNavBar from '../containers/BottomNavBar';
-
-// // Define your app's route params type
-// type RootStackParamList = {
-//   Home: undefined;
-//   Matches: undefined;
-//   Monuments: undefined;
-//   Restaurant: undefined;
-//   Entertainment: undefined;
-//   Artisans: undefined;
-//   Bookmark: undefined;
-//   Tickets: undefined;
-//   Tours: undefined;
-//   Account: undefined;
-// };
-
-// type HomeScreenNavigationProp = NavigationProp<RootStackParamList>;
+import { RootStackParamList } from '../types/navigation';
 
 const HomeScreen: React.FC = () => {
-  // const navigation = useNavigation<HomeScreenNavigationProp>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleMatchesExplore = () => {
     // Navigate to matches screen
-    // navigation.navigate('Matches' as never);
+    navigation.navigate('Matches');
   };
 
   const handleCategoryPress = (category: string) => {
-    // Navigate to category screen
-    // navigation.navigate(category as keyof RootStackParamList);
-    console.log(`Navigating to ${category}`);
+    // Navigate to category screen based on string parameter
+    // We need to check if the category is a valid key in our RootStackParamList
+    if (category in navigation.getState().routeNames) {
+      navigation.navigate(category as keyof RootStackParamList);
+    } else {
+      console.log(`Invalid navigation destination: ${category}`);
+    }
   };
 
   const handleEmergencyContacts = () => {
     // Navigate to emergency contacts screen
-    // navigation.navigate('EmergencyContacts' as never);
-    console.log('Navigating to Emergency Contacts');
-    
-    // For testing purposes, you can use an alert
-    Alert.alert('Emergency Contacts', 'This would navigate to the Emergency Contacts screen');
+    navigation.navigate('EmergencyContacts');
   };
   
   const handleNavigation = (routeName: string) => {
     // Navigate to the selected route
-    // navigation.navigate(routeName as keyof RootStackParamList);
-    console.log(`Navigating to ${routeName}`);
-    
-    // For testing purposes, you can use an alert
-    Alert.alert('Navigation', `This would navigate to the ${routeName} screen`);
+    if (routeName in navigation.getState().routeNames) {
+      navigation.navigate(routeName as keyof RootStackParamList);
+    } else {
+      console.log(`Invalid navigation destination: ${routeName}`);
+      Alert.alert('Navigation', `This would navigate to the ${routeName} screen`);
+    }
   };
 
   return (
@@ -97,7 +83,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   bottomPadding: {
-    height: 80, // Provide enough padding at the bottom to not hide content behind nav bar
+    height: 80, 
   }
 });
 
