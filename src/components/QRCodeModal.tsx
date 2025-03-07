@@ -78,8 +78,8 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
           ]}
         >
           {/* White header with drag handle */}
-          <View style={styles.headerContainer}>
-            <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+          <View style={styles.headerContainer} {...panResponder.panHandlers}>
+            <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
             

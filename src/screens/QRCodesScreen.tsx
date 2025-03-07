@@ -7,21 +7,33 @@ import { NavigationProp } from '@react-navigation/native';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import QRCodesContainer from '../containers/QRCodesContainer';
+import AddQRCodeModal from '../containers/AddQRCodeModal';
 import Button from '../components/Button';
 import { RootStackParamList } from '../types/navigation';
 
 const QRCodesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
+  const [addModalVisible, setAddModalVisible] = useState(false);
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleAddQrCode = () => {
-    // Handle add QR code action
-    console.log('Add QR Code initiated');
-    // You could navigate to an add QR code screen here
+    // Show the add QR code modal
+    setAddModalVisible(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setAddModalVisible(false);
+  };
+
+  const handleSaveQrCode = (data: { title: string; description: string; imageUri?: string }) => {
+    // This would handle saving the new QR code
+    console.log('Saving QR code:', data);
+    // You could add more logic here, like adding the QR code to your list
+    // or navigating to a confirmation screen
   };
 
   const handleSearch = (text: string) => {
@@ -52,6 +64,13 @@ const QRCodesScreen: React.FC = () => {
       <View style={styles.footer}>
         <Button title="Add A QR Code" onPress={handleAddQrCode} />
       </View>
+
+      {/* Add QR Code Modal */}
+      <AddQRCodeModal
+        visible={addModalVisible}
+        onClose={handleCloseAddModal}
+        onSave={handleSaveQrCode}
+      />
     </SafeAreaView>
   );
 };

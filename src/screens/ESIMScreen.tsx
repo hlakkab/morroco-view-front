@@ -1,23 +1,36 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProp } from '@react-navigation/native';
 
 import ESIMCardsContainer from '../containers/ESIMCardsContainer';
+import BuyESIMModal from '../containers/BuyESIMModal';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootStackParamList } from '../types/navigation';
 import Button from '../components/Button';
+
 const ESIMScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [buyModalVisible, setBuyModalVisible] = useState(false);
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleBuyOne = () => {
-    // Handle buy action
-    console.log('Buy eSIM initiated');
-    // You could navigate to a payment screen or show a modal here
+    // Show the buy eSIM modal
+    setBuyModalVisible(true);
+  };
+
+  const handleCloseBuyModal = () => {
+    setBuyModalVisible(false);
+  };
+
+  const handlePurchaseESIM = (operatorId: string) => {
+    // This would handle the actual purchase logic
+    console.log(`Purchased eSIM from operator: ${operatorId}`);
+    // You could add more logic here, like adding the eSIM to your list
+    // or navigating to a confirmation screen
   };
 
   return (
@@ -32,6 +45,12 @@ const ESIMScreen: React.FC = () => {
         <Button title="Buy One" onPress={handleBuyOne} />
       </View>
 
+      {/* Buy eSIM Modal */}
+      <BuyESIMModal
+        visible={buyModalVisible}
+        onClose={handleCloseBuyModal}
+        onBuy={handlePurchaseESIM}
+      />
     </SafeAreaView>
   );
 };
