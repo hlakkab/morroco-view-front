@@ -1,17 +1,28 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import GoogleIcon from '../assets/img/icons8-google.svg';
 import LogoSvg from '../assets/img/morroco-view-logo.svg';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { login } from '../service';
+
 
 const LoginScreen = () => {
   const navigation = useNavigation();
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   const handleLogin = () => {
-    navigation.navigate('Home' as never);
+    login(email, password)
+      .then( _ => {
+        navigation.navigate('Home' as never)
+      })
+      .catch(error => {
+        console.error('Login failed:', error);
+      });
   };
 
   const handleGoogleAuth = () => {
@@ -42,8 +53,8 @@ const LoginScreen = () => {
           <View style={styles.divider} />
         </View>
         <Text style={styles.title}>Please enter your login</Text>
-        <Input placeholder="Email" style={styles.input} />
-        <Input placeholder="Password" secureTextEntry style={styles.input} />
+        <Input placeholder="Email" style={styles.input} value={email} onChangeText={setEmail} />
+        <Input placeholder="Password" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
         <Button title="Login" onPress={handleLogin} style={styles.button} />
         <Text style={styles.link}>
           Forgot your password? <Text style={styles.linkText}>Recover</Text>

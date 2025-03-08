@@ -6,14 +6,22 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Logo2Svg from '../assets/img/morroco-view-logo2.svg';
 import Button from '../components/Button';
 import { RootStackParamList } from '../types/navigation';
-
+import * as SecureStore from 'expo-secure-store';
 const { width } = Dimensions.get('window');
 
 const OnboardingScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleGetStarted = () => {
-    navigation.navigate('Login');
+    SecureStore.getItemAsync('token').then(
+      (token) => {
+        if (token) {
+          navigation.navigate('Home');
+        } else {
+          navigation.navigate('Login');
+        }
+      }
+    );
   };
 
   return (
