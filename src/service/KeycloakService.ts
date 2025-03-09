@@ -40,19 +40,19 @@ const refreshToken = async () => {
     }
     
     // Create request body for token refresh
-    const body = JSON.stringify({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: 'your-client-id', // Include if required by your API
-    });
+
+    const formData = new URLSearchParams();
+    formData.append('grant_type', 'refresh_token');
+    formData.append('refresh_token', refreshToken);
+    formData.append('client_id', 'marv-backend');
     
     // Make refresh token request
     const response = await fetch(KEYCLOAK_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body,
+      body: formData.toString(),
     });
     
     if (!response.ok) {
@@ -164,4 +164,12 @@ const getTokenExpiry = async () => {
   return await SecureStore.getItemAsync(TOKEN_EXPIRY_KEY);
 };
 
-export { refreshToken, saveTokens, clearTokens, login, getAccessToken, getRefreshToken, getTokenExpiry };
+export { 
+  refreshToken, 
+  saveTokens, 
+  clearTokens, 
+  login, 
+  getAccessToken, 
+  getRefreshToken, 
+  getTokenExpiry 
+};

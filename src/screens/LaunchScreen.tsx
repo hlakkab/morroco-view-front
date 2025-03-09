@@ -1,10 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import BackgroundSvg from '../assets/img/lanch-screen-frame.svg';
 import LogoSvg from '../assets/img/morroco-view-logo.svg';
+import { getAccessToken } from '../service/KeycloakService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -16,7 +17,16 @@ const LaunchScreen = () => {
   const logoTranslateX = useSharedValue(0);
   const logoScale = useSharedValue(1);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // check the login status
+    getAccessToken().then((token) => {
+      if (token) {
+        console.log('token', token);
+        navigation.navigate('Home' as never);
+      }
+    });
+    
+    
     const timer = setTimeout(() => {
       // Animate logo to top left
       logoTranslateY.value = withTiming(-height / 2 + 90, { duration: 700, easing: Easing.out(Easing.exp) });
