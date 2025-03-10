@@ -24,6 +24,7 @@ export type RootStackParamList = {
     price: number;
     isPrivate: boolean;
   };
+  Test: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

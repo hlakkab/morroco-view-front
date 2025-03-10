@@ -12,8 +12,8 @@ import { login } from '../service';
 const LoginScreen = () => {
   const navigation = useNavigation();
 
-  const [email, setEmail] = useState('testuser');
-  const [password, setPassword] = useState('test123');
+  const [email, setEmail] = useState('mohcine.sahtani@gmail.com');
+  const [password, setPassword] = useState('mohcine@sahtani2001');
 
   const handleLogin = () => {
     login(email, password)

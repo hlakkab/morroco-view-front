@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View, Alert } from 'react-native';
+import { StyleSheet, ScrollView, View, Alert, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProp } from '@react-navigation/native';
 
@@ -63,6 +63,14 @@ const HomeScreen: React.FC = () => {
         {/* Emergency Contacts Button */}
         <EmergencyContactsButton onPress={handleEmergencyContacts} />
         
+        {/* Test Screen Button */}
+        <TouchableOpacity 
+          style={styles.testButton}
+          onPress={() => navigation.navigate('Test' as never)}
+        >
+          <Text style={styles.testButtonText}>Test Shuffle Animation</Text>
+        </TouchableOpacity>
+        
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
         <View style={styles.bottomPadding} />
       </ScrollView>
@@ -84,6 +92,18 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 80, 
+  },
+  testButton: {
+    backgroundColor: '#6200EE',
+    padding: 15,
+    borderRadius: 10,
+    marginVertical: 20,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });
 

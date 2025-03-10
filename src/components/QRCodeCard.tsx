@@ -4,17 +4,17 @@ import QrCodeSvg from '../assets/serviceIcons/qrcode-icon.svg';
 
 interface QRCodeCardProps {
   title: string;
-  subtitle: string;
+  description: string;
   onPress?: () => void;
 }
 
-const QRCodeCard: React.FC<QRCodeCardProps> = ({ title, subtitle, onPress }) => {
+const QRCodeCard: React.FC<QRCodeCardProps> = ({ title, description, onPress }) => {
   return (
     <TouchableOpacity style={styles.qrCodeCard} onPress={onPress} activeOpacity={0.7}>
       <QrCodeSvg width={48} height={48} />
       <View style={styles.qrCodeDetails}>
         <Text style={styles.qrCodeTitle}>{title}</Text>
-        <Text style={styles.qrCodeSubtitle}>{subtitle}</Text>
+        <Text style={styles.qrCodeSubtitle}>{description}</Text>
       </View>
     </TouchableOpacity>
   );

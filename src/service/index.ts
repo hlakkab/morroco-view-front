@@ -1,6 +1,5 @@
 import { login } from './KeycloakService';
+import api from './ApiProxy';
 
-const BASE_URL = 'https://api.morroco-view.com';
 
-
-export { login, BASE_URL };
+export { login, api };

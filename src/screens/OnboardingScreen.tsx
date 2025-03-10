@@ -13,15 +13,7 @@ const OnboardingScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleGetStarted = () => {
-    SecureStore.getItemAsync('token').then(
-      (token) => {
-        if (token) {
-          navigation.navigate('Home');
-        } else {
-          navigation.navigate('Login');
-        }
-      }
-    );
+    navigation.navigate('Login');
   };
 
   return (
