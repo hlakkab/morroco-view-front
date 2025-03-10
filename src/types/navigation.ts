@@ -8,6 +8,8 @@ export type RootStackParamList = {
     Home: undefined;
     ESIM: undefined;
     QRCodes: undefined;
+    HotelPickup: undefined;
+    TransportDetail: undefined;
     Matches: undefined;
     Monuments: undefined;
     Restaurant: undefined;

@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   View, 
   Text, 
   Modal, 
-  TouchableOpacity, 
+  TouchableOpacity,
+  TouchableWithoutFeedback,
   Dimensions,
   Animated,
   PanResponder,
   TextInput,
-  Image
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../components/Button';
@@ -29,6 +34,7 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // Create animated value for drag gesture
   const pan = React.useRef(new Animated.ValueXY()).current;
@@ -38,13 +44,13 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
-        // Only allow downward movement
-        if (gestureState.dy > 0) {
+        // Only allow downward movement and only when keyboard is not visible
+        if (gestureState.dy > 0 && !keyboardVisible) {
           Animated.event([null, { dy: pan.y }], { useNativeDriver: false })(_, gestureState);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 100) {
+        if (gestureState.dy > 100 && !keyboardVisible) {
           // If dragged down more than 100 units, close the modal
           handleClose();
         } else {
@@ -58,6 +64,29 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
     })
   ).current;
 
+  // Keyboard listeners
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+        // Reset the pan position when keyboard shows
+        pan.setValue({ x: 0, y: 0 });
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
   // Reset pan and form when modal becomes visible
   React.useEffect(() => {
     if (visible) {
@@ -66,6 +95,9 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
   }, [visible, pan]);
 
   const handleClose = () => {
+    // Dismiss keyboard if it's visible
+    Keyboard.dismiss();
+    
     // Reset form fields
     setTitle('');
     setDescription('');
@@ -100,65 +132,78 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
       visible={visible}
       onRequestClose={handleClose}
     >
-      <View style={styles.centeredView}>
-        <Animated.View 
-          style={[
-            styles.modalView,
-            { transform: [{ translateY: pan.y }] }
-          ]}
-        >
-          {/* White header with drag handle */}
-          <View style={styles.headerContainer} {...panResponder.panHandlers}>
-            <View style={styles.dragHandleContainer}>
-              <View style={styles.dragHandle} />
-            </View>
-            
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add New QR Code</Text>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={16} color="black" />
-              </TouchableOpacity>
-            </View>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.centeredView}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalWrapper}>
+            <Animated.View 
+              style={[
+                styles.modalView,
+                { transform: [{ translateY: pan.y }] },
+                keyboardVisible && styles.modalViewWithKeyboard
+              ]}
+            >
+              {/* White header with drag handle */}
+              <View style={styles.headerContainer} {...panResponder.panHandlers}>
+                <View style={styles.dragHandleContainer}>
+                  <View style={styles.dragHandle} />
+                </View>
+                
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Add New QR Code</Text>
+                  <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                    <Ionicons name="close" size={16} color="black" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              
+              <ScrollView style={styles.scrollView}>
+                <View style={styles.modalContent}>
+                  {/* Form Fields */}
+                  <View style={styles.formField}>
+                    <Text style={styles.label}>Title <Text style={styles.required}>*</Text></Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter title"
+                      value={title}
+                      onChangeText={setTitle}
+                      returnKeyType="next"
+                    />
+                  </View>
+
+                  <View style={styles.formField}>
+                    <Text style={styles.label}>Description</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter description"
+                      value={description}
+                      onChangeText={setDescription}
+                      returnKeyType="done"
+                      multiline
+                    />
+                  </View>
+
+                  <View style={styles.formField}>
+                    <Text style={styles.label}>Pick QR Code image <Text style={styles.required}>*</Text></Text>
+                    <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+                      <Ionicons name="image-outline" size={48} color="#777" />
+                      {!imageUri && <Text style={styles.imagePickerText}>Pick QR Code image</Text>}
+                      {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Save Button */}
+                  <View style={styles.buttonContainer}>
+                    <Button title="Save" onPress={handleSave} />
+                  </View>
+                </View>
+              </ScrollView>
+            </Animated.View>
           </View>
-          
-          <View style={styles.modalContent}>
-            {/* Form Fields */}
-            <View style={styles.formField}>
-              <Text style={styles.label}>Title <Text style={styles.required}>*</Text></Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter title"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
-
-            <View style={styles.formField}>
-              <Text style={styles.label}>Description</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter description"
-                value={description}
-                onChangeText={setDescription}
-              />
-            </View>
-
-            <View style={styles.formField}>
-              <Text style={styles.label}>Pick QR Code image <Text style={styles.required}>*</Text></Text>
-              <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
-                <Ionicons name="image-outline" size={48} color="#777" />
-                {!imageUri && <Text style={styles.imagePickerText}>Pick QR Code image</Text>}
-                {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
-              </TouchableOpacity>
-            </View>
-
-            {/* Save Button */}
-            <View style={styles.buttonContainer}>
-              <Button title="Save" onPress={handleSave} />
-            </View>
-          </View>
-        </Animated.View>
-      </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -170,6 +215,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  modalWrapper: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   headerContainer: {
     backgroundColor: 'white',
@@ -189,7 +238,6 @@ const styles = StyleSheet.create({
   },
   modalView: {
     backgroundColor: '#FFF7F7',
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -200,6 +248,13 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: '100%',
     height: height * 0.8,
+  },
+  modalViewWithKeyboard: {
+    // Adjust height when keyboard is visible
+    height: Platform.OS === 'ios' ? height * 0.5 : height * 0.5,
+  },
+  scrollView: {
+    flex: 1,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -261,8 +316,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   buttonContainer: {
-    marginTop: 'auto',
-    paddingVertical: 20,
+    marginTop: 40,
   }
 });
 

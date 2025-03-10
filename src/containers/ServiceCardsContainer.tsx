@@ -1,13 +1,12 @@
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Example of SVG imports - replace these with your actual paths
 import HotelSvg from '../assets/serviceIcons/hotelPick-icon.svg';
 import MoneySvg from '../assets/serviceIcons/money-icon.svg';
-import SimCardSvg from '../assets/serviceIcons/sim-card-icon.svg';
 import QrCodeSvg from '../assets/serviceIcons/qrcode-icon.svg';
+import SimCardSvg from '../assets/serviceIcons/sim-card-icon.svg';
 
 // Import navigation types
 import { RootStackParamList } from '../types/navigation';
@@ -48,11 +47,16 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
     navigation.navigate('QRCodes');
   };
 
+  const handleHotelPickupPress = () => {
+    navigation.navigate('HotelPickup');
+  };
+
   return (
     <View style={styles.serviceIconsContainer}>
       <ServiceCard 
         icon={<HotelSvg width={28} height={28} />}
         title="Hotel Pickup"
+        onPress={handleHotelPickupPress}
       />
       <ServiceCard 
         icon={<MoneySvg width={28} height={28} />}

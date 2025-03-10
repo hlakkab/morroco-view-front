@@ -1,11 +1,13 @@
-import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from 'react';
+import ESIMScreen from '../screens/ESIMScreen';
 import HomeScreen from '../screens/HomeScreen';
+import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
-import ESIMScreen from '../screens/ESIMScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
+import TransportDetailScreen from '../screens/TransportDetailScreen';
 
 export type RootStackParamList = {
   Launch: undefined;
@@ -14,6 +16,14 @@ export type RootStackParamList = {
   Home: undefined;
   ESIM: undefined;
   QRCodes: undefined;
+  HotelPickup: undefined;
+  TransportDetail: {
+    id: string;
+    title: string;
+    imageUrl: string;
+    price: number;
+    isPrivate: boolean;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -60,6 +70,16 @@ export function AppNavigator() {
       <Stack.Screen 
         name="QRCodes" 
         component={QRCodesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="HotelPickup" 
+        component={HotelPickupScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="TransportDetail" 
+        component={TransportDetailScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
