@@ -18,6 +18,7 @@ export type RootStackParamList = {
     Tours: undefined;
     Account: undefined;
     EmergencyContacts: undefined;
+    HotelPickup: undefined;
     // Add other screens as your app grows
   };
   

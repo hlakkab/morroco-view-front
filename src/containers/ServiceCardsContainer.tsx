@@ -48,11 +48,16 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
     navigation.navigate('QRCodes');
   };
 
+  const handleHotelPickupPress = () => {
+    navigation.navigate('HotelPickup');
+  };
+
   return (
     <View style={styles.serviceIconsContainer}>
       <ServiceCard 
         icon={<HotelSvg width={28} height={28} />}
         title="Hotel Pickup"
+        onPress={handleHotelPickupPress}
       />
       <ServiceCard 
         icon={<MoneySvg width={28} height={28} />}
