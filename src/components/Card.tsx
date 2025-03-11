@@ -1,3 +1,4 @@
+import React from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
 
 interface CardProps extends ViewProps {
@@ -11,7 +12,7 @@ export function Card({ children, style, ...props }: CardProps) {
     </View>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: 'white',

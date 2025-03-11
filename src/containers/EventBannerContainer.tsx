@@ -2,19 +2,27 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import CafCupSvg from '../assets/img/caf-cup-img.svg';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator'; 
 
 // Import the JPG as a require statement instead of importing it as a component
 const stadiumImage = require('../assets/img/stadum-img.jpg');
 
 const { width } = Dimensions.get('window');
 
+
 interface EventBannerContainerProps {
   onExplore: () => void;
 }
 
 const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }) => {
+
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+
   return (
-    <TouchableOpacity style={styles.banner} onPress={onExplore}>
+    <TouchableOpacity style={styles.banner} onPress={() => navigation.navigate('ExploreMatches')}>
       {/* Use ImageBackground component for the JPG image */}
       <ImageBackground 
         source={stadiumImage} 
@@ -34,7 +42,7 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
               <Text style={styles.bannerTitle}>Africa Cup Of Nations</Text>
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.exploreButton} onPress={onExplore}>
+              <TouchableOpacity style={styles.exploreButton} onPress={() => navigation.navigate('ExploreMatches')}>
                 <Text style={styles.exploreButtonText}>Explore Matches</Text>
               </TouchableOpacity>
             </View>
