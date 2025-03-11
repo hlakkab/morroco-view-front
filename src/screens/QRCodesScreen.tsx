@@ -68,8 +68,10 @@ const QRCodesScreen: React.FC = () => {
 
       {/* Search bar component */}
       <SearchBar 
+        placeholder="Search for by title ..."
         onChangeText={handleSearch}
         onFilterPress={handleFilterPress}
+        value={searchQuery}
       />
 
       {/* Loading indicator */}

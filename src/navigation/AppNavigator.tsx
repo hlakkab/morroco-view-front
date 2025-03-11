@@ -1,7 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import BrokerDetailScreen from '../screens/BrokerDetailScreen';
 import BrokerListScreen from '../screens/BrokerListScreen';
 import ESIMScreen from '../screens/ESIMScreen';
+import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
 import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
@@ -10,6 +12,7 @@ import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
+
 
 export type RootStackParamList = {
   Launch: undefined;
@@ -26,9 +29,18 @@ export type RootStackParamList = {
     price: number;
     isPrivate: boolean;
   };
+  BrokerDetail: {
+    id: string;
+    name: string;
+    imageUrl?: string;
+    location: string;
+    rating?: number;
+    isFeatured?: boolean;
+  };
   Test: undefined;
   MoneyExchange: undefined;
   BrokerList: undefined;
+  ExploreMatches: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -97,6 +109,19 @@ export function AppNavigator() {
         component={BrokerListScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen 
+        name="BrokerDetail" 
+        component={BrokerDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="ExploreMatches" 
+        component={ExploreMatchesScreen}
+        options={{ headerShown: false, title: "Africa Cup of Nations"  }}
+      
+     
+      />
+
     </Stack.Navigator>
   );
 }

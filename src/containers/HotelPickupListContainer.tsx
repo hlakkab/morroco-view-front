@@ -6,41 +6,32 @@ import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/CardItem';
 import FilterSelector from '../components/FilterSelector';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { HotelPickup } from '../types/transport';
 
-interface Transport {
-  id: string;
-  imageUrl: string;
-  title: string;
-  price: number;
-  isPrivate: boolean;
-  city: string;
-  svgImage?: React.ReactNode;
-}
-
-interface TransportListContainerProps {
-  transports: Transport[];
+interface HotelPickupListContainerProps {
+  pickups: HotelPickup[];
   cities: string[];
   selectedCity: string;
   onSelectCity: (city: string) => void;
+  isLoading: boolean;
 }
 
 const AIRPORTS = ['Marrakech Airport', 'Rabat Airport', 'Agadir Airport', 'Casablanca Airport', 'Fes Airport'];
 
-const TransportListContainer: React.FC<TransportListContainerProps> = ({
-  transports,
+const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
+  pickups,
   cities,
   selectedCity,
   onSelectCity,
+  isLoading,
 }) => {
-  const [savedTransports, setSavedTransports] = useState<string[]>([]);
+  const [savedPickups, setSavedPickups] = useState<string[]>([]);
   const [selectedAirport, setSelectedAirport] = useState(AIRPORTS[0]);
 
-  const filteredTransports = transports.filter(
-    transport => transport.city === selectedCity
-  );
+  const filteredPickups = pickups;
 
-  const handleSaveTransport = (id: string) => {
-    setSavedTransports(prev => 
+  const handleSavePickup = (id: string) => {
+    setSavedPickups(prev => 
       prev.includes(id) 
         ? prev.filter(savedId => savedId !== id) 
         : [...prev, id]
@@ -63,13 +54,13 @@ const TransportListContainer: React.FC<TransportListContainerProps> = ({
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  const handleCardPress = (item: Transport) => {
-    navigation.navigate('TransportDetail',{
-        id: item.id,
-        title: item.title,
-        imageUrl: item.imageUrl || '',
-        price: item.price,
-        isPrivate: item.isPrivate,
+  const handleCardPress = (item: HotelPickup) => {
+    navigation.navigate('TransportDetail', {
+      id: item.id,
+      title: item.title,
+      imageUrl: item.imageUrl || '',
+      price: item.price,
+      isPrivate: item.private,
     });
   };
 
@@ -99,20 +90,19 @@ const TransportListContainer: React.FC<TransportListContainerProps> = ({
         </View>
       </View>
       
-      <Text style={styles.sectionTitle}>Available transporters</Text>
+      <Text style={styles.sectionTitle}>Available pickups</Text>
       
-      {filteredTransports.length === 0 ? (
-        <Text style={styles.noTransportsText}>
-          No transporters available from {selectedAirport} to {selectedCity}
+      {filteredPickups.length === 0 ? (
+        <Text style={styles.noPickupsText}>
+          No pickups available from {selectedAirport} to {selectedCity}
         </Text>
       ) : (
         <FlatList
-          data={filteredTransports}
+          data={filteredPickups}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <CardItem
               imageUrl={item.imageUrl}
-              svgImage={item.svgImage}
               title={item.title}
               price={{
                 value: item.price,
@@ -120,26 +110,26 @@ const TransportListContainer: React.FC<TransportListContainerProps> = ({
               }}
               tags={[
                 {
-                  id: 'transport',
-                  label: 'Transport',
+                  id: 'pickup',
+                  label: 'Pickup',
                   icon: <Ionicons name="car-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
                   textStyle: { color: '#008060', fontWeight: '500' }
                 },
                 {
                   id: 'type',
-                  label: item.isPrivate ? 'Private Transport' : 'Shared Transport',
+                  label: item.private ? 'Private Pickup' : 'Shared Pickup',
                   textStyle: { color: '#888' }
                 }
               ]}
               actionIcon={
                 <Ionicons 
-                  name={savedTransports.includes(item.id) ? "bookmark" : "bookmark-outline"} 
+                  name={savedPickups.includes(item.id) ? "bookmark" : "bookmark-outline"} 
                   size={20} 
-                  color={savedTransports.includes(item.id) ? "#666" : "#000"} 
+                  color={savedPickups.includes(item.id) ? "#666" : "#000"} 
                 />
               }
-              isSaved={savedTransports.includes(item.id)}
-              onActionPress={() => handleSaveTransport(item.id)}
+              isSaved={savedPickups.includes(item.id)}
+              onActionPress={() => handleSavePickup(item.id)}
               onCardPress={() => handleCardPress(item)}
             />
           )}
@@ -177,11 +167,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: '#666',
   },
-  noTransportsText: {
+  noPickupsText: {
     textAlign: 'center',
     marginTop: 24,
     color: '#888',
   },
 });
 
-export default TransportListContainer; 
+export default HotelPickupListContainer; 

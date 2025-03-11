@@ -14,6 +14,15 @@ export interface Broker {
   rating?: number;
   isFeatured?: boolean;
   isSaved?: boolean;
+  exchangeRates?: {
+    buy: number;
+    sell: number;
+  };
+  services?: string[];
+  operatingHours?: string;
+  contactNumber?: string;
+  website?: string;
+  about?: string;
 }
 
 interface BrokerListContainerProps {
@@ -55,10 +64,15 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleBrokerPress = (broker: Broker) => {
-    // For now, just log the broker info
-    console.log('Broker selected:', broker);
-    // In the future, you can navigate to a broker detail screen
-    // navigation.navigate('BrokerDetail', { id: broker.id });
+    // Navigate to broker detail screen
+    navigation.navigate('BrokerDetail', {
+      id: broker.id,
+      name: broker.name,
+      imageUrl: broker.imageUrl,
+      location: broker.location,
+      rating: broker.rating,
+      isFeatured: broker.isFeatured
+    });
   };
 
   const handleSaveBroker = (id: string) => {
