@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import BackgroundSvg from '../assets/img/lanch-screen-frame.svg';
@@ -17,17 +17,17 @@ const LaunchScreen = () => {
   const logoTranslateX = useSharedValue(0);
   const logoScale = useSharedValue(1);
 
-  useEffect(() => {
-    // check the login status
-    getAccessToken().then((token) => {
-      if (token) {
-        console.log('token', token);
-        navigation.navigate('Home' as never);
-      }
-    });
-    
-    
-    const timer = setTimeout(() => {
+  const timer = useRef<NodeJS.Timeout | null>(null);
+
+  const checkLoginStatus = async () => {
+
+    const token = await getAccessToken();
+    if (token) {
+      navigation.navigate('Home' as never);
+      return;
+    }
+
+    timer.current = setTimeout(() => {
       // Animate logo to top left
       logoTranslateY.value = withTiming(-height / 2 + 90, { duration: 700, easing: Easing.out(Easing.exp) });
       logoTranslateX.value = withTiming(-width / 2 + 80, { duration: 700, easing: Easing.out(Easing.exp) });
@@ -36,9 +36,21 @@ const LaunchScreen = () => {
       setTimeout(() => {
         navigation.navigate('Onboarding' as never);
       }, 700);
+      
     }, 3000);
 
-    return () => clearTimeout(timer);
+
+  }
+
+  useEffect(() => {
+    // check the login status
+    checkLoginStatus();
+
+    return () => {
+      if(timer.current) {
+        clearTimeout(timer.current);
+      }
+    };
   }, [navigation, logoTranslateY, logoTranslateX, logoScale]);
 
   const animatedLogoStyle = useAnimatedStyle(() => ({

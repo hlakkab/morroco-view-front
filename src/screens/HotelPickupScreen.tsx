@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
-import SvgImage from 'react-native-svg/lib/typescript/elements/Image';
-import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
-import TransportListContainer from '../containers/TransportListContainer';
+import HotelPickupListContainer from '../containers/HotelPickupListContainer';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchHotelPickups, setSelectedCity, setSearchQuery } from '../store/hotelPickupSlice';
+import { HotelPickup } from '../types/transport';
 
-// Sample data
+// Sample data for fallback
 const SAMPLE_TRANSPORTS = [
   {
     id: '1',
@@ -56,15 +58,33 @@ const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes'];
 
 const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [selectedCity, setSelectedCity] = useState('Marrakech');
-  const [searchQuery, setSearchQuery] = useState('');
+  const dispatch = useAppDispatch();
+  const { hotelPickups, selectedCity, searchQuery, loading, error } = useAppSelector(
+    (state) => state.hotelPickup
+  );
+
+  // Use sample data while testing
+  const [useSampleData, setUseSampleData] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchHotelPickups()).unwrap();
+      } catch (error) {
+        console.error('Failed to fetch hotel pickups:', error);
+        setUseSampleData(true); // Fallback to sample data if API fails
+      }
+    };
+    
+    fetchData();
+  }, [dispatch]);
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleSearch = (text: string) => {
-    setSearchQuery(text);
+    dispatch(setSearchQuery(text));
   };
 
   const handleFilter = () => {
@@ -73,30 +93,44 @@ const HotelPickupScreen: React.FC = () => {
   };
 
   const handleSelectCity = (city: string) => {
-    setSelectedCity(city);
+    dispatch(setSelectedCity(city));
   };
 
-  // Filter transports based on search query
-  const filteredTransports = SAMPLE_TRANSPORTS.filter(transport => 
-    transport.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
+
+  if (error && !useSampleData) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="Hotel Pickup" onBack={handleBack} />
       
-        <SearchBar 
-          placeholder="Search for hotel..."
-          onChangeText={handleSearch}
-          onFilterPress={handleFilter}
-        />
+      <SearchBar 
+        placeholder="Search for hotel..."
+        onChangeText={handleSearch}
+        onFilterPress={handleFilter}
+        value={searchQuery}
+      />
       <View style={styles.content}>
-        
-        <TransportListContainer 
-          transports={filteredTransports}
+        <HotelPickupListContainer 
+          pickups={hotelPickups}
           cities={CITIES}
           selectedCity={selectedCity}
           onSelectCity={handleSelectCity}
+          isLoading={loading}
         />
       </View>
     </SafeAreaView>
@@ -111,6 +145,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 20,
   },
 });
 

@@ -36,7 +36,7 @@ const QRCodesContainer: React.FC<QRCodesContainerProps> = ({ searchQuery = '' })
     <>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {filteredQrCodes.map(qrCode => (
-          <QRCodeCard 
+          <QRCodeCard
             key={qrCode.id}
             title={qrCode.title} 
             description={qrCode.description}

@@ -3,12 +3,13 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import QrCodeSvg from '../assets/serviceIcons/qrcode-icon.svg';
 
 interface QRCodeCardProps {
+  key: any,
   title: string;
   description: string;
   onPress?: () => void;
 }
 
-const QRCodeCard: React.FC<QRCodeCardProps> = ({ title, description, onPress }) => {
+  const QRCodeCard: React.FC<QRCodeCardProps> = ({ key, title, description, onPress })  => {
   return (
     <TouchableOpacity style={styles.qrCodeCard} onPress={onPress} activeOpacity={0.7}>
       <QrCodeSvg width={48} height={48} />

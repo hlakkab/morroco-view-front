@@ -11,6 +11,7 @@ import ExploreCardsContainer from '../containers/ExploreCardsContainer';
 import EmergencyContactsButton from '../containers/EmergencyContactsButton';
 import BottomNavBar from '../containers/BottomNavBar';
 import { RootStackParamList } from '../types/navigation';
+import { clearTokens } from '../service/KeycloakService';
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -66,9 +67,12 @@ const HomeScreen: React.FC = () => {
         {/* Test Screen Button */}
         <TouchableOpacity 
           style={styles.testButton}
-          onPress={() => navigation.navigate('Test' as never)}
+          onPress={() => {
+            clearTokens();
+            navigation.navigate('Login' as never);
+          }}
         >
-          <Text style={styles.testButtonText}>Test Shuffle Animation</Text>
+          <Text style={styles.testButtonText}>Logout</Text>
         </TouchableOpacity>
         
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}

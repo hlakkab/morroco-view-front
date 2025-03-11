@@ -3,15 +3,17 @@ import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface SearchBarProps {
-  placeholder?: string;
-  onChangeText?: (text: string) => void;
-  onFilterPress?: () => void;
+  placeholder: string;
+  onChangeText: (text: string) => void;
+  onFilterPress: () => void;
+  value: string;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ 
   placeholder = 'Search for by title ...', 
   onChangeText, 
-  onFilterPress 
+  onFilterPress,
+  value
 }) => {
   return (
     <View style={styles.searchContainer}>
@@ -22,6 +24,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           placeholder={placeholder}
           placeholderTextColor="#999"
           onChangeText={onChangeText}
+          value={value}
         />
       </View>
       <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>

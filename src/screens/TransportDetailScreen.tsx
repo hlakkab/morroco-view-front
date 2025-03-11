@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Dimensions, FlatList, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import ReservationPopup from '../containers/ReservationPopup';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchPickupDetails, clearPickupDetails } from '../store/hotelPickupDetailsSlice';
 
 interface RouteParams {
   id: string;
@@ -28,11 +30,21 @@ const { width } = Dimensions.get('window');
 const TransportDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { title, imageUrl, price, isPrivate } = route.params as RouteParams;
+  const { id, title } = route.params as RouteParams;
+  const dispatch = useAppDispatch();
+  const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
+  
   const [isSaved, setIsSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showReservation, setShowReservation] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    dispatch(fetchPickupDetails(id)).unwrap();
+    return () => {
+      dispatch(clearPickupDetails());
+    };
+  }, [dispatch, id]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -54,6 +66,30 @@ const TransportDetailScreen: React.FC = () => {
   const handleCloseReservation = () => {
     setShowReservation(false);
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!currentPickup) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>No pickup details found</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,7 +142,9 @@ const TransportDetailScreen: React.FC = () => {
 
         <View style={styles.content}>
           <View style={styles.transportTypeContainer}>
-            <Text style={styles.transportType}>{isPrivate ? 'Private Transport' : 'Shared Transport'}</Text>
+            <Text style={styles.transportType}>
+              {currentPickup.private ? 'Private Pickup' : 'Shared Pickup'}
+            </Text>
           </View>
 
           <Text style={styles.sectionTitle}>Specifications</Text>
@@ -114,40 +152,40 @@ const TransportDetailScreen: React.FC = () => {
           <View style={styles.specificationsContainer}>
             <View style={styles.specItem}>
               <Ionicons name="people-outline" size={20} color="#666" />
-              <Text style={styles.specText}>5 seats</Text>
+              <Text style={styles.specText}>{currentPickup.nbSeats} seats</Text>
             </View>
             
             <View style={styles.specItem}>
               <Ionicons name="briefcase-outline" size={20} color="#666" />
-              <Text style={styles.specText}>2 Large bags</Text>
+              <Text style={styles.specText}>{currentPickup.bagCapacity} Large bags</Text>
             </View>
             
             <View style={styles.specItem}>
               <Ionicons name="car-outline" size={20} color="#666" />
-              <Text style={styles.specText}>4 Doors</Text>
+              <Text style={styles.specText}>{currentPickup.nbDoors} Doors</Text>
             </View>
             
             <View style={styles.specItem}>
               <Ionicons name="snow-outline" size={20} color="#666" />
-              <Text style={styles.specText}>Air conditioning</Text>
+              <Text style={styles.specText}>
+                {currentPickup.airConditioning ? 'Air conditioning' : 'No air conditioning'}
+              </Text>
             </View>
             
             <View style={styles.specItem}>
               <Ionicons name="time-outline" size={20} color="#666" />
-              <Text style={styles.specText}>15-60 minutes</Text>
+              <Text style={styles.specText}>60 min</Text>
             </View>
           </View>
 
           <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.aboutText}>
-            Book your transfer between the airport and the center of Marrakech (hotel/Riad) or vice versa. This transfer service operates 24/7 seven days a week.
-          </Text>
+          <Text style={styles.aboutText}>{currentPickup.about}</Text>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <Button 
-          title="Reserve Transport" 
+          title="Reserve Pickup" 
           style={styles.reserveButton}
           icon={<Ionicons name="car" size={20} color="#fff" style={{ marginRight: 8 }} />}
           onPress={handleReservePress}
@@ -162,8 +200,8 @@ const TransportDetailScreen: React.FC = () => {
       >
         <ReservationPopup 
           onClose={handleCloseReservation}
-          title={title}
-          price={price}
+          title={currentPickup.title}
+          price={currentPickup.price}
         />
       </Modal>
     </SafeAreaView>
@@ -174,6 +212,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 20,
   },
   scrollView: {
     flex: 1,
@@ -277,8 +325,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 16,
-    // borderTopWidth: 1,
-    // borderTopColor: '#f0f0f0',
   },
   reserveButton: {
     backgroundColor: '#CE1126',
