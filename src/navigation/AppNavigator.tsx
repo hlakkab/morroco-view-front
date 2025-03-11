@@ -1,5 +1,5 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ESIMScreen from '../screens/ESIMScreen';
 import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
@@ -8,6 +8,8 @@ import LoginScreen from '../screens/LoginScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
+import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
+
 
 export type RootStackParamList = {
   Launch: undefined;
@@ -25,6 +27,7 @@ export type RootStackParamList = {
     isPrivate: boolean;
   };
   Test: undefined;
+  ExploreMatches: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -83,6 +86,16 @@ export function AppNavigator() {
         component={TransportDetailScreen}
         options={{ headerShown: false }}
       />
+
+
+      <Stack.Screen 
+        name="ExploreMatches" 
+        component={ExploreMatchesScreen}
+        options={{ headerShown: false, title: "Africa Cup of Nations"  }}
+      
+     
+      />
+
     </Stack.Navigator>
   );
 }
