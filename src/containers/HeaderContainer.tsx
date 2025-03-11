@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import BackButton from '../components/BackButton';
-import SearchBar from '../components/SearchBar';
+import SearchBar from '../components/SearchBar2';
 
 
 const HeaderContainer = () => {

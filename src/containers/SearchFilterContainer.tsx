@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import SearchBar from "../components/SearchBar";
+import SearchBar from "../components/SearchBar2";
 import FilterButton from "../components/FilterButton";
 
 const SearchFilterContainer = () => {
