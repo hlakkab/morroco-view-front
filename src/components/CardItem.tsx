@@ -124,10 +124,11 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   cardImage: {
-    width: 100,
-    height: 70,
+    width: 110,
+    height: 80,
     borderRadius: 8,
     marginRight: 10,
+    alignSelf: 'center',
   },
   cardContent: {
     flex: 1,

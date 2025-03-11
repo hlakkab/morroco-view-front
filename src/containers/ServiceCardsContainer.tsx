@@ -51,6 +51,10 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
     navigation.navigate('HotelPickup');
   };
 
+  const handleMoneyExchangePress = () => {
+    navigation.navigate('MoneyExchange');
+  };
+
   return (
     <View style={styles.serviceIconsContainer}>
       <ServiceCard 
@@ -61,6 +65,7 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
       <ServiceCard 
         icon={<MoneySvg width={28} height={28} />}
         title="Money Exchange"
+        onPress={handleMoneyExchangePress}
       />
       <ServiceCard 
         icon={<SimCardSvg width={28} height={28} />}

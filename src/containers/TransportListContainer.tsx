@@ -112,7 +112,7 @@ const TransportListContainer: React.FC<TransportListContainerProps> = ({
           renderItem={({ item }) => (
             <CardItem
               imageUrl={item.imageUrl}
-              svgImage={<HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />}
+              svgImage={item.svgImage}
               title={item.title}
               price={{
                 value: item.price,

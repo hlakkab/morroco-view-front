@@ -8,6 +8,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import TransportListContainer from '../containers/TransportListContainer';
 
+
 // Sample data
 const SAMPLE_TRANSPORTS = [
   {
@@ -17,6 +18,7 @@ const SAMPLE_TRANSPORTS = [
     price: 100,
     isPrivate: true,
     city: 'Marrakech',
+    svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
   },
   {
     id: '2',
@@ -25,6 +27,7 @@ const SAMPLE_TRANSPORTS = [
     price: 100,
     isPrivate: true,
     city: 'Marrakech',
+    svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
   },
   {
     id: '3',
@@ -33,6 +36,7 @@ const SAMPLE_TRANSPORTS = [
     price: 100,
     isPrivate: true,
     city: 'Marrakech',
+    svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
   },
   {
     id: '4',
@@ -41,6 +45,7 @@ const SAMPLE_TRANSPORTS = [
     price: 120,
     isPrivate: true,
     city: 'Rabat',
+    svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
   },
   {
     id: '5',
@@ -49,10 +54,11 @@ const SAMPLE_TRANSPORTS = [
     price: 90,
     isPrivate: true,
     city: 'Agadir',
+    svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
   },
 ];
 
-const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes'];
+const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes', 'Tanger'];
 
 const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();

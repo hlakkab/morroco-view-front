@@ -1,10 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import BrokerListScreen from '../screens/BrokerListScreen';
 import ESIMScreen from '../screens/ESIMScreen';
 import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
+import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
@@ -25,6 +27,8 @@ export type RootStackParamList = {
     isPrivate: boolean;
   };
   Test: undefined;
+  MoneyExchange: undefined;
+  BrokerList: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -81,6 +85,16 @@ export function AppNavigator() {
       <Stack.Screen 
         name="TransportDetail" 
         component={TransportDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="MoneyExchange" 
+        component={MoneyExchangeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="BrokerList" 
+        component={BrokerListScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
