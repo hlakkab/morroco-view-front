@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../components/Button';
 import { CameraView } from 'expo-camera';
 import { useCamera } from '../hooks/useCamera';
-import QRCode from '../model/qrcode';
+import QRCode from '../types/qrcode';
 import * as BarCodeScanner from 'expo-barcode-scanner';
 import QRCodeSVG from 'react-native-qrcode-svg';
 

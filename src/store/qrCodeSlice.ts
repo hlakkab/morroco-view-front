@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import QRCode from "../model/qrcode";
+import QRCode from "../types/qrcode";
 import { api } from "../service";
 
 // Define the initial state with loading and error states

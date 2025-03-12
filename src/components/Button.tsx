@@ -1,16 +1,31 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, TouchableOpacityProps, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, TouchableOpacityProps, View, ActivityIndicator } from 'react-native';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
   icon?: React.ReactNode;
+  loading?: boolean;
 }
 
-const Button = ({ title, icon, style, ...props }: ButtonProps) => {
+const Button = ({ title, icon, style, loading, disabled, ...props }: ButtonProps) => {
   return (
-    <TouchableOpacity style={[styles.button, style]} {...props}>
-      {icon && <View style={styles.icon}>{icon}</View>}
-      <Text style={styles.text}>{title}</Text>
+    <TouchableOpacity 
+      style={[
+        styles.button, 
+        style,
+        (disabled || loading) && styles.disabled
+      ]} 
+      disabled={disabled || loading}
+      {...props}
+    >
+      {loading ? (
+        <ActivityIndicator color="#fff" style={styles.icon} />
+      ) : (
+        <>
+          {icon && <View style={styles.icon}>{icon}</View>}
+          <Text style={styles.text}>{title}</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 };
@@ -32,6 +47,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  disabled: {
+    opacity: 0.6,
   },
 });
 

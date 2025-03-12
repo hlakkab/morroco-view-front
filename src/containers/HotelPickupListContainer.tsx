@@ -16,7 +16,7 @@ interface HotelPickupListContainerProps {
   isLoading: boolean;
 }
 
-const AIRPORTS = ['Marrakech Airport', 'Rabat Airport', 'Agadir Airport', 'Casablanca Airport', 'Fes Airport'];
+const AIRPORTS = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes'];
 
 const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   pickups,
@@ -41,7 +41,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   // Convert airports to filter options format
   const airportOptions = AIRPORTS.map(airport => ({
     id: airport,
-    label: airport,
+    label: airport + ' Airport',
     icon: <Ionicons name="airplane-outline" size={16} color={selectedAirport === airport ? '#fff' : '#888'} style={{ marginRight: 4 }} />
   }));
 
@@ -58,7 +58,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
     navigation.navigate('TransportDetail', {
       id: item.id,
       title: item.title,
-      imageUrl: item.imageUrl || '',
+      imageUrl: item.images[0] || '',
       price: item.price,
       isPrivate: item.private,
     });
@@ -102,7 +102,8 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <CardItem
-              imageUrl={item.imageUrl}
+              imageUrl={item.images[0]}
+              svgImage={<HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />}
               title={item.title}
               price={{
                 value: item.price,

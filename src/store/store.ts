@@ -2,12 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import qrCodeReducer from "./qrCodeSlice";
 import hotelPickupReducer from "./hotelPickupSlice";
 import hotelPickupDetailsReducer from "./hotelPickupDetailsSlice";
+import bookmarkReducer from './bookmarkSlice';
 
 const store = configureStore({
   reducer: {
     qrCodes: qrCodeReducer,
     hotelPickup: hotelPickupReducer,
-    hotelPickupDetails: hotelPickupDetailsReducer
+    hotelPickupDetails: hotelPickupDetailsReducer,
+    bookmark: bookmarkReducer
   },
   middleware: (getDefaultMiddleware) => 
     getDefaultMiddleware({

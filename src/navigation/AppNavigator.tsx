@@ -12,6 +12,7 @@ import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
+import BookmarkScreen from '../screens/BookmarkScreen';
 
 
 export type RootStackParamList = {
@@ -22,12 +23,13 @@ export type RootStackParamList = {
   ESIM: undefined;
   QRCodes: undefined;
   HotelPickup: undefined;
+  Bookmark: undefined;
   TransportDetail: {
     id: string;
     title: string;
     imageUrl: string;
-    price: number;
-    isPrivate: boolean;
+    price?: number;
+    isPrivate?: boolean;
   };
   BrokerDetail: {
     id: string;
@@ -118,10 +120,12 @@ export function AppNavigator() {
         name="ExploreMatches" 
         component={ExploreMatchesScreen}
         options={{ headerShown: false, title: "Africa Cup of Nations"  }}
-      
-     
       />
-
+      <Stack.Screen 
+        name="Bookmark" 
+        component={BookmarkScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

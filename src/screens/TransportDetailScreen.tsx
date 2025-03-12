@@ -30,7 +30,7 @@ const { width } = Dimensions.get('window');
 const TransportDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { id, title } = route.params as RouteParams;
+  const { id, title, price } = route.params as RouteParams;
   const dispatch = useAppDispatch();
   const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
   
@@ -99,7 +99,7 @@ const TransportDetailScreen: React.FC = () => {
         <View style={styles.imageSection}>
           <FlatList
             ref={flatListRef}
-            data={CAR_IMAGES}
+            data={currentPickup.images}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
@@ -127,7 +127,7 @@ const TransportDetailScreen: React.FC = () => {
           
           <View style={styles.paginationContainer}>
             <View style={styles.pagination}>
-              {CAR_IMAGES.map((_, index) => (
+              {currentPickup.images.map((_, index) => (
                 <View 
                   key={index} 
                   style={[
@@ -194,14 +194,15 @@ const TransportDetailScreen: React.FC = () => {
 
       <Modal
         visible={showReservation}
-        transparent
         animationType="slide"
+        transparent={true}
         onRequestClose={handleCloseReservation}
       >
-        <ReservationPopup 
+        <ReservationPopup
           onClose={handleCloseReservation}
-          title={currentPickup.title}
-          price={currentPickup.price}
+          title={title}
+          price={price}
+          pickupId={id}
         />
       </Modal>
     </SafeAreaView>

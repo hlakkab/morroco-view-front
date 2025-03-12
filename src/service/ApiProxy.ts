@@ -8,6 +8,7 @@ import { getAccessToken, refreshToken, clearTokens } from './KeycloakService';
 
 
 const API_URL = 'http://34.175.18.109';
+//const API_URL = 'http://192.168.11.107:9090';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({

@@ -49,12 +49,12 @@ const CardItem: React.FC<CardItemProps> = ({
       onPress={onCardPress}
       disabled={!onCardPress}
     >
-      {svgImage || (imageUrl && (
+      {(imageUrl && (
         <Image 
           source={{ uri: imageUrl }} 
           style={[styles.cardImage, imageStyle]} 
         />
-      ))}
+      )) || svgImage}
       
       <View style={[styles.cardContent, contentStyle]}>
         <View style={styles.tagsRow}>

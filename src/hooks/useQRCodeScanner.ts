@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
-import QRCode from '../model/qrcode';
+import QRCode from '../types/qrcode';
 
 /**
  * Custom hook to handle QR code scanning and image picking

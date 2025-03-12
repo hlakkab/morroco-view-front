@@ -153,7 +153,32 @@ const login = async (email: string, password: string) => {
 };
 
 const getAccessToken = async () => {
-  return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+  try {
+    const [accessToken, expiryTime] = await Promise.all([
+      SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+      SecureStore.getItemAsync(TOKEN_EXPIRY_KEY),
+    ]);
+
+    if(!(accessToken && expiryTime)) {
+      return null;
+    }
+
+    const now = Date.now();
+    const expiry = parseInt(expiryTime);
+
+    // Check if token is expired or will expire in the next 10 seconds
+    if (now >= expiry - 5000) {
+      console.log('Token expired or about to expire');
+      await clearTokens();
+      return null;
+    }
+
+    return accessToken;
+  } catch (error) {
+    console.error('Error getting access token:', error);
+    await clearTokens();
+    return null;
+  }
 };
 
 const getRefreshToken = async () => { 
