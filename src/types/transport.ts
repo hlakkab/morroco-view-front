@@ -1,6 +1,6 @@
 export interface HotelPickup {
   id: string;
-  imageUrl: string;
+  images: string[];
   title: string;
   price: number;
   private: boolean;
@@ -29,4 +29,6 @@ export interface HotelPickupDetailsState {
   currentPickup: HotelPickupDetails | null;
   loading: boolean;
   error: string | null;
+  bookingStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+  bookingError: string | null;
 } 

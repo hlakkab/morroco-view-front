@@ -1,14 +1,18 @@
-import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from 'react';
+import BrokerDetailScreen from '../screens/BrokerDetailScreen';
+import BrokerListScreen from '../screens/BrokerListScreen';
 import ESIMScreen from '../screens/ESIMScreen';
+import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
 import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
+import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
-import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
+import BookmarkScreen from '../screens/BookmarkScreen';
 
 
 export type RootStackParamList = {
@@ -19,14 +23,25 @@ export type RootStackParamList = {
   ESIM: undefined;
   QRCodes: undefined;
   HotelPickup: undefined;
+  Bookmark: undefined;
   TransportDetail: {
     id: string;
     title: string;
     imageUrl: string;
-    price: number;
-    isPrivate: boolean;
+    price?: number;
+    isPrivate?: boolean;
+  };
+  BrokerDetail: {
+    id: string;
+    name: string;
+    imageUrl?: string;
+    location: string;
+    rating?: number;
+    isFeatured?: boolean;
   };
   Test: undefined;
+  MoneyExchange: undefined;
+  BrokerList: undefined;
   ExploreMatches: undefined;
 };
 
@@ -86,16 +101,31 @@ export function AppNavigator() {
         component={TransportDetailScreen}
         options={{ headerShown: false }}
       />
-
-
+      <Stack.Screen 
+        name="MoneyExchange" 
+        component={MoneyExchangeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="BrokerList" 
+        component={BrokerListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="BrokerDetail" 
+        component={BrokerDetailScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen 
         name="ExploreMatches" 
         component={ExploreMatchesScreen}
         options={{ headerShown: false, title: "Africa Cup of Nations"  }}
-      
-     
       />
-
+      <Stack.Screen 
+        name="Bookmark" 
+        component={BookmarkScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

@@ -10,7 +10,7 @@ import QRCodesContainer from '../containers/QRCodesContainer';
 import AddQRCodeModal from '../containers/AddQRCodeModal';
 import Button from '../components/Button';
 import { RootStackParamList } from '../types/navigation';
-import QRCode from '../model/qrcode';
+import QRCode from '../types/qrcode';
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../hooks/reduxHooks';

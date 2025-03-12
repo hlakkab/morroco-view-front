@@ -49,12 +49,12 @@ const CardItem: React.FC<CardItemProps> = ({
       onPress={onCardPress}
       disabled={!onCardPress}
     >
-      {svgImage || (imageUrl && (
+      {(imageUrl && (
         <Image 
           source={{ uri: imageUrl }} 
           style={[styles.cardImage, imageStyle]} 
         />
-      ))}
+      )) || svgImage}
       
       <View style={[styles.cardContent, contentStyle]}>
         <View style={styles.tagsRow}>
@@ -124,10 +124,11 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   cardImage: {
-    width: 100,
-    height: 70,
+    width: 110,
+    height: 80,
     borderRadius: 8,
     marginRight: 10,
+    alignSelf: 'center',
   },
   cardContent: {
     flex: 1,

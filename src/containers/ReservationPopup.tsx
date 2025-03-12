@@ -1,23 +1,57 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Button from '../components/Button';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
 
 interface ReservationPopupProps {
   onClose: () => void;
   title: string;
   price: number;
+  pickupId: string;
 }
 
-const ReservationPopup: React.FC<ReservationPopupProps> = ({ onClose, title, price }) => {
-  const [pickupDate, setPickupDate] = useState('');
-  const [pickupTime, setPickupTime] = useState('');
+const ReservationPopup: React.FC<ReservationPopupProps> = ({ onClose, title, price, pickupId }) => {
+  const dispatch = useAppDispatch();
+  const { bookingStatus, bookingError } = useAppSelector((state) => state.hotelPickupDetails);
+  const [pickupDate, setPickupDate] = useState('2025-05-01');
+  const [pickupTime, setPickupTime] = useState('12:00');
   const [hotelLocation, setHotelLocation] = useState('');
   
-  const handleSubmit = () => {
-    // Handle reservation submission
-    console.log({ pickupDate, pickupTime, hotelLocation });
-    onClose();
+  useEffect(() => {
+    // Reset booking status when component mounts
+    dispatch(resetBookingStatus());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Handle successful booking
+    if (bookingStatus === 'succeeded') {
+      onClose();
+    }
+  }, [bookingStatus, onClose]);
+  
+  const handleSubmit = async () => {
+
+    
+    if (!pickupDate || !pickupTime || !hotelLocation) {
+      // You might want to show an error message to the user here
+      return;
+    }
+
+    console.log(pickupDate, pickupTime, hotelLocation);
+
+    try {
+      await dispatch(bookPickupReservation({
+        pickupId,
+        pickupDate,
+        pickupTime,
+        hotelLocation,
+      })).unwrap();
+    } catch (error) {
+      // Error is handled by the reducer
+      console.error('Failed to book pickup:', error);
+    }
   };
 
   return (
@@ -77,7 +111,7 @@ const ReservationPopup: React.FC<ReservationPopupProps> = ({ onClose, title, pri
                   <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="DD/MM/YYYY"
+                    placeholder="YYYY-MM-DD"
                     value={pickupDate}
                     onChangeText={setPickupDate}
                     placeholderTextColor="#999"
@@ -92,7 +126,7 @@ const ReservationPopup: React.FC<ReservationPopupProps> = ({ onClose, title, pri
                   <TextInput
                     style={styles.input}
                     placeholder="HH:MM"
-                    value={pickupTime}
+                    value={pickupTime || '12:00'}
                     onChangeText={setPickupTime}
                     placeholderTextColor="#999"
                   />
@@ -111,6 +145,10 @@ const ReservationPopup: React.FC<ReservationPopupProps> = ({ onClose, title, pri
                 placeholderTextColor="#999"
               />
             </View>
+            
+            {bookingError && (
+              <Text style={styles.errorText}>{bookingError}</Text>
+            )}
           </View>
         </View>
 
@@ -120,6 +158,8 @@ const ReservationPopup: React.FC<ReservationPopupProps> = ({ onClose, title, pri
             style={styles.confirmButton}
             icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
             onPress={handleSubmit}
+            loading={bookingStatus === 'loading'}
+            disabled={bookingStatus === 'loading'}
           />
         </View>
       </View>
@@ -312,6 +352,12 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: '#008060',
+  },
+  errorText: {
+    color: '#CE1126',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
 

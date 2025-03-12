@@ -10,51 +10,56 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchHotelPickups, setSelectedCity, setSearchQuery } from '../store/hotelPickupSlice';
 import { HotelPickup } from '../types/transport';
 
-// Sample data for fallback
-const SAMPLE_TRANSPORTS = [
-  {
-    id: '1',
-    imageUrl: '',
-    title: 'Marrakech Airport to your hotel',
-    price: 100,
-    isPrivate: true,
-    city: 'Marrakech',
-  },
-  {
-    id: '2',
-    imageUrl: '',
-    title: 'Marrakech Airport to your hotel',
-    price: 100,
-    isPrivate: true,
-    city: 'Marrakech',
-  },
-  {
-    id: '3',
-    imageUrl: '',
-    title: 'Marrakech Airport to your hotel',
-    price: 100,
-    isPrivate: true,
-    city: 'Marrakech',
-  },
-  {
-    id: '4',
-    imageUrl: '',
-    title: 'Rabat Airport to your hotel',
-    price: 120,
-    isPrivate: true,
-    city: 'Rabat',
-  },
-  {
-    id: '5',
-    imageUrl: '',
-    title: 'Agadir Airport to your hotel',
-    price: 90,
-    isPrivate: true,
-    city: 'Agadir',
-  },
-];
+// // Sample data for fallback
+// const SAMPLE_TRANSPORTS = [
+//   {
+//     id: '1',
+//     imageUrl: '',
+//     title: 'Marrakech Airport to your hotel',
+//     price: 100,
+//     isPrivate: true,
+//     city: 'Marrakech',
+//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
+//   },
+//   {
+//     id: '2',
+//     imageUrl: '',
+//     title: 'Marrakech Airport to your hotel',
+//     price: 100,
+//     isPrivate: true,
+//     city: 'Marrakech',
+//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
+//   },
+//   {
+//     id: '3',
+//     imageUrl: '',
+//     title: 'Marrakech Airport to your hotel',
+//     price: 100,
+//     isPrivate: true,
+//     city: 'Marrakech',
+//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
+//   },
+//   {
+//     id: '4',
+//     imageUrl: '',
+//     title: 'Rabat Airport to your hotel',
+//     price: 120,
+//     isPrivate: true,
+//     city: 'Rabat',
+//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
+//   },
+//   {
+//     id: '5',
+//     imageUrl: '',
+//     title: 'Agadir Airport to your hotel',
+//     price: 90,
+//     isPrivate: true,
+//     city: 'Agadir',
+//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
+//   },
+// ];
 
-const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes'];
+const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes', 'Tanger'];
 
 const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();

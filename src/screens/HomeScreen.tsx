@@ -37,8 +37,8 @@ const HomeScreen: React.FC = () => {
   };
   
   const handleNavigation = (routeName: string) => {
-    // Navigate to the selected route
-    if (routeName in navigation.getState().routeNames) {
+    const routes = navigation.getState().routeNames as Array<keyof RootStackParamList>;
+    if (routes.includes(routeName as keyof RootStackParamList)) {
       navigation.navigate(routeName as keyof RootStackParamList);
     } else {
       console.log(`Invalid navigation destination: ${routeName}`);
