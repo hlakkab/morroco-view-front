@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import { FontAwesome } from '@expo/vector-icons';
 interface CardItemProps {
   imageUrl?: string;
   title: string;
@@ -92,7 +92,7 @@ const CardItem: React.FC<CardItemProps> = ({
       </View>
       
       {actionIcon && (
-        <TouchableOpacity 
+  /*      <TouchableOpacity 
           style={styles.actionButton} 
           onPress={onActionPress}
           disabled={!onActionPress}
@@ -101,9 +101,28 @@ const CardItem: React.FC<CardItemProps> = ({
             styles.actionIconContainer, 
             isSaved && styles.savedIconContainer
           ]}>
+            
             {actionIcon}
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity>*/
+      <TouchableOpacity
+      style={styles.actionButton}
+      onPress={onActionPress}
+      disabled={!onActionPress}
+    >
+      <View style={[
+        styles.actionIconContainer,
+        isSaved && styles.savedIconContainer
+      ]}>
+        <FontAwesome
+          name={isSaved ? "bookmark" : "bookmark-o"}
+          size={18}
+          color={isSaved ? "#888888" : "#000"}
+        />
+      </View>
+    </TouchableOpacity>
+
+
       )}
     </TouchableOpacity>
   );
@@ -193,8 +212,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   savedIconContainer: {
-    backgroundColor: 'grey',
-    borderColor: '#666',
+    backgroundColor: '#E6E6E6',
+    borderColor: '#E6E6E6',
   },
 });
 

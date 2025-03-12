@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import TextWithMore from './TextWithMore';
 
 interface AboutSectionProps {
-  title: string;
+  title?: string;
   text: string;
   style?: any;
 }

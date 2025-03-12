@@ -5,6 +5,8 @@ import HeaderContainer from '../containers/HeaderContainer';
 import MatchCard from '../components/MatchCard';
 import MatchPopup from '../components/MatchPopup';
 import { Match, Team } from '../types/match';
+import SearchBar from '../components/SearchBar';
+
 
 // Définir les équipes
 const teams: Record<string, Team> = {
@@ -64,6 +66,8 @@ const ExploreMatchesScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [savedMatches, setSavedMatches] = useState<Record<string, boolean>>({});
+  // Ajouter l'état pour la recherche
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleCardPress = (match: Match) => {
     setSelectedMatch(match);
@@ -85,17 +89,46 @@ const ExploreMatchesScreen: React.FC = () => {
     }, 300);
   };
 
+   // Gestionnaires pour la barre de recherche
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+    // Vous pourriez ajouter ici une logique pour filtrer les matchs
+  };
+
+  const handleFilterPress = () => {
+    // Gérer l'appui sur le bouton de filtre
+    console.log('Filter pressed');
+  };
+
+  // Filtrer les matchs en fonction de la recherche
+  const filteredMatches = matches.filter(match => 
+    match.teams.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    match.stadium?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (typeof match.location === 'object' ? 
+      match.location.address.toLowerCase().includes(searchQuery.toLowerCase()) : 
+      match.location?.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header fixe */}
         <View style={styles.headerFixed}>
-          <HeaderContainer />
-          <SearchFilterContainer />
+        <HeaderContainer />
+         {/* <SearchFilterContainer />*/}
+         {/* Remplacer SearchFilterContainer par la nouvelle SearchBar */}
+         <View style={styles.searchBarContainer}>
+            <SearchBar
+              placeholder="Search matches..."
+              onChangeText={handleSearch}
+              onFilterPress={handleFilterPress}
+              value={searchQuery}
+            />
+          </View>
         </View>
 
         <FlatList
-          data={matches}
+          data={filteredMatches}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <MatchCard
@@ -158,6 +191,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  searchBarContainer: {
+    position: 'absolute',
+    top: 110, // Ajustez cette valeur selon la hauteur de votre HeaderContainer
+    left: 0,
+    right: 0,
+    zIndex: 9,
   },
 });
 

@@ -121,7 +121,7 @@ const TransportDetailScreen: React.FC = () => {
             <Ionicons 
               name={isSaved ? "bookmark" : "bookmark-outline"} 
               size={24} 
-              color={isSaved ? "#fff" : "#000"} 
+              color={isSaved ? "white" : "white"  } 
             />
           </TouchableOpacity>
           
@@ -241,10 +241,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    backgroundColor: 'white',
+    //backgroundColor: 'white',
+    opacity: 0.7,
     width: 40,
     height: 40,
     borderRadius: 20,
+    borderWidth: 1.7,
+    borderColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -254,7 +257,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   savedButton: {
-    backgroundColor: '#666',
+      backgroundColor: 'grey',
+      opacity: 1,
   },
   paginationContainer: {
     position: 'absolute',
