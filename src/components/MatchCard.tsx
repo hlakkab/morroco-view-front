@@ -1,117 +1,196 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { Match } from "../types/match";
 
 interface MatchCardProps {
-  match: {
-    id: string;
-    status: string;
-    team1Image: string;
-    team2Image: string;
-    teams: string;
-    date: string;
-  };
+  match: Match;
   onPress?: () => void;
+  onSavePress?: () => void;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ match, onPress }) => {
+const MatchCard: React.FC<MatchCardProps> = ({
+  match,
+  onPress,
+  onSavePress
+}) => {
+  const isSaved = match.isSaved || false;
+
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <View style={styles.card}>
-        <View style={styles.contentContainer}>
-          {/* Image des équipes 
-          <Image source={{ uri: match.image }} style={styles.matchImage} /> */}
-
-<View style={styles.teamImagesContainer}>
-  <Image source={{ uri: match.team1Image }} style={styles.teamImage} />
-  <Text style={styles.vsText}>VS</Text>
-  <Image source={{ uri: match.team2Image }} style={styles.teamImage} />
-</View>
-
-
-          {/* Détails du match */}
-          <View style={styles.detailsContainer}>
-            <View style={styles.statusContainer}>
-              <Text style={styles.statusText}>{match.status}</Text>
-            </View>
-            <Text style={styles.teamsText}>{match.teams}</Text>
-            <Text style={styles.matchDetails}>{match.date}</Text>
-          </View>
-          {/* Bouton de sauvegarde */}
-          <TouchableOpacity style={styles.saveButton}>
-            <FontAwesome name="bookmark-o" size={24} color="#000" />
-          </TouchableOpacity>
-        </View>
+    <TouchableOpacity
+      style={styles.cardContainer}
+      onPress={onPress}
+      activeOpacity={0.8}
+      disabled={!onPress}
+    >
+      {/* Images des équipes avec VS au milieu */}
+      <View style={styles.teamsImageContainer}>
+        {(match.homeTeam && match.awayTeam) ? (
+          <>
+            <Image source={{ uri: match.homeTeam.flag }} style={styles.teamFlag} />
+            <Text style={styles.vsText}>VS</Text>
+            <Image source={{ uri: match.awayTeam.flag }} style={styles.teamFlag} />
+          </>
+        ) : (match.team1Image && match.team2Image) ? (
+          <>
+            <Image source={{ uri: match.team1Image }} style={styles.teamFlag} />
+            <Text style={styles.vsText}>VS</Text>
+            <Image source={{ uri: match.team2Image }} style={styles.teamFlag} />
+          </>
+        ) : (
+          <Image source={{ uri: match.image }} style={styles.matchImage} />
+        )}
       </View>
+
+      {/* Détails du match */}
+      <View style={styles.cardContent}>
+        <View style={styles.tagsRow}>
+          <View style={styles.mainTagContainer}>
+            <Ionicons name="football-outline" size={12} color="#0000FF" />
+            <Text style={styles.mainTagText}>{match.status}</Text>
+          </View>
+
+          {match.location && (
+            <Text style={styles.secondaryTagText}>
+              {typeof match.location === 'string'
+                ? match.location
+                : match.location.address.split(',')[0]} {/* Affiche seulement la première partie de l'adresse */}
+            </Text>
+          )}
+        </View>
+
+        <Text style={styles.cardTitle}>{match.teams}</Text>
+
+        <Text style={styles.cardSubtitle}>{match.date}</Text>
+      </View>
+
+      {/* Bouton de sauvegarde */}
+      <TouchableOpacity
+        style={styles.actionButton}
+        onPress={onSavePress}
+        disabled={!onSavePress}
+      >
+        <View style={[
+          styles.actionIconContainer,
+          isSaved && styles.savedIconContainer
+        ]}>
+          <FontAwesome
+            name={isSaved ? "bookmark" : "bookmark-o"}
+            size={18}
+            color={isSaved ? "#888888" : "#000"}
+          />
+        </View>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
 
-
 const styles = StyleSheet.create({
-  card: {
-    width: 351,
-    minHeight: 99,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
+  cardContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
     padding: 12,
-    marginVertical: 6,
   },
-  contentContainer: {
+  teamsImageContainer: {
+    width: 100,
+    height: 70,
+    borderRadius: 8,
+    backgroundColor: "#F6FAFF",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-around",
+    marginRight: 10,
   },
-  teamImage: {
-    width: 101,
-    height: 70,
-    borderRadius: 10,
-  },
-  teamImagesContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  teamFlag: {
+    width: 35,
+    height: 25,
+    borderRadius: 5,
   },
   vsText: {
-    marginHorizontal: 8,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  detailsContainer: {
-    flex: 1,
-    justifyContent: "center",
-    marginHorizontal: 8,
-  },
-  statusContainer: {
-    backgroundColor: "#F6FAFF",
-    borderRadius: 10,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    alignSelf: "flex-start",
-  },
-  statusText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "bold",
-    color: "#000",
+    color: "#555",
   },
-  teamsText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#000",
-    marginTop: 4,
+  matchImage: {
+    width: 100,
+    height: 70,
+    borderRadius: 8,
   },
-  matchDetails: {
+  cardContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  mainTagContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F6FAFF',
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderRadius: 16,
+    marginRight: 8,
+  },
+  mainTagText: {
     fontSize: 10,
-    fontWeight: "300",
-    color: "#000",
-    marginTop: 5,
+    color: '#0000FF',
+    fontWeight: '500',
+    marginLeft: 4,
   },
-  saveButton: {
+  secondaryTagText: {
+    fontSize: 10,
+    color: '#888',
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 4,
+  },
+  priceContainer: {
+  },
+  priceText: {
+    fontSize: 12,
+    color: '#888',
+  },
+  priceValue: {
+    color: '#E53935',
+    fontWeight: '600',
+  },
+  actionButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 6,
+  },
+  actionIconContainer: {
     width: 34,
     height: 34,
-    alignItems: "center",
-    justifyContent: "center",
     borderRadius: 17,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  savedIconContainer: {
+    backgroundColor: '#E6E6E6',
+    borderColor: '#E6E6E6',
   },
 });
 

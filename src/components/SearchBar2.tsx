@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Octicons from '@expo/vector-icons/Octicons';
 
-const SearchBar = () => {
+const SearchBar2 = () => {   
   return (
     <View style={styles.searchContainer}>
         <Octicons name="search" size={24} color="black" style={styles.icon}/>
@@ -49,6 +49,6 @@ const styles = StyleSheet.create({
 
 });
 
-export default SearchBar;
+export default SearchBar2;
 
 

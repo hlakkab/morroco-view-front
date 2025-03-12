@@ -1,13 +1,13 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import SearchBar from "../components/SearchBar2";
 import FilterButton from "../components/FilterButton";
+import SearchBar2 from "../components/SearchBar2";
 
 const SearchFilterContainer = () => {
   return (
     <View style={styles.container}>
       <View style={styles.searchBarWrapper}>
-        <SearchBar />
+        <SearchBar2 />
         <View style={styles.filterButtonContainer}>
           <FilterButton onPress={() => console.log("Filter clicked")} />
         </View>      </View>
