@@ -7,64 +7,23 @@ import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import HotelPickupListContainer from '../containers/HotelPickupListContainer';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchHotelPickups, setSelectedCity, setSearchQuery } from '../store/hotelPickupSlice';
-import { HotelPickup } from '../types/transport';
+import { fetchHotelPickups, setSelectedFromCity, setSelectedToCity, setSearchQuery } from '../store/hotelPickupSlice';
 
-// // Sample data for fallback
-// const SAMPLE_TRANSPORTS = [
-//   {
-//     id: '1',
-//     imageUrl: '',
-//     title: 'Marrakech Airport to your hotel',
-//     price: 100,
-//     isPrivate: true,
-//     city: 'Marrakech',
-//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
-//   },
-//   {
-//     id: '2',
-//     imageUrl: '',
-//     title: 'Marrakech Airport to your hotel',
-//     price: 100,
-//     isPrivate: true,
-//     city: 'Marrakech',
-//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
-//   },
-//   {
-//     id: '3',
-//     imageUrl: '',
-//     title: 'Marrakech Airport to your hotel',
-//     price: 100,
-//     isPrivate: true,
-//     city: 'Marrakech',
-//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
-//   },
-//   {
-//     id: '4',
-//     imageUrl: '',
-//     title: 'Rabat Airport to your hotel',
-//     price: 120,
-//     isPrivate: true,
-//     city: 'Rabat',
-//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
-//   },
-//   {
-//     id: '5',
-//     imageUrl: '',
-//     title: 'Agadir Airport to your hotel',
-//     price: 90,
-//     isPrivate: true,
-//     city: 'Agadir',
-//     svgImage: <HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />,
-//   },
-// ];
+
 
 const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes', 'Tanger'];
 
 const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
-  const { hotelPickups, selectedCity, searchQuery, loading, error } = useAppSelector(
+  const { 
+    hotelPickups, 
+    selectedFromCity, 
+    selectedToCity, 
+    searchQuery, 
+    loading, 
+    error 
+  } = useAppSelector(
     (state) => state.hotelPickup
   );
 
@@ -74,7 +33,7 @@ const HotelPickupScreen: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await dispatch(fetchHotelPickups()).unwrap();
+        await dispatch(fetchHotelPickups(selectedFromCity)).unwrap();
       } catch (error) {
         console.error('Failed to fetch hotel pickups:', error);
         setUseSampleData(true); // Fallback to sample data if API fails
@@ -82,7 +41,7 @@ const HotelPickupScreen: React.FC = () => {
     };
     
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, selectedFromCity]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -97,10 +56,14 @@ const HotelPickupScreen: React.FC = () => {
     console.log('Filter pressed');
   };
 
-  const handleSelectCity = (city: string) => {
-    dispatch(setSelectedCity(city));
+  const handleSelectCity = (city: string, type: 'from' | 'to') => {
+    console.log('Selected city:', city, type);
+    if (type === 'from') {
+      dispatch(setSelectedFromCity(city));
+    } else {
+      dispatch(setSelectedToCity(city));
+    }
   };
-
 
 
   if (loading) {
@@ -133,7 +96,8 @@ const HotelPickupScreen: React.FC = () => {
         <HotelPickupListContainer 
           pickups={hotelPickups}
           cities={CITIES}
-          selectedCity={selectedCity}
+          selectedFromCity={selectedFromCity}
+          selectedToCity={selectedToCity}
           onSelectCity={handleSelectCity}
           isLoading={loading}
         />

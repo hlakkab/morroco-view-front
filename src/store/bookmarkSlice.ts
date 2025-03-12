@@ -19,13 +19,6 @@ export const fetchBookmarks = createAsyncThunk(
   }
 );
 
-export const addBookmark = createAsyncThunk(
-  'bookmarks/addBookmark',
-  async (bookmark: Bookmark) => {
-    const response = await api.post(`/bookmarks`, bookmark);
-    return response.data;
-  }
-);
 
 export const removeBookmark = createAsyncThunk(
   'bookmarks/removeBookmark',
@@ -54,19 +47,7 @@ const bookmarkSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch bookmarks';
       })
-      // Add bookmark
-      .addCase(addBookmark.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(addBookmark.fulfilled, (state, action) => {
-        state.loading = false;
-        state.bookmarks.push(action.payload);
-      })
-      .addCase(addBookmark.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to add bookmark';
-      })
+      
       // Remove bookmark
       .addCase(removeBookmark.pending, (state) => {
         state.loading = true;

@@ -28,11 +28,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
   };
 
   const handleCardPress = (item: Bookmark) => {
-    navigation.navigate('TransportDetail', {
-      id: item.id,
-      title: item.title,
-      imageUrl: item.image || ''
-    });
+    
   };
 
   if (loading) {
@@ -65,7 +61,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <CardItem
-              imageUrl={item.image}
+              imageUrl={item.images[0]}
               svgImage={<HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />}
               title={item.title}
               actionIcon={
@@ -75,6 +71,12 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
                   color="#666"
                 />
               }
+              tags={[{
+                id: 'pickup',
+                label: 'Pickup',
+                icon: <Ionicons name="car-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
+                textStyle: { color: '#008060', fontWeight: '500' }
+              }]}
               isSaved={true}
               onActionPress={() => handleSaveBookmark(item.id)}
               onCardPress={() => handleCardPress(item)}

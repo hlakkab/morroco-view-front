@@ -5,6 +5,7 @@ export interface HotelPickup {
   price: number;
   private: boolean;
   city: string;
+  saved: boolean;
 }
 
 export interface HotelPickupDetails extends HotelPickup {
@@ -21,7 +22,8 @@ export interface HotelPickupState {
   hotelPickups: HotelPickup[];
   loading: boolean;
   error: string | null;
-  selectedCity: string;
+  selectedFromCity: string;
+  selectedToCity: string;
   searchQuery: string;
 }
 

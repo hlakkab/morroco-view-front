@@ -1,15 +1,17 @@
 import React from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  Modal, 
-  TouchableOpacity, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
   Dimensions,
   Animated,
-  PanResponder
+  PanResponder,
+  ImageSourcePropType
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import QRCodeSVG from 'react-native-qrcode-svg';
 
 // Replace with your actual QR code component or image
 import QRCodeImageSvg from '../assets/serviceIcons/qrcode-icon.svg';
@@ -19,18 +21,18 @@ interface QRCodeModalProps {
   title: string;
   onClose: () => void;
   // Optional custom content to display instead of default QR code
-  customQRContent?: React.ReactNode;
+  data: string;
 }
 
-const QRCodeModal: React.FC<QRCodeModalProps> = ({ 
-  visible, 
-  title, 
+const QRCodeModal: React.FC<QRCodeModalProps> = ({
+  visible,
+  title,
   onClose,
-  customQRContent 
+  data
 }) => {
   // Create animated value for drag gesture
   const pan = React.useRef(new Animated.ValueXY()).current;
-  
+
   // Create pan responder for drag to dismiss
   const panResponder = React.useRef(
     PanResponder.create({
@@ -71,7 +73,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.centeredView}>
-        <Animated.View 
+        <Animated.View
           style={[
             styles.modalView,
             { transform: [{ translateY: pan.y }] }
@@ -82,7 +84,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
-            
+
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -90,9 +92,16 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
               </TouchableOpacity>
             </View>
           </View>
-          
+
           <View style={styles.modalContent}>
-            {customQRContent || <QRCodeImageSvg width={width * 0.8} height={width * 0.8} />}
+            {data ? <QRCodeSVG
+              value={data}
+              size={200}
+              color="black"
+              backgroundColor="transparent"
+              logo={require('../assets/img/morroco-view-logo.svg')}
+            /> 
+            : <QRCodeImageSvg width={width * 0.8} height={width * 0.8} />}
           </View>
         </Animated.View>
       </View>

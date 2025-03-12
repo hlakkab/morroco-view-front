@@ -1,6 +1,7 @@
 export interface Bookmark {
   id: string;
-  image: string;
+  images: string[];
+  type: string;
   title: string;
 }
 

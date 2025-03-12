@@ -6,13 +6,14 @@ interface QRCodeCardProps {
   key: any,
   title: string;
   description: string;
+  data: string;
   onPress?: () => void;
 }
 
-  const QRCodeCard: React.FC<QRCodeCardProps> = ({ key, title, description, onPress })  => {
+  const QRCodeCard: React.FC<QRCodeCardProps> = ({title, description, onPress })  => {
   return (
     <TouchableOpacity style={styles.qrCodeCard} onPress={onPress} activeOpacity={0.7}>
-      <QrCodeSvg width={48} height={48} />
+      <QrCodeSvg width={48} height={48}/>
       <View style={styles.qrCodeDetails}>
         <Text style={styles.qrCodeTitle}>{title}</Text>
         <Text style={styles.qrCodeSubtitle}>{description}</Text>

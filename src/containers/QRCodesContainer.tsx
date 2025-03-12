@@ -38,7 +38,8 @@ const QRCodesContainer: React.FC<QRCodesContainerProps> = ({ searchQuery = '' })
         {filteredQrCodes.map(qrCode => (
           <QRCodeCard
             key={qrCode.id}
-            title={qrCode.title} 
+            title={qrCode.title}
+            data={qrCode.data}
             description={qrCode.description}
             onPress={() => handleQrCodePress(qrCode)}
           />
@@ -51,7 +52,7 @@ const QRCodesContainer: React.FC<QRCodesContainerProps> = ({ searchQuery = '' })
           visible={modalVisible}
           title={selectedQrCode.title}
           onClose={handleCloseModal}
-          customQRContent={<QRCodeLargeSvg width={300} height={300} />}
+          data={selectedQrCode.data}
         />
       )}
     </>

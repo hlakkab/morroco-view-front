@@ -1,52 +1,56 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/CardItem';
 import FilterSelector from '../components/FilterSelector';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { HotelPickup } from '../types/transport';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { toggleHotelPickupBookmark } from '../store/hotelPickupSlice';
 
 interface HotelPickupListContainerProps {
   pickups: HotelPickup[];
   cities: string[];
-  selectedCity: string;
-  onSelectCity: (city: string) => void;
+  selectedFromCity: string;
+  selectedToCity: string;
+  onSelectCity: (city: string, type: 'from' | 'to') => void;
   isLoading: boolean;
 }
 
-const AIRPORTS = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes'];
 
 const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   pickups,
   cities,
-  selectedCity,
+  selectedFromCity,
+  selectedToCity,
   onSelectCity,
   isLoading,
 }) => {
-  const [savedPickups, setSavedPickups] = useState<string[]>([]);
-  const [selectedAirport, setSelectedAirport] = useState(AIRPORTS[0]);
+  const [selectedAirport, setSelectedAirport] = useState(selectedFromCity);
+  const [selectedCity, setSelectedCity] = useState(selectedToCity);
+  const dispatch = useAppDispatch();
+  const bookmarks = useAppSelector(state => state.bookmark.bookmarks);
 
   const filteredPickups = pickups;
 
-  const handleSavePickup = (id: string) => {
-    setSavedPickups(prev => 
-      prev.includes(id) 
-        ? prev.filter(savedId => savedId !== id) 
-        : [...prev, id]
-    );
+  const handleSavePickup = (pickup: HotelPickup) => {
+    dispatch(toggleHotelPickupBookmark(pickup));
   };
 
+  const fromCities = [selectedAirport, ...cities.filter(city => city !== selectedFromCity)];
+  const toCities = [selectedCity, ...cities.filter(city => city !== selectedToCity)];
+
   // Convert airports to filter options format
-  const airportOptions = AIRPORTS.map(airport => ({
-    id: airport,
-    label: airport + ' Airport',
-    icon: <Ionicons name="airplane-outline" size={16} color={selectedAirport === airport ? '#fff' : '#888'} style={{ marginRight: 4 }} />
+  const airportOptions = fromCities.map(city => ({
+    id: city,
+    label: city + ' Airport',
+    icon: <Ionicons name="airplane-outline" size={16} color={selectedAirport === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
   }));
 
   // Convert cities to filter options format
-  const cityOptions = cities.map(city => ({
+  const cityOptions = toCities.map(city => ({
     id: city,
     label: city,
     icon: <Ionicons name="location-outline" size={16} color={selectedCity === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
@@ -72,7 +76,12 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
             title="From :"
             options={airportOptions}
             selectedOptionId={selectedAirport}
-            onSelectOption={setSelectedAirport}
+            onSelectOption={(option) => {
+              setSelectedAirport(_ => {
+                onSelectCity(option, 'from')
+                return option
+              })
+            }}
             containerStyle={styles.filterContainer}
           />
         </View>
@@ -84,7 +93,12 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
             title="To :"
             options={cityOptions}
             selectedOptionId={selectedCity}
-            onSelectOption={onSelectCity}
+            onSelectOption={(option) => {
+              setSelectedCity(_ => {
+                onSelectCity(option, 'to')
+                return option
+              })
+            }}
             containerStyle={styles.filterContainer}
           />
         </View>
@@ -124,13 +138,13 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
               ]}
               actionIcon={
                 <Ionicons 
-                  name={savedPickups.includes(item.id) ? "bookmark" : "bookmark-outline"} 
+                  name={item.saved ? "bookmark" : "bookmark-outline"} 
                   size={20} 
-                  color={savedPickups.includes(item.id) ? "#666" : "#000"} 
+                  color={item.saved ? "#666" : "#000"} 
                 />
               }
-              isSaved={savedPickups.includes(item.id)}
-              onActionPress={() => handleSavePickup(item.id)}
+              isSaved={item.saved}
+              onActionPress={() => handleSavePickup(item)}
               onCardPress={() => handleCardPress(item)}
             />
           )}
