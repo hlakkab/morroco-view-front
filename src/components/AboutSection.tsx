@@ -1,37 +1,92 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import TextWithMore from './TextWithMore';
 
 interface AboutSectionProps {
-  title?: string;
+  title?: string; // Titre optionnel
   text: string;
-  style?: any;
+  style?: any; // Style pour le texte (rendu optionnel)
+  titleStyle?: any; // Style pour le titre (rendu optionnel)
 }
 
-const AboutSection: React.FC<AboutSectionProps> = ({ title, text, style }) => {
+const AboutSection: React.FC<AboutSectionProps> = ({ 
+  title = "About", // Valeur par défaut
+  text, 
+  style, 
+  titleStyle 
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showViewMore, setShowViewMore] = useState(false);
+  const [truncatedText, setTruncatedText] = useState('');
+
   return (
-    <View style={styles.aboutSection}>
-      <Text style={styles.title}>{title}</Text>
-      <TextWithMore text={text} style={[styles.aboutText, style]} />
+    <View>
+      {/* Afficher le titre s'il est fourni */}
+      {title && (
+        <Text style={[styles.aboutTitle, titleStyle]}>
+          {title}
+        </Text>
+      )}
+      
+      <Text
+        style={[styles.aboutText, style]}
+        numberOfLines={isExpanded ? undefined : 3}
+        onTextLayout={(e) => {
+          if (e.nativeEvent.lines.length > 3 && !showViewMore) {
+            setShowViewMore(true);
+            // Get the text of the first 3 lines
+            const thirdLineEnd = e.nativeEvent.lines[2]?.end || 0;
+            if (thirdLineEnd > 0) {
+              // Leave some space for "... View More"
+              setTruncatedText(text.slice(0, thirdLineEnd - 10) + '...');
+            }
+          }
+        }}
+      >
+        {isExpanded ? text : truncatedText || text}
+      </Text>
+      
+      {/* Separate "View More/Less" button as its own Text component */}
+      {showViewMore && (
+        <Text 
+          style={styles.viewMoreText}
+          onPress={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? 'View Less' : 'View More'}
+        </Text>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  aboutSection: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
+  aboutTitle: {
+    width: 322,
+    height: 30,
+    marginTop: 25,
+    marginLeft: 6,
+    fontFamily: 'Raleway',
     fontWeight: '700',
-    marginBottom: 8,
-    color: '#000',
+    fontSize: 24,
+    lineHeight: 31,
+    color: '#000000',
   },
   aboutText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#444',
+    width: 322,
+    marginTop: 10,
+    marginLeft: 6,
+    fontFamily: 'Raleway',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 18,
+    color: '#000000',
   },
+  viewMoreText: {
+    fontFamily: 'Raleway',
+    color: '#AE1913',
+    marginTop: 4,
+    marginLeft: 6,
+    fontWeight: '500',
+  }
 });
 
 export default AboutSection;
