@@ -1,16 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  Dimensions,
   Animated,
+  Dimensions,
+  ImageSourcePropType,
+  Modal,
   PanResponder,
-  ImageSourcePropType
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import QRCodeSVG from 'react-native-qrcode-svg';
 
 // Replace with your actual QR code component or image
@@ -86,7 +86,11 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
             </View>
 
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{title}</Text>
+              <View style={styles.titleContainer}>
+                <Text style={styles.modalTitle} numberOfLines={1} ellipsizeMode="tail">
+                  {title}
+                </Text>
+              </View>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <Ionicons name="close" size={16} color="black" />
               </TouchableOpacity>
@@ -145,14 +149,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     width: '100%',
-    height: height * 0.6, // Take up 70% of screen height
+    height: height * 0.6, // Take up 60% of screen height
   },
   modalHeader: {
     flexDirection: 'row',
     width: '100%',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 16,
   },
   modalTitle: {
     fontSize: 26,

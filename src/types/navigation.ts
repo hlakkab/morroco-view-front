@@ -1,4 +1,3 @@
-
 import { NavigationProp } from "@react-navigation/native";
 
 export type RootStackParamList = {
@@ -9,7 +8,31 @@ export type RootStackParamList = {
     ESIM: undefined;
     QRCodes: undefined;
     HotelPickup: undefined;
-    TransportDetail: undefined;
+    TransportDetail: {
+        id: string;
+        title: string;
+        imageUrl: string;
+        price?: number;
+        isPrivate?: boolean;
+    };
+    BrokerDetail: {
+        id: string;
+        name: string;
+        imageUrl?: string;
+        location: string;
+        rating?: number;
+        isFeatured?: boolean;
+        exchangeRates?: {
+            buy: number;
+            sell: number;
+        };
+        services?: string[];
+        operatingHours?: string;
+        contactNumber?: string;
+        website?: string;
+        about?: string;
+        isSaved?: boolean;
+    };
     Matches: undefined;
     Monuments: undefined;
     Restaurant: undefined;
@@ -21,7 +44,11 @@ export type RootStackParamList = {
     Account: undefined;
     EmergencyContacts: undefined;
     MoneyExchange: undefined;
-  };
-  
-  // Type alias for use with useNavigation hook
-  export type HomeScreenNavigationProp = NavigationProp<RootStackParamList>;
+    BrokerList: undefined;
+    ExploreMatches: undefined;
+    Test: undefined;
+    
+};
+
+// Type alias for use with useNavigation hook
+export type HomeScreenNavigationProp = NavigationProp<RootStackParamList>;

@@ -132,13 +132,13 @@ const BrokerDetailScreen: React.FC = () => {
           />
           
           <TouchableOpacity 
-            style={[styles.saveButton, isSaved && styles.savedButton]} 
+            style={[styles.saveButton, isSaved && styles.savedButton, {borderColor: isSaved ? "white" : "#666"}]} 
             onPress={handleSave}
           >
             <Ionicons 
               name={isSaved ? "bookmark" : "bookmark-outline"} 
               size={24} 
-              color={isSaved ? "#fff" : "#000"} 
+              color={isSaved ? "white" : "#666" }
             />
           </TouchableOpacity>
           
@@ -277,20 +277,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    backgroundColor: 'white',
+    opacity: 0.8,
     width: 40,
     height: 40,
     borderRadius: 20,
+    borderWidth: 1.7,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#4C4C4CBF',
+    borderColor: '#666',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
   },
   savedButton: {
-    backgroundColor: '#666',
+      opacity: 1,
+      backgroundColor: '#888888',
+      borderColor: '#fff',
   },
   paginationContainer: {
     position: 'absolute',

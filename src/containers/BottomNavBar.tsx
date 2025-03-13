@@ -20,9 +20,9 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive = false, onPress }) => {
   // Clone the icon element and pass the active state to it
   const iconWithActiveState = React.cloneElement(icon as React.ReactElement, {
-    fill: isActive ? '#AE1913' : '#fff',
-    stroke: isActive ? '#AE1913' : '#fff',
-    color: isActive ? '#AE1913' : '#fff',
+    // fill: isActive ? '#AE1913' : '#fff',
+    // stroke: isActive ? '#AE1913' : '#fff',
+    // color: isActive ? '#AE1913' : '#fff',
   });
 
   return (
@@ -46,31 +46,46 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) 
   return (
     <View style={styles.container}>
       <NavItem 
-        icon={<HomeIcon width={24} height={24} />}
+        icon={<HomeIcon width={24} height={24} 
+        fill={activeRoute === 'Home' ? '#AE1913' : '#666'} 
+        stroke={activeRoute === 'Home' ? '#AE1913' : '#666'} 
+        color={activeRoute === 'Home' ? '#AE1913' : '#666'} />}
         label="Home"
         isActive={activeRoute === 'Home'}
         onPress={() => onNavigate('Home')}
       />
       <NavItem 
-        icon={<BookmarkIcon width={24} height={24} />}
+        icon={<BookmarkIcon width={24} height={24} 
+        fill={activeRoute === 'Bookmark' ? '#AE1913' : '#fff'}
+        stroke={activeRoute === 'Bookmark' ? '#AE1913' : '#fff'}
+        color={activeRoute === 'Bookmark' ? '#AE1913' : '#fff'} />}
         label="Bookmark"
         isActive={activeRoute === 'Bookmark'}
         onPress={() => onNavigate('Bookmark')}
       />
       <NavItem 
-        icon={<TicketsIcon width={24} height={24} />}
+        icon={<TicketsIcon width={24} height={24} 
+        fill={activeRoute === 'Tickets' ? '#AE1913' : '#fff'}
+        stroke={activeRoute === 'Tickets' ? '#AE1913' : '#fff'}
+        color={activeRoute === 'Tickets' ? '#AE1913' : '#fff'} />}
         label="Tickets"
         isActive={activeRoute === 'Tickets'}
         onPress={() => onNavigate('Tickets')}
       />
       <NavItem 
-        icon={<ToursIcon width={24} height={24} />}
+        icon={<ToursIcon width={24} height={24} 
+        fill={activeRoute === 'Tours' ? '#AE1913' : '#fff'}
+        stroke={activeRoute === 'Tours' ? '#AE1913' : '#fff'}
+        color={activeRoute === 'Tours' ? '#AE1913' : '#fff'} />}
         label="Tours"
         isActive={activeRoute === 'Tours'}
         onPress={() => onNavigate('Tours')}
       />
       <NavItem 
-        icon={<AccountIcon width={24} height={24} />}
+        icon={<AccountIcon width={24} height={24} 
+        fill={activeRoute === 'Account' ? '#AE1913' : '#fff'}
+        stroke={activeRoute === 'Account' ? '#AE1913' : '#fff'}
+        color={activeRoute === 'Account' ? '#AE1913' : '#fff'} />}
         label="Account"
         isActive={activeRoute === 'Account'}
         onPress={() => onNavigate('Account')}

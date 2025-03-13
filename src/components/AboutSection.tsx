@@ -19,7 +19,6 @@ const AboutSection: React.FC<AboutSectionProps> = ({ title, text, style }) => {
 
 const styles = StyleSheet.create({
   aboutSection: {
-    marginBottom: 20,
   },
   title: {
     fontSize: 24,

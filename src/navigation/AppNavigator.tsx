@@ -1,5 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import AccountScreen from '../screens/AccountScreen';
+import BookmarkScreen from '../screens/BookmarkScreen';
 import BrokerDetailScreen from '../screens/BrokerDetailScreen';
 import BrokerListScreen from '../screens/BrokerListScreen';
 import ESIMScreen from '../screens/ESIMScreen';
@@ -11,8 +13,9 @@ import LoginScreen from '../screens/LoginScreen';
 import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
+import TicketsScreen from '../screens/TicketsScreen';
+import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
-import BookmarkScreen from '../screens/BookmarkScreen';
 
 
 export type RootStackParamList = {
@@ -38,11 +41,30 @@ export type RootStackParamList = {
     location: string;
     rating?: number;
     isFeatured?: boolean;
+    exchangeRates?: {
+      buy: number;
+      sell: number;
+    };
+    services?: string[];
+    operatingHours?: string;
+    contactNumber?: string;
+    website?: string;
+    about?: string;
+    isSaved?: boolean;
   };
   Test: undefined;
   MoneyExchange: undefined;
   BrokerList: undefined;
   ExploreMatches: undefined;
+  Tickets: undefined;
+  Tours: undefined;
+  Account: undefined;
+  Matches: undefined;
+  Monuments: undefined;
+  Restaurant: undefined;
+  Entertainment: undefined;
+  Artisans: undefined;
+  EmergencyContacts: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -124,6 +146,21 @@ export function AppNavigator() {
       <Stack.Screen 
         name="Bookmark" 
         component={BookmarkScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Tickets" 
+        component={TicketsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Tours" 
+        component={ToursScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Account" 
+        component={AccountScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

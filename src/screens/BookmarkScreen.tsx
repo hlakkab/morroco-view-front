@@ -1,13 +1,15 @@
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchBookmarks } from '../store/bookmarkSlice';
-import BookmarkListContainer from '../containers/BookmarkListContainer';
+import { Alert, SafeAreaView, StyleSheet, View } from 'react-native';
 import ScreenHeader from '../components/ScreenHeader';
+import BookmarkListContainer from '../containers/BookmarkListContainer';
+import BottomNavBar from '../containers/BottomNavBar';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { fetchBookmarks } from '../store/bookmarkSlice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 const BookmarkScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
   const { bookmarks, loading, error } = useAppSelector((state) => state.bookmark);
 
@@ -17,6 +19,12 @@ const BookmarkScreen: React.FC = () => {
 
   const handleBack = () => {
     navigation.goBack();
+  };
+
+  const handleNavigation = (routeName: string) => {
+    // Use a type assertion to tell TypeScript that routeName is a valid key
+    // @ts-ignore - We're handling navigation in a generic way
+    navigation.navigate(routeName);
   };
 
   return (
@@ -29,6 +37,8 @@ const BookmarkScreen: React.FC = () => {
           error={error}
         />
       </View>
+
+      <BottomNavBar activeRoute="Bookmark" onNavigate={handleNavigation} />
     </SafeAreaView>
   );
 };
