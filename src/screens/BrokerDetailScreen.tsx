@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
 import { Dimensions, FlatList, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import AboutSection from '../components/AboutSection';
+import AboutSection from '../components/AboutSection';        
 import Button from '../components/Button';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
@@ -195,7 +195,6 @@ const BrokerDetailScreen: React.FC = () => {
           <AboutSection 
             title="About" 
             text={brokerDetails.about || 'No information available for this broker.'} 
-            style={styles.aboutText} 
           />
 
           <LocationSection address={brokerDetails.location} />
@@ -418,11 +417,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: '#333',
-  },
-  aboutText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#444',
   },
   footer: {
     padding: 16,

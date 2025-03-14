@@ -11,7 +11,7 @@ const BackButton: React.FC = () => {
   return (
     <TouchableOpacity
       style={styles.backButton}
-      onPress={() => navigation.navigate('Home')} 
+      onPress={() => navigation.goBack()} 
     >
     <AntDesign name="left" size={24} color="black" />
     </TouchableOpacity>

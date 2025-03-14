@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Animated, PanResponder, Dimensions } from 'react-native';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
 import CloseButton from '../assets/img/CloseButton.svg';
-import TextWithMore from './AboutSection';
+import AboutSection from './AboutSection';
 import LocationSection from './LocationSection';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Match } from '../types/match';
@@ -15,6 +15,9 @@ export interface MatchPopupProps {
 }
 
 const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
+
+  const [isSaved, setIsSaved] = useState(false);
+
   // Créer une valeur animée pour le geste de glissement
   const pan = React.useRef(new Animated.ValueXY()).current;
 
@@ -43,6 +46,11 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
     })
   ).current;
 
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+  };
+
+
   // Valeurs par défaut si aucune donnée n'est passée
   const defaultMatch: Match = {
     id: 'default',
@@ -64,33 +72,46 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
         { transform: [{ translateY: pan.y }] }
       ]}
     >
- 
- {/* Header blanc */}
- <View style={styles.headerSection}>
-      {/* Drag handle */}
-      <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-        <View style={styles.dragHandle} />
+
+      {/* Header blanc */}
+      <View style={styles.headerSection}>
+        {/* Drag handle */}
+        <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+          <View style={styles.dragHandle} />
+        </View>
+
+        {/* Label de status */}
+        <View style={styles.statusLabel}>
+          <Ionicons name="football" size={15} color="#0000FF" />
+          <Text style={styles.statusLabelText}>{currentMatch.status}</Text>
+        </View>
+
+        {/* Titre du match */}
+        <Text style={styles.matchTitle}>{currentMatch.teams}</Text>
+
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <CloseButton />
+        </TouchableOpacity>
       </View>
-
-      {/* Label de status */}
-      <View style={styles.statusLabel}>
-        <Ionicons name="football" size={15} color="#0000FF" />
-        <Text style={styles.statusLabelText}>{currentMatch.status}</Text>
-      </View>
-
-      {/* Titre du match */}
-      <Text style={styles.matchTitle}>{currentMatch.teams}</Text>
-
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <CloseButton />
-      </TouchableOpacity>
-    </View>
 
 
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Grand conteneur regroupant l'image et les détails */}
         <View style={styles.grandContainer}>
+          <TouchableOpacity
+            style={[styles.saveButton, isSaved && styles.savedButton]}
+            onPress={handleSave}
+          >
+            <Ionicons
+              name={isSaved ? "bookmark" : "bookmark-outline"}
+              size={24}
+              color={isSaved ? "#888888" : "#000"}
+            />
+          </TouchableOpacity>
+
+
+
           {/* Affichage des images d'équipes avec VS au milieu */}
           <View style={styles.teamsContainer}>
             {(currentMatch.homeTeam && currentMatch.awayTeam) ? (
@@ -113,8 +134,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
           <View style={styles.detailRow}>
             {/* Date */}
             <View style={styles.detailItem}>
-            <View style={styles.iconTitleContainer}>
-            <Fontisto name="date" size={16} color="#656565" />
+              <View style={styles.iconTitleContainer}>
+                <Fontisto name="date" size={16} color="#656565" />
                 <Text style={styles.detailTitle}>Date</Text>
               </View>
               <Text style={styles.detailValue}>{currentMatch.date.split(" at")[0]}</Text>
@@ -125,8 +146,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
 
             {/* Time */}
             <View style={styles.detailItem}>
-            <View style={styles.iconTitleContainer}>
-            <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
+              <View style={styles.iconTitleContainer}>
+                <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
                 <Text style={styles.detailTitle}>Time</Text>
               </View>
               <Text style={styles.detailValue}>
@@ -141,8 +162,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
 
             {/* Stadium */}
             <View style={styles.detailItem}>
-            <View style={styles.iconTitleContainer}>
-            <StadiumIconPopup width={16} height={16} />
+              <View style={styles.iconTitleContainer}>
+                <StadiumIconPopup width={16} height={16} />
                 <Text style={styles.detailTitle}>Stadium</Text>
               </View>
               <Text style={styles.detailValue}>{currentMatch.stadium}</Text>
@@ -151,11 +172,11 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
         </View>
 
         {/* About Section */}
-        <Text style={styles.aboutTitle}>About</Text>
-        <TextWithMore
+        <AboutSection
           text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
-          style={styles.aboutText}
         />
+
+        {/* Location Section */}
 
         <LocationSection
           address={currentMatch.location?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
@@ -172,7 +193,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
         </TouchableOpacity>
       </View>
 
-      
+
     </Animated.View>
   );
 };
@@ -209,7 +230,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 0,
     top: -15,
-    },
+  },
   matchTitle: {
     width: 355,
     height: 31,
@@ -296,7 +317,7 @@ const styles = StyleSheet.create({
   iconTitleStadium: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,   
+    marginBottom: 8,
     marginRight: 4,
   },
   iconTitleDate: {
@@ -324,14 +345,14 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   detailValue: {
-   /* width: 100,
-   // marginTop: 0,
-    fontFamily: 'Raleway',
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#000000',
-    textAlign: 'center',
-    flexWrap: 'wrap',*/
+    /* width: 100,
+    // marginTop: 0,
+     fontFamily: 'Raleway',
+     fontSize: 14,
+     fontWeight: '700',
+     color: '#000000',
+     textAlign: 'center',
+     flexWrap: 'wrap',*/
     fontFamily: 'Raleway',
     fontSize: 14,
     fontWeight: '700',
@@ -339,33 +360,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%', // Assure que le texte utilise toute la largeur disponible
   },
-  aboutTitle: {
-    width: 322,
-    height: 30,
-    marginTop: 20,
-    marginLeft: 6,
-    fontFamily: 'Raleway',
-    fontWeight: '700',
-    fontSize: 24,
-    lineHeight: 31,
-    color: '#000000',
-  },
-  aboutText: {
-    width: 322,
-    marginTop: 10,
-    marginLeft: 6,
-    fontFamily: 'Raleway',
-    fontWeight: '400',
-    fontSize: 14,
-    lineHeight: 18,
-    color: '#000000',
-  },
+
   bottomContainer: {
     borderRadius: 4,
     width: 415,
     height: 160,
     alignItems: 'center',
-   // backgroundColor: 'blue',
+    // backgroundColor: 'blue',
   },
   addToTourText: {
     marginTop: -5,
@@ -401,6 +402,31 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 32, // Conserve l'arrondi du popup parent
     paddingBottom: 15, // Ajoute un peu d'espace après le titre
     zIndex: 1, // S'assure que ce conteneur reste au-dessus du ScrollView
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    //backgroundColor: 'white',
+    opacity: 0.5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1.7,
+    borderColor: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.2,
+    //shadowRadius: 4,
+    //elevation: 4,
+  },
+  savedButton: {
+    // backgroundColor: 'grey',
+    backgroundColor: '#E6E6E6',
+    borderColor: '#E6E6E6',
+    opacity: 1,
   },
 });
 

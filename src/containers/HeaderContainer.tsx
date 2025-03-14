@@ -1,14 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, StyleProp, TextStyle } from 'react-native';
 import BackButton from '../components/BackButton';
 import SearchBar from '../components/SearchBar2';
 
+interface HeaderContainerProps {
+  title?: string;  // Titre optionnel avec valeur par défaut
+  style?: StyleProp<TextStyle>;
+}
 
-const HeaderContainer = () => {
+const HeaderContainer: React.FC<HeaderContainerProps> = ({ 
+  title = "Africa Cup of Nations"  // Valeur par défaut
+}) => {
   return (
     <View style={styles.container}>
       <BackButton /> 
-      <Text style={styles.title}>Africa Cup of Nations</Text>
+      <Text style={styles.title}>{title}</Text>
     </View>
   );
 };
@@ -16,8 +22,6 @@ const HeaderContainer = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //justifyContent: 'center',
-    //alignItems: 'center',
     backgroundColor: '#FFF7F7',
   },
   title: {
@@ -35,4 +39,3 @@ const styles = StyleSheet.create({
 });
 
 export default HeaderContainer;
-
