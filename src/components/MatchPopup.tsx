@@ -72,42 +72,42 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
         { transform: [{ translateY: pan.y }] }
       ]}
     >
- 
- {/* Header blanc */}
- <View style={styles.headerSection}>
-      {/* Drag handle */}
-      <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-        <View style={styles.dragHandle} />
+
+      {/* Header blanc */}
+      <View style={styles.headerSection}>
+        {/* Drag handle */}
+        <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+          <View style={styles.dragHandle} />
+        </View>
+
+        {/* Label de status */}
+        <View style={styles.statusLabel}>
+          <Ionicons name="football" size={15} color="#0000FF" />
+          <Text style={styles.statusLabelText}>{currentMatch.status}</Text>
+        </View>
+
+        {/* Titre du match */}
+        <Text style={styles.matchTitle}>{currentMatch.teams}</Text>
+
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <CloseButton />
+        </TouchableOpacity>
       </View>
-
-      {/* Label de status */}
-      <View style={styles.statusLabel}>
-        <Ionicons name="football" size={15} color="#0000FF" />
-        <Text style={styles.statusLabelText}>{currentMatch.status}</Text>
-      </View>
-
-      {/* Titre du match */}
-      <Text style={styles.matchTitle}>{currentMatch.teams}</Text>
-
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <CloseButton />
-      </TouchableOpacity>
-    </View>
 
 
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Grand conteneur regroupant l'image et les détails */}
         <View style={styles.grandContainer}>
-        <TouchableOpacity 
-            style={[styles.saveButton, isSaved && styles.savedButton]} 
+          <TouchableOpacity
+            style={[styles.saveButton, isSaved && styles.savedButton]}
             onPress={handleSave}
           >
-            <Ionicons 
-              name={isSaved ? "bookmark" : "bookmark-outline"} 
-              size={24} 
+            <Ionicons
+              name={isSaved ? "bookmark" : "bookmark-outline"}
+              size={24}
               color={isSaved ? "#888888" : "#000"}
-              />
+            />
           </TouchableOpacity>
 
 
@@ -134,8 +134,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
           <View style={styles.detailRow}>
             {/* Date */}
             <View style={styles.detailItem}>
-            <View style={styles.iconTitleContainer}>
-            <Fontisto name="date" size={16} color="#656565" />
+              <View style={styles.iconTitleContainer}>
+                <Fontisto name="date" size={16} color="#656565" />
                 <Text style={styles.detailTitle}>Date</Text>
               </View>
               <Text style={styles.detailValue}>{currentMatch.date.split(" at")[0]}</Text>
@@ -146,8 +146,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
 
             {/* Time */}
             <View style={styles.detailItem}>
-            <View style={styles.iconTitleContainer}>
-            <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
+              <View style={styles.iconTitleContainer}>
+                <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
                 <Text style={styles.detailTitle}>Time</Text>
               </View>
               <Text style={styles.detailValue}>
@@ -162,8 +162,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
 
             {/* Stadium */}
             <View style={styles.detailItem}>
-            <View style={styles.iconTitleContainer}>
-            <StadiumIconPopup width={16} height={16} />
+              <View style={styles.iconTitleContainer}>
+                <StadiumIconPopup width={16} height={16} />
                 <Text style={styles.detailTitle}>Stadium</Text>
               </View>
               <Text style={styles.detailValue}>{currentMatch.stadium}</Text>
@@ -175,6 +175,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
         <AboutSection
           text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
         />
+
+        {/* Location Section */}
 
         <LocationSection
           address={currentMatch.location?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
@@ -191,7 +193,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
         </TouchableOpacity>
       </View>
 
-      
+
     </Animated.View>
   );
 };
@@ -228,7 +230,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 0,
     top: -15,
-    },
+  },
   matchTitle: {
     width: 355,
     height: 31,
@@ -315,7 +317,7 @@ const styles = StyleSheet.create({
   iconTitleStadium: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,   
+    marginBottom: 8,
     marginRight: 4,
   },
   iconTitleDate: {
@@ -343,14 +345,14 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   detailValue: {
-   /* width: 100,
-   // marginTop: 0,
-    fontFamily: 'Raleway',
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#000000',
-    textAlign: 'center',
-    flexWrap: 'wrap',*/
+    /* width: 100,
+    // marginTop: 0,
+     fontFamily: 'Raleway',
+     fontSize: 14,
+     fontWeight: '700',
+     color: '#000000',
+     textAlign: 'center',
+     flexWrap: 'wrap',*/
     fontFamily: 'Raleway',
     fontSize: 14,
     fontWeight: '700',
@@ -358,13 +360,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%', // Assure que le texte utilise toute la largeur disponible
   },
-  
+
   bottomContainer: {
     borderRadius: 4,
     width: 415,
     height: 160,
     alignItems: 'center',
-   // backgroundColor: 'blue',
+    // backgroundColor: 'blue',
   },
   addToTourText: {
     marginTop: -5,
@@ -421,10 +423,10 @@ const styles = StyleSheet.create({
     //elevation: 4,
   },
   savedButton: {
-     // backgroundColor: 'grey',
-     backgroundColor: '#E6E6E6',
-     borderColor: '#E6E6E6', 
-     opacity: 1,
+    // backgroundColor: 'grey',
+    backgroundColor: '#E6E6E6',
+    borderColor: '#E6E6E6',
+    opacity: 1,
   },
 });
 

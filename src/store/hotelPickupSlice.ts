@@ -5,7 +5,7 @@ import { api } from '../service';
 // API functions
 const getAllHotelPickups = async () => {
   try {
-    const response = await api.get<HotelPickup[]>('/pickup');
+    const response = await api.get<HotelPickup[]>('/pickups');
     
     if (!response.data) {
       throw new Error('No data received from server');

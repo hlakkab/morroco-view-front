@@ -5,7 +5,7 @@ import { api } from '../service';
 // API functions
 const getPickupDetails = async (id: string) => {
   try {
-    const response = await api.get<HotelPickupDetails>(`/pickup/${id}`);
+    const response = await api.get<HotelPickupDetails>(`/pickups/${id}`);
     console.log('API Response:', response);
     
     if (!response.data) {
