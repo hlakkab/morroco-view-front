@@ -23,11 +23,7 @@ const HomeScreen: React.FC = () => {
   const handleCategoryPress = (category: string) => {
     // Navigate to category screen based on string parameter
     // We need to check if the category is a valid key in our RootStackParamList
-    /*if (category in navigation.getState().routeNames) {
-      navigation.navigate(category as keyof RootStackParamList as never);
-     }else */if (category === 'Restaurant') {
-      navigation.navigate('Restaurant');  // Nom exact tel que défini dans le navigateur
-    } else if (category in navigation.getState().routeNames) {
+    if (navigation.getState().routeNames.includes(category as keyof RootStackParamList)) {
       navigation.navigate(category as keyof RootStackParamList as never);
     } else {
       console.log(`Invalid navigation destination: ${category}`);

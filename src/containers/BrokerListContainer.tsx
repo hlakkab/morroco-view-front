@@ -1,29 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import CardItem from '../components/CardItem';
+import CardItem from '../components/cards/CardItem';
 import FilterSelector from '../components/FilterSelector';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useAppDispatch } from '../store/hooks';
+import { Broker } from '../types/exchange-broker';
 
-export interface Broker {
-  id: string;
-  name: string;
-  imageUrl?: string;
-  location: string;
-  rating?: number;
-  isFeatured?: boolean;
-  isSaved?: boolean;
-  exchangeRates?: {
-    buy: number;
-    sell: number;
-  };
-  services?: string[];
-  operatingHours?: string;
-  contactNumber?: string;
-  website?: string;
-  about?: string;
-}
+
 
 interface BrokerListContainerProps {
   brokers: Broker[];
@@ -38,17 +23,17 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
   selectedLocation,
   onSelectLocation,
 }) => {
-  const [savedBrokers, setSavedBrokers] = useState<Record<string, boolean>>({});
+  const dispatch = useAppDispatch();
   const [filteredBrokers, setFilteredBrokers] = useState<Broker[]>(brokers);
   
   // Filter brokers based on selected location
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedLocation === 'All Locations') {
       setFilteredBrokers(brokers);
     } else {
       setFilteredBrokers(brokers.filter(broker => {
         // Extract city from location (before the comma)
-        const brokerCity = broker.location.split(',')[0].trim();
+        const brokerCity = broker.city
         return brokerCity === selectedLocation;
       }));
     }
@@ -65,21 +50,12 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
 
   const handleBrokerPress = (broker: Broker) => {
     // Navigate to broker detail screen
-    navigation.navigate('BrokerDetail', {
-      id: broker.id,
-      name: broker.name,
-      imageUrl: broker.imageUrl,
-      location: broker.location,
-      rating: broker.rating,
-      isFeatured: broker.isFeatured
-    });
+    navigation.navigate('BrokerDetail', broker);
   };
 
+
   const handleSaveBroker = (id: string) => {
-    setSavedBrokers(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+    //dispatch(toggleSavedBroker(id));
   };
 
   return (
@@ -102,9 +78,9 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <CardItem
-              imageUrl={item.imageUrl}
+              imageUrl={'https://images.unsplash.com/photo-1580048915913-4f8f5cb481c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'}
               title={item.name}
-              subtitle={item.location}
+              subtitle={item.address}
               tags={[
                 {
                   id: 'broker',
@@ -120,12 +96,12 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
                   textStyle: { color: '#fff' }
                 }] : [])
               ]}
-              actionIcon={<Ionicons name={savedBrokers[item.id] ? "bookmark" : "bookmark-outline"} size={20} color={savedBrokers[item.id] ? "#666" : "#000"} />}
+              actionIcon={<Ionicons name={item.isSaved ? "bookmark" : "bookmark-outline"} size={20} color={item.isSaved ? "#666" : "#000"} />}
               onActionPress={() => handleSaveBroker(item.id)}
               onCardPress={() => handleBrokerPress(item)}
               containerStyle={styles.cardContainer}
               svgImage={!item.imageUrl ? <Ionicons name="cash-outline" size={32} color="#fff" /> : undefined}
-              isSaved={savedBrokers[item.id]}
+              isSaved={item.isSaved}
             />
           )}
           contentContainerStyle={styles.listContent}

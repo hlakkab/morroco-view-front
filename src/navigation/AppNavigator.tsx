@@ -18,6 +18,8 @@ import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import RestaurantScreen from '../screens/RestaurantScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
+import { Broker } from '../types/exchange-broker';
+import EntertainmentScreen from '../screens/EntertainmentScreen';
 
 
 export type RootStackParamList = {
@@ -46,24 +48,7 @@ export type RootStackParamList = {
     price?: number;
     isPrivate?: boolean;
   };
-  BrokerDetail: {
-    id: string;
-    name: string;
-    imageUrl?: string;
-    location: string;
-    rating?: number;
-    isFeatured?: boolean;
-    exchangeRates?: {
-      buy: number;
-      sell: number;
-    };
-    services?: string[];
-    operatingHours?: string;
-    contactNumber?: string;
-    website?: string;
-    about?: string;
-    isSaved?: boolean;
-  };
+  BrokerDetail: Broker;
   Test: undefined;
   MoneyExchange: undefined;
   BrokerList: undefined;
@@ -186,6 +171,11 @@ export function AppNavigator() {
       />
 
 
+      <Stack.Screen 
+        name="Entertainment" 
+        component={EntertainmentScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

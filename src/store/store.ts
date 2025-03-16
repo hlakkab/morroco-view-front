@@ -3,13 +3,21 @@ import qrCodeReducer from "./qrCodeSlice";
 import hotelPickupReducer from "./hotelPickupSlice";
 import hotelPickupDetailsReducer from "./hotelPickupDetailsSlice";
 import bookmarkReducer from './bookmarkSlice';
+import exchangeBrokerReducer from './exchangeBrokerSlice';
+import entertainmentReducer from './entertainmentSlice';
+import matchReducer from './matchSlice';
+import ticketReducer from './ticketSlice';
 
 const store = configureStore({
   reducer: {
     qrCodes: qrCodeReducer,
     hotelPickup: hotelPickupReducer,
     hotelPickupDetails: hotelPickupDetailsReducer,
-    bookmark: bookmarkReducer
+    bookmark: bookmarkReducer,
+    exchangeBroker: exchangeBrokerReducer,
+    entertainment: entertainmentReducer,
+    match: matchReducer,
+    ticket: ticketReducer
   },
   middleware: (getDefaultMiddleware) => 
     getDefaultMiddleware({
