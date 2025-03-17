@@ -4,13 +4,18 @@ import ViatorService from '../service/ViatorService';
 
 // Define the Entertainment type
 
-export interface Images {
+interface Images {
   isCover: boolean;
   variants: {
     url: string;
     width: number;
     height: number;
   }[]
+}
+
+interface Reviews {
+  totalReviews: number;
+  combinedAverageRating: number;
 }
 
 
@@ -20,6 +25,13 @@ export interface Entertainment {
   title: string;
   description: string;
   images: Images[];
+  reviews: Reviews;
+  pricing: {
+    summary: {
+      fromPrice: number,
+      fromPriceBeforeDiscount: number
+    }
+  }
 }
 
 // Define the state structure

@@ -11,7 +11,7 @@ type PickupTicketCardProps = {
 const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
     const pickup = ticket.object as HotelPickup;
     // For demonstration purposes, using a placeholder date
-    const date = new Date(ticket.createdAt);
+    const date = new Date();
     const month = format(date, 'MMM').toUpperCase();
     const day = format(date, 'dd');
 
@@ -24,7 +24,6 @@ const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
         </View>
 
         <View style={styles.matchContainer}>
-          <Text style={styles.ticketId}>#{ticket.id}</Text>
           
           <View style={styles.pickupInfo}>
             <Text style={styles.pickupTitle}>{pickup.title}</Text>
@@ -95,7 +94,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   pickupInfo: {
-    marginVertical: 10,
+    marginVertical: 0,
   },
   pickupTitle: {
     fontSize: 16,

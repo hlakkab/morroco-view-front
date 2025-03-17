@@ -36,12 +36,10 @@ const ExploreMatchesScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   
   const dispatch = useAppDispatch();
-  const { matches, selectedMatch, savedMatches, loading, error } = useAppSelector(
-    (state) => state.match
-  );
+  const { matches, selectedMatch, loading, error } = 
+    useAppSelector(state => state.match);
 
   
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -113,8 +111,8 @@ const ExploreMatchesScreen: React.FC = () => {
           renderItem={({ item }) => (
             <MatchCard
               match={item}
-              onPress={() => handleCardPress(item)}
-              onSavePress={() => handleSavePress(item)}
+              handleCardPress={() => handleCardPress(item)}
+              handleSaveMatch={() => handleSavePress(item)}
             />
           )}
           contentContainerStyle={styles.matchesList}

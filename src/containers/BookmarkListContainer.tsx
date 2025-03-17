@@ -11,6 +11,7 @@ import { removeBookmark } from '../store/bookmarkSlice';
 import PickupCard from '../components/cards/PickupCard';
 import { HotelPickup } from '../types/transport';
 import MatchCard from '../components/cards/MatchCard';
+import BrokerCard from '../components/cards/BrokerCard';
 
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
@@ -84,7 +85,13 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
                   match={item.object}
                 />
               )
-            } 
+            }
+
+            if (item.type === 'MONEY_EXCHANGE') {
+              return (
+                <BrokerCard item={item.object} />
+              )
+            }
             return null
           }}
           showsVerticalScrollIndicator={false}
