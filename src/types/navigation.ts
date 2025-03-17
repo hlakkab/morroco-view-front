@@ -35,6 +35,18 @@ export type RootStackParamList = {
     };
     Matches: undefined;
     Monuments: undefined;
+    MonumentDetail: {
+        id: string;
+        name: string;
+        imageUrl?: string;
+        location: string;
+        rating?: number;
+        isFeatured?: boolean;
+        visitingHours?: string;
+        entryFee?: string;
+        website?: string;
+        about?: string;
+    };
     Restaurant: undefined;
     RestaurantDetail: {
       id: string;

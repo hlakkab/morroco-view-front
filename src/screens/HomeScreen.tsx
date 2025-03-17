@@ -10,7 +10,7 @@ import ExploreCardsContainer from '../containers/ExploreCardsContainer';
 import SearchBarContainer from '../containers/SearchBarContainer';
 import ServiceCardsContainer from '../containers/ServiceCardsContainer';
 import { clearTokens } from '../service/KeycloakService';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../types/navigation';
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -26,7 +26,9 @@ const HomeScreen: React.FC = () => {
     /*if (category in navigation.getState().routeNames) {
       navigation.navigate(category as keyof RootStackParamList as never);
      }else */if (category === 'Restaurant') {
-      navigation.navigate('Restaurant');  // Nom exact tel que défini dans le navigateur
+      navigation.navigate('Restaurant') 
+    } else if (category === 'Monuments') {
+      navigation.navigate('Monuments');
     } else if (category in navigation.getState().routeNames) {
       navigation.navigate(category as keyof RootStackParamList as never);
     } else {

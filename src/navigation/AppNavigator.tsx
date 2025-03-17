@@ -11,72 +11,75 @@ import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
+import MonumentDetailScreen from '../screens/MonumentDetailScreen';
+import MonumentsListScreen from '../screens/MonumentsListScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
+import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
+import RestaurantScreen from '../screens/RestaurantScreen';
 import TicketsScreen from '../screens/TicketsScreen';
 import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
-import RestaurantScreen from '../screens/RestaurantScreen';
-import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
+import { RootStackParamList } from '../types/navigation';
 
 
-export type RootStackParamList = {
-  Launch: undefined;
-  Onboarding: undefined;
-  Login: undefined;
-  Home: undefined;
-  ESIM: undefined;
-  QRCodes: undefined;
-  HotelPickup: undefined;
-  Bookmark: undefined;
-  Restaurant: undefined;
-  RestaurantDetail: {
-    id: string;
-    title: string;
-    image?: string;
-    images?: string[]; // Assurez-vous que le type correspond à ce que vous passez
-    address?: string;
-    startTime?: string;
-    endTime?: string;
-  }; 
-   TransportDetail: {
-    id: string;
-    title: string;
-    imageUrl: string;
-    price?: number;
-    isPrivate?: boolean;
-  };
-  BrokerDetail: {
-    id: string;
-    name: string;
-    imageUrl?: string;
-    location: string;
-    rating?: number;
-    isFeatured?: boolean;
-    exchangeRates?: {
-      buy: number;
-      sell: number;
-    };
-    services?: string[];
-    operatingHours?: string;
-    contactNumber?: string;
-    website?: string;
-    about?: string;
-    isSaved?: boolean;
-  };
-  Test: undefined;
-  MoneyExchange: undefined;
-  BrokerList: undefined;
-  ExploreMatches: undefined;
-  Tickets: undefined;
-  Tours: undefined;
-  Account: undefined;
-  Matches: undefined;
-  Monuments: undefined;
-  Entertainment: undefined;
-  Artisans: undefined;
-  EmergencyContacts: undefined;
-};
+// export type RootStackParamList = {
+//   Launch: undefined;
+//   Onboarding: undefined;
+//   Login: undefined;
+//   Home: undefined;
+//   ESIM: undefined;
+//   QRCodes: undefined;
+//   HotelPickup: undefined;
+//   Bookmark: undefined;
+//   Restaurant: undefined;
+//   RestaurantDetail: {
+//     id: string;
+//     title: string;
+//     image?: string;
+//     images?: string[]; // Assurez-vous que le type correspond à ce que vous passez
+//     address?: string;
+//     startTime?: string;
+//     endTime?: string;
+//   }; 
+//    TransportDetail: {
+//     id: string;
+//     title: string;
+//     imageUrl: string;
+//     price?: number;
+//     isPrivate?: boolean;
+//   };
+//   BrokerDetail: {
+//     id: string;
+//     name: string;
+//     imageUrl?: string;
+//     location: string;
+//     rating?: number;
+//     isFeatured?: boolean;
+//     exchangeRates?: {
+//       buy: number;
+//       sell: number;
+//     };
+//     services?: string[];
+//     operatingHours?: string;
+//     contactNumber?: string;
+//     website?: string;
+//     about?: string;
+//     isSaved?: boolean;
+//   };
+//   Test: undefined;
+//   MoneyExchange: undefined;
+//   BrokerList: undefined;
+//   ExploreMatches: undefined;
+//   Tickets: undefined;
+//   Tours: undefined;
+//   Account: undefined;
+//   Matches: undefined;
+//   Monuments: undefined;
+//   Entertainment: undefined;
+//   Artisans: undefined;
+//   EmergencyContacts: undefined;
+// };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -150,6 +153,16 @@ export function AppNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="Monuments"
+        component={MonumentsListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MonumentDetail"
+        component={MonumentDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="ExploreMatches"
         component={ExploreMatchesScreen}
         options={{ headerShown: false, title: "Africa Cup of Nations" }}
@@ -175,7 +188,7 @@ export function AppNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="Restaurant"  // INCORRECT
+        name="Restaurant"
         component={RestaurantScreen}
         options={{ headerShown: false }}
       />
