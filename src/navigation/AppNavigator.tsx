@@ -19,6 +19,7 @@ import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import RestaurantScreen from '../screens/RestaurantScreen';
 import TicketsScreen from '../screens/TicketsScreen';
 import ToursScreen from '../screens/ToursScreen';
+import EntertainmentScreen from '../screens/EntertainmentScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import { RootStackParamList } from '../types/navigation';
 
@@ -199,6 +200,11 @@ export function AppNavigator() {
       />
 
 
+      <Stack.Screen 
+        name="Entertainment" 
+        component={EntertainmentScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

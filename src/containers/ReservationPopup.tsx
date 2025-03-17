@@ -403,6 +403,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         <View style={styles.divider} />
         
         <ScrollView style={styles.scrollContent}>
+          
           <View style={styles.content}>
             <View style={styles.transportInfo}>
               <View style={styles.iconContainer}>

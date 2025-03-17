@@ -2,74 +2,73 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
-import { Match } from "../types/match";
+import { Match } from "../../types/match";
 
 interface MatchCardProps {
   match: Match;
-  onPress?: () => void;
-  onSavePress?: () => void;
+  handleCardPress?: () => void;
+  handleSaveMatch?: () => void;
 }
 
 const MatchCard: React.FC<MatchCardProps> = ({
   match,
-  onPress,
-  onSavePress
+  handleCardPress,
+  handleSaveMatch
 }) => {
-  const isSaved = match.isSaved || false;
+  const isSaved = match.saved
+
+
+  const flag = (country: string) => {
+    country = country
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+
+    return `https://www.countryflags.com/wp-content/uploads/${country}-flag-png-large.png`	
+  }
+
+  const date = new Date(match.date);
+  // convert date to MMM DD, YYYY,  HH:MM
+  const formattedDate = date.toLocaleDateString('en-US', 
+    { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'}
+  );
 
   return (
     <TouchableOpacity
       style={styles.cardContainer}
-      onPress={onPress}
+      onPress={handleCardPress}
       activeOpacity={0.8}
-      disabled={!onPress}
+      disabled={!handleCardPress}
     >
       {/* Images des équipes avec VS au milieu */}
       <View style={styles.teamsImageContainer}>
-        {(match.homeTeam && match.awayTeam) ? (
-          <>
-            <Image source={{ uri: match.homeTeam.flag }} style={styles.teamFlag} />
-            <Text style={styles.vsText}>VS</Text>
-            <Image source={{ uri: match.awayTeam.flag }} style={styles.teamFlag} />
-          </>
-        ) : (match.team1Image && match.team2Image) ? (
-          <>
-            <Image source={{ uri: match.team1Image }} style={styles.teamFlag} />
-            <Text style={styles.vsText}>VS</Text>
-            <Image source={{ uri: match.team2Image }} style={styles.teamFlag} />
-          </>
-        ) : (
-          <Image source={{ uri: match.image }} style={styles.matchImage} />
-        )}
+        
+        <Image source={{ uri: flag(match.homeTeam) }} style={styles.teamFlag} />
+        <Text style={styles.vsText}>VS</Text>
+        <Image source={{ uri: flag(match.awayTeam) }} style={styles.teamFlag} />
+          
       </View>
 
       {/* Détails du match */}
       <View style={styles.cardContent}>
         <View style={styles.tagsRow}>
           <View style={styles.mainTagContainer}>
-            <Ionicons name="football-outline" size={12} color="#0000FF" />
-            <Text style={styles.mainTagText}>{match.status}</Text>
+            <Ionicons name="football-outline" size={14} color="#0000FF" />
+            <Text style={styles.mainTagText}> Match </Text>
           </View>
 
-          {match.location && (
-            <Text style={styles.secondaryTagText}>
-              {typeof match.location === 'string'
-                ? match.location
-                : match.location.address.split(',')[0]} {/* Affiche seulement la première partie de l'adresse */}
-            </Text>
-          )}
+          
         </View>
 
-        <Text style={styles.cardTitle}>{match.teams}</Text>
+        <Text style={styles.cardTitle}>{match.homeTeam} Vs. {match.awayTeam}</Text>
 
-        <Text style={styles.cardSubtitle}>{match.date}</Text>
+        <Text style={styles.cardSubtitle}>{formattedDate}</Text>
       </View>
 
       {/* Bouton de sauvegarde */}
       <TouchableOpacity
         style={styles.actionButton}
-        onPress={onSavePress}
-        disabled={!onSavePress}
+        onPress={handleSaveMatch}
+        disabled={!handleSaveMatch}
       >
         <View style={[
           styles.actionIconContainer,
@@ -98,10 +97,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    padding: 12,
+    paddingRight: 6,
+    paddingVertical: 10,
   },
   teamsImageContainer: {
-    width: 100,
+    width: 120,
     height: 70,
     borderRadius: 8,
     backgroundColor: "#F6FAFF",
@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   teamFlag: {
-    width: 35,
-    height: 25,
+    width: 36,
+    height: 24,
     borderRadius: 5,
   },
   vsText: {

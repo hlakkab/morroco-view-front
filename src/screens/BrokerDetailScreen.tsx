@@ -6,6 +6,7 @@ import AboutSection from '../components/AboutSection';
 import Button from '../components/Button';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
+import { Broker } from '../types/exchange-broker';
 
 // Enhanced interface to align with transport card data structure
 interface RouteParams {
@@ -36,48 +37,13 @@ const BROKER_IMAGES = [
 ];
 
 // Enhanced sample broker details
-const SAMPLE_BROKERS: Record<string, RouteParams> = {
-  '1': {
-    id: '1',
-    name: 'Global Exchange',
-    location: 'Marrakech, Menara Airport',
-    isFeatured: true,
-    services: ['Currency Exchange', 'Travel Money Cards', 'Western Union', 'International Transfers'],
-    operatingHours: 'Monday to Sunday: 8:00 AM - 10:00 PM',
-    contactNumber: '+212 524 447 500',
-    website: 'www.globalexchange.ma',
-    about: 'Global Exchange is a leading currency exchange service provider with over 260 branches worldwide. Our Marrakech branch offers competitive rates, no hidden fees, and a wide range of currencies. Our experienced staff provides personalized service to ensure you get the best value for your money. We are open 7 days a week with extended hours to accommodate your travel schedule.'
-  },
-  '2': {
-    id: '2',
-    name: 'Al Wafa Bank',
-    location: 'Casablanca, Mohammed V Square',
-    isFeatured: false,
-    services: ['Currency Exchange', 'Bank Transfers', 'Credit Cards', "Traveler's Checks"],
-    operatingHours: 'Monday to Friday: 9:00 AM - 4:00 PM',
-    contactNumber: '+212 522 334 455',
-    website: 'www.alwafabank.ma',
-    about: "Al Wafa Bank is one of Morocco's premier banking institutions, offering a wide range of financial services including competitive currency exchange. With decades of experience serving both locals and tourists, our Casablanca branch provides reliable and efficient exchange services with transparent rates and professional customer service."
-  },
-  '3': {
-    id: '3',
-    name: 'Medina Exchange',
-    location: 'Fes, Old Medina',
-    isFeatured: true,
-    services: ['Currency Exchange', 'Gold Trading', 'Money Transfer', 'Currency Delivery'],
-    operatingHours: 'Monday to Saturday: 9:00 AM - 7:00 PM',
-    contactNumber: '+212 535 667 788',
-    website: 'www.medinaexchange.ma',
-    about: "Located in the heart of Fes' ancient medina, Medina Exchange offers the best rates in the city with personalized service. Our family-owned business has been operating for over 30 years, building a reputation for honesty, reliability, and exceptional customer care. We specialize in all major currencies and offer special rates for large exchanges."
-  }
-};
+
 
 const { width } = Dimensions.get('window');
 
 const BrokerDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const params = route.params as RouteParams;
   
   const [isSaved, setIsSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -85,7 +51,7 @@ const BrokerDetailScreen: React.FC = () => {
   const flatListRef = useRef<FlatList>(null);
 
   // Get broker details from sample data or route params
-  const brokerDetails = params.id && SAMPLE_BROKERS[params.id] ? SAMPLE_BROKERS[params.id] : params;
+  const brokerDetails = route.params as Broker;
 
   const handleBack = () => {
     navigation.goBack();
@@ -183,7 +149,7 @@ const BrokerDetailScreen: React.FC = () => {
             
             <View style={styles.infoItem}>
               <Ionicons name="call-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{brokerDetails.contactNumber}</Text>
+              <Text style={styles.infoText}>{brokerDetails.phoneNumber}</Text>
             </View>
             
             <View style={styles.infoItem}>
@@ -194,10 +160,10 @@ const BrokerDetailScreen: React.FC = () => {
 
           <AboutSection 
             title="About" 
-            text={brokerDetails.about || 'No information available for this broker.'} 
+            text={brokerDetails.description || 'No information available for this broker.'} 
           />
 
-          <LocationSection address={brokerDetails.location} />
+          <LocationSection address={brokerDetails.address} />
         </View>
       </ScrollView>
 

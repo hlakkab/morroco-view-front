@@ -45,18 +45,17 @@ const LocationSection: React.FC<LocationSectionProps> = ({ address, mapUrl }) =>
 
 const styles = StyleSheet.create({
   locationSection: {
-    marginTop: 20,
+    flex: 1,
+    gap: 10,
   },
 
   locationTitle: {
     fontFamily: 'Raleway',
     fontWeight: '700',
     fontSize: 24,
-    lineHeight: 31,
     color: '#000000',
   },
   locationContainer: {
-    marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
   },

@@ -57,7 +57,6 @@ const HotelPickupScreen: React.FC = () => {
   };
 
   const handleSelectCity = (city: string, type: 'from' | 'to') => {
-    console.log('Selected city:', city, type);
     if (type === 'from') {
       dispatch(setSelectedFromCity(city));
     } else {

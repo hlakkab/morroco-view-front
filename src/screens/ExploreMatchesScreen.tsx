@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, SafeAreaView, FlatList, Modal } from 'react-native';
 import SearchFilterContainer from '../containers/SearchFilterContainer';
 import HeaderContainer from '../containers/HeaderContainer';
-import MatchCard from '../components/MatchCard';
+import MatchCard from '../components/cards/MatchCard';
 import MatchPopup from '../components/MatchPopup';
 import { Match, Team } from '../types/match';
 import SearchBar from '../components/SearchBar';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchMatches, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
 
-
-// Définir les équipes
+// Sample teams data for fallback
 const teams: Record<string, Team> = {
   morocco: {
     id: 'mor',
@@ -27,97 +28,74 @@ const teams: Record<string, Team> = {
   }
 };
 
-// Données des matchs avec la nouvelle structure
-const matches: Match[] = [
-  {
-    id: '1',
-    status: "En cours",
-    team1Image: teams.morocco.flag,
-    team2Image: teams.comoros.flag,
-    homeTeam: teams.morocco,
-    awayTeam: teams.comoros,
-    teams: "Morocco Vs Comores",
-    date: "Mon Oct 03 at 9:00 PM",
-    location: {
-      address: "Agadir",
-      mapUrl: "https://maps.app.goo.gl/e5KkDdBQdYcb7sCH8"
-    },
-    stadium: "Stade Adrar",
-    about: "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...",
-  },
-  {
-    id: '2',
-    status: "Entertainment",
-    team1Image: teams.morocco.flag,
-    team2Image: teams.senegal.flag,
-    homeTeam: teams.morocco,
-    awayTeam: teams.senegal,
-    teams: "Morocco Vs Senegal",
-    date: "Sun Oct 10 at 11:00 PM",
-    location: {
-      address: "Marrakech",
-      mapUrl: "https://maps.app.goo.gl/e5KkDdBQdYcb7sCH8"
-    },
-    stadium: "Stade Aderdooor",
-  },
-];
+
 
 const ExploreMatchesScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [savedMatches, setSavedMatches] = useState<Record<string, boolean>>({});
-  // Ajouter l'état pour la recherche
+  const [useSampleData, setUseSampleData] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const dispatch = useAppDispatch();
+  const { matches, selectedMatch, loading, error } = 
+    useAppSelector(state => state.match);
+
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchMatches()).unwrap();
+      } catch (error) {
+        console.error('Failed to fetch matches:', error);
+        setUseSampleData(true); // Fallback to sample data if API fails
+      }
+    };
+    
+    fetchData();
+  }, [dispatch]);
 
   const handleCardPress = (match: Match) => {
-    setSelectedMatch(match);
+    dispatch(setSelectedMatch(match));
     setModalVisible(true);
   };
 
-  const handleSavePress = (matchId: string) => {
-    setSavedMatches(prev => ({
-      ...prev,
-      [matchId]: !prev[matchId]
-    }));
+  const handleSavePress = (match: Match) => {
+    dispatch(toggleMatchBookmark(match));
   };
 
   const closeModal = () => {
     setModalVisible(false);
-    // Attendre un peu pour une meilleure animation
+    // Wait a bit for better animation
     setTimeout(() => {
-      setSelectedMatch(null);
+      dispatch(setSelectedMatch(null));
     }, 300);
   };
 
-   // Gestionnaires pour la barre de recherche
   const handleSearch = (text: string) => {
     setSearchQuery(text);
-    // Vous pourriez ajouter ici une logique pour filtrer les matchs
   };
 
   const handleFilterPress = () => {
-    // Gérer l'appui sur le bouton de filtre
     console.log('Filter pressed');
   };
 
-  // Filtrer les matchs en fonction de la recherche
-  const filteredMatches = matches.filter(match => 
-    match.teams.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    match.stadium?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (typeof match.location === 'object' ? 
-      match.location.address.toLowerCase().includes(searchQuery.toLowerCase()) : 
-      match.location?.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Get matches from state or use sample data if API failed
+  const displayMatches = matches;
+
+  // Filter matches based on search query
+  const filteredMatches = displayMatches.filter(match => 
+    match.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    match.awayTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    match.spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    match.spot.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Header fixe */}
+        {/* Fixed header */}
         <View style={styles.headerFixed}>
-        <HeaderContainer />
-         {/* <SearchFilterContainer />*/}
-         {/* Remplacer SearchFilterContainer par la nouvelle SearchBar */}
-         <View style={styles.searchBarContainer}>
+          <HeaderContainer />
+          <View style={styles.searchBarContainer}>
             <SearchBar
               placeholder="Search matches..."
               onChangeText={handleSearch}
@@ -132,9 +110,9 @@ const ExploreMatchesScreen: React.FC = () => {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <MatchCard
-              match={{ ...item, isSaved: savedMatches[item.id] || false }}
-              onPress={() => handleCardPress(item)}
-              onSavePress={() => handleSavePress(item.id)}
+              match={item}
+              handleCardPress={() => handleCardPress(item)}
+              handleSaveMatch={() => handleSavePress(item)}
             />
           )}
           contentContainerStyle={styles.matchesList}
@@ -149,7 +127,7 @@ const ExploreMatchesScreen: React.FC = () => {
         >
           <View style={styles.modalOverlay}>
             <MatchPopup
-              match={selectedMatch || undefined}
+              match={selectedMatch!}
               onClose={closeModal}
             />
           </View>
@@ -193,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   searchBarContainer: {
-    position: 'absolute',
+   
     top: 110, // Ajustez cette valeur selon la hauteur de votre HeaderContainer
     left: 0,
     right: 0,

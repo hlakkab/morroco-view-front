@@ -3,12 +3,13 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
-import CardItem from '../components/CardItem';
+import CardItem from '../components/cards/CardItem';
 import FilterSelector from '../components/FilterSelector';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { HotelPickup } from '../types/transport';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleHotelPickupBookmark } from '../store/hotelPickupSlice';
+import PickupCard from '../components/cards/PickupCard';
 
 interface HotelPickupListContainerProps {
   pickups: HotelPickup[];
@@ -85,9 +86,9 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
             containerStyle={styles.filterContainer}
           />
         </View>
-        
+
         <View style={styles.filterDivider} />
-        
+
         <View style={styles.filterSection}>
           <FilterSelector
             title="To :"
@@ -103,9 +104,9 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
           />
         </View>
       </View>
-      
+
       <Text style={styles.sectionTitle}>Available pickups</Text>
-      
+
       {filteredPickups.length === 0 ? (
         <Text style={styles.noPickupsText}>
           No pickups available from {selectedAirport} to {selectedCity}
@@ -115,37 +116,10 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
           data={filteredPickups}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <CardItem
-              imageUrl={item.images[0]}
-              svgImage={<HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />}
-              title={item.title}
-              price={{
-                value: item.price,
-                suffix: 'per group'
-              }}
-              tags={[
-                {
-                  id: 'pickup',
-                  label: 'Pickup',
-                  icon: <Ionicons name="car-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
-                  textStyle: { color: '#008060', fontWeight: '500' }
-                },
-                {
-                  id: 'type',
-                  label: item.private ? 'Private Pickup' : 'Shared Pickup',
-                  textStyle: { color: '#888' }
-                }
-              ]}
-              actionIcon={
-                <Ionicons 
-                  name={item.saved ? "bookmark" : "bookmark-outline"} 
-                  size={20} 
-                  color={item.saved ? "#666" : "#000"} 
-                />
-              }
-              isSaved={item.saved}
-              onActionPress={() => handleSavePickup(item)}
-              onCardPress={() => handleCardPress(item)}
+            <PickupCard
+              item={item}
+              handleSavePickup={handleSavePickup}
+              handleCardPress={handleCardPress}
             />
           )}
           showsVerticalScrollIndicator={false}

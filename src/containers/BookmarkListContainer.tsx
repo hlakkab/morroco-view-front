@@ -3,11 +3,15 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
-import CardItem from '../components/CardItem';
+import CardItem from '../components/cards/CardItem';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { Bookmark } from '../types/bookmark';
 import { useAppDispatch } from '../store/hooks';
 import { removeBookmark } from '../store/bookmarkSlice';
+import PickupCard from '../components/cards/PickupCard';
+import { HotelPickup } from '../types/transport';
+import MatchCard from '../components/cards/MatchCard';
+import BrokerCard from '../components/cards/BrokerCard';
 
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
@@ -59,29 +63,37 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
         <FlatList
           data={bookmarks}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <CardItem
-              imageUrl={item.images[0]}
-              svgImage={<HotelPickupSvg width={110} height={80} style={{ alignSelf: 'center', marginRight: 10 }} />}
-              title={item.title}
-              actionIcon={
-                <Ionicons 
-                  name="bookmark"
-                  size={20} 
-                  color="#666"
+          renderItem={({ item }) => {
+            
+            if (item.type === 'PICKUP') {
+              const pickup = { 
+                ...item.object,
+                images: item.images
+              };
+              
+              return (
+                <PickupCard
+                  item={pickup}
                 />
-              }
-              tags={[{
-                id: 'pickup',
-                label: 'Pickup',
-                icon: <Ionicons name="car-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
-                textStyle: { color: '#008060', fontWeight: '500' }
-              }]}
-              isSaved={true}
-              onActionPress={() => handleSaveBookmark(item.id)}
-              onCardPress={() => handleCardPress(item)}
-            />
-          )}
+              )
+            }
+
+            if (item.type === 'MATCH') {
+              
+              return (
+                <MatchCard
+                  match={item.object}
+                />
+              )
+            }
+
+            if (item.type === 'MONEY_EXCHANGE') {
+              return (
+                <BrokerCard item={item.object} />
+              )
+            }
+            return null
+          }}
           showsVerticalScrollIndicator={false}
         />
       )}

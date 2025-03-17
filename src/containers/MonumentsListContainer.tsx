@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import CardItem from '../components/CardItem';
+import CardItem from '../components/cards/CardItem';
 import FilterSelector from '../components/FilterSelector';
 import { RootStackParamList } from '../types/navigation';
 

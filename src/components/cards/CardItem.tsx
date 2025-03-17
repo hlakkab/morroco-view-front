@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     flexDirection: 'row',
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 8,
     marginBottom: 16,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -140,12 +140,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    padding: 12,
+    paddingRight: 6,
+    
   },
   cardImage: {
-    width: 110,
-    height: 80,
-    borderRadius: 8,
+    width: 120,
+    height: 90,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
     marginRight: 10,
     alignSelf: 'center',
   },
