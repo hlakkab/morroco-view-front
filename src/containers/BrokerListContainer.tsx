@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import CardItem from '../components/cards/CardItem';
 import FilterSelector from '../components/FilterSelector';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../types/navigation';
 import { useAppDispatch } from '../store/hooks';
 import { Broker } from '../types/exchange-broker';
 import BrokerCard from '../components/cards/BrokerCard';

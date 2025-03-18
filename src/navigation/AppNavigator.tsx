@@ -1,9 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import AccountScreen from '../screens/AccountScreen';
+import AddNewTourScreen from '../screens/AddNewTourScreen';
 import BookmarkScreen from '../screens/BookmarkScreen';
 import BrokerDetailScreen from '../screens/BrokerDetailScreen';
 import BrokerListScreen from '../screens/BrokerListScreen';
+import EntertainmentScreen from '../screens/EntertainmentScreen';
 import ESIMScreen from '../screens/ESIMScreen';
 import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -19,10 +21,9 @@ import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import RestaurantScreen from '../screens/RestaurantScreen';
 import TicketsScreen from '../screens/TicketsScreen';
 import ToursScreen from '../screens/ToursScreen';
-import EntertainmentScreen from '../screens/EntertainmentScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import { RootStackParamList } from '../types/navigation';
-
+import AddNewTourDestinationsScreen from '../screens/AddNewTourDestinationsScreen';
 
 // export type RootStackParamList = {
 //   Launch: undefined;
@@ -203,6 +204,16 @@ export function AppNavigator() {
       <Stack.Screen 
         name="Entertainment" 
         component={EntertainmentScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="AddNewTour" 
+        component={AddNewTourScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="AddNewTourDestinations" 
+        component={AddNewTourDestinationsScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

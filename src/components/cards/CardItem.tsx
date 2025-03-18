@@ -26,6 +26,7 @@ interface CardItemProps {
   contentStyle?: object;
   svgImage?: React.ReactNode;
   isSaved?: boolean;
+  isEditable?: boolean;
 }
 
 const CardItem: React.FC<CardItemProps> = ({
@@ -42,6 +43,7 @@ const CardItem: React.FC<CardItemProps> = ({
   contentStyle,
   svgImage,
   isSaved = false,
+  isEditable = false,
 }) => {
   return (
     <TouchableOpacity 
@@ -92,37 +94,35 @@ const CardItem: React.FC<CardItemProps> = ({
       </View>
       
       {actionIcon && (
-  /*      <TouchableOpacity 
+        <TouchableOpacity 
           style={styles.actionButton} 
           onPress={onActionPress}
           disabled={!onActionPress}
         >
           <View style={[
             styles.actionIconContainer, 
-            isSaved && styles.savedIconContainer
+            isSaved && styles.savedIconContainer,
           ]}>
             
             {actionIcon}
           </View>
-        </TouchableOpacity>*/
-      <TouchableOpacity
-      style={styles.actionButton}
-      onPress={onActionPress}
-      disabled={!onActionPress}
-    >
-      <View style={[
-        styles.actionIconContainer,
-        isSaved && styles.savedIconContainer
-      ]}>
-        <FontAwesome
-          name={isSaved ? "bookmark" : "bookmark-o"}
-          size={18}
-          color={isSaved ? "#888888" : "#000"}
-        />
-      </View>
-    </TouchableOpacity>
-
-
+        </TouchableOpacity>
+    //   <TouchableOpacity
+    //   style={styles.actionButton}
+    //   onPress={onActionPress}
+    //   disabled={!onActionPress}
+    // >
+    //   <View style={[
+    //     styles.actionIconContainer,
+    //     isSaved && styles.savedIconContainer
+    //   ]}>
+    //     <FontAwesome
+    //       name={isSaved ? "bookmark" : "bookmark-o"}
+    //       size={18}
+    //       color={isSaved ? "#888888" : "#000"}
+    //     />
+    //   </View>
+    // </TouchableOpacity>
       )}
     </TouchableOpacity>
   );
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: 120,
-    height: 90,
+    height: 100,
     borderTopLeftRadius: 8,
     borderBottomLeftRadius: 8,
     marginRight: 10,
@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
     justifyContent: 'center',
+    
   },
   tagsRow: {
     flexDirection: 'row',

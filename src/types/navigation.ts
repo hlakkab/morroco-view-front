@@ -68,7 +68,12 @@ export type RootStackParamList = {
     BrokerList: undefined;
     ExploreMatches: undefined;
     Test: undefined;
-    
+    AddNewTour: undefined;
+    AddNewTourDestinations: {
+        title: string;
+        startDate: string;
+        endDate: string;
+    };
 };
 
 // Type alias for use with useNavigation hook

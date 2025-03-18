@@ -1,8 +1,76 @@
+import { Ionicons } from '@expo/vector-icons';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import PlaceholderScreen from './PlaceholderScreen';
-
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ScreenHeader from '../components/ScreenHeader';
+import BottomNavBar from '../containers/BottomNavBar';
+import TourListContainer from '../containers/TourListContainer';
+import { RootStackParamList } from '../types/navigation';
 const ToursScreen: React.FC = () => {
-  return <PlaceholderScreen title="Tours" routeName="Tours" />;
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const handleBack = () => {
+    // Handle back navigation
+  };
+
+  const handleAddTour = () => {
+    navigation.navigate('AddNewTour');
+  };
+
+  const handleNavigation = (routeName: string) => {
+    // Handle navigation logic
+    console.log('Navigating to:', routeName);
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader title="Tours" onBack={handleBack} />
+      
+      <View style={styles.content}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={handleAddTour}
+        >
+          <Ionicons name="add" size={25} color="#FFFFFF" style={{ backgroundColor: '#AE1913', borderRadius: 25, padding: 4}} />
+          <Text style={styles.addButtonText}>Add new Tour</Text>
+        </TouchableOpacity>
+
+        <TourListContainer />
+      </View>
+
+      <BottomNavBar activeRoute="Tours" onNavigate={handleNavigation} />
+    </SafeAreaView>
+  );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF7F7',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7F7',
+    borderWidth: 2,
+    borderColor: '#AE1913',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 50,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  
+  },
+  addButtonText: {
+    color: '#AE1913',
+    marginLeft: 6,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
 
 export default ToursScreen; 

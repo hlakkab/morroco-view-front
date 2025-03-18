@@ -4,7 +4,7 @@ import { Alert, SafeAreaView, StyleSheet, View } from 'react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import BookmarkListContainer from '../containers/BookmarkListContainer';
 import BottomNavBar from '../containers/BottomNavBar';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../types/navigation';
 import { fetchBookmarks } from '../store/bookmarkSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 

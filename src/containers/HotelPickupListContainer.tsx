@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/cards/CardItem';
 import FilterSelector from '../components/FilterSelector';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleHotelPickupBookmark } from '../store/hotelPickupSlice';

@@ -36,8 +36,8 @@ const BrokerCard = ({ item, handleSaveBroker, handleBrokerPress }: BrokerCardPro
           name={item.isSaved ? "bookmark" : "bookmark-outline"} 
           size={20} color={item.isSaved ? "#666" : "#000"} />
       }
-      onActionPress={() => handleSaveBroker(item.id)}
-      onCardPress={() => handleBrokerPress(item)}
+      onActionPress={() => handleSaveBroker?.(item.id)}
+      onCardPress={() => handleBrokerPress?.(item)}
       containerStyle={styles.cardContainer}
       svgImage={!item.imageUrl ? <Ionicons name="cash-outline" size={32} color="#fff" /> : undefined}
       isSaved={item.isSaved}

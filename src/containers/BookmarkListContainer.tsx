@@ -4,7 +4,7 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/cards/CardItem';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../types/navigation';
 import { Bookmark } from '../types/bookmark';
 import { useAppDispatch } from '../store/hooks';
 import { removeBookmark } from '../store/bookmarkSlice';
