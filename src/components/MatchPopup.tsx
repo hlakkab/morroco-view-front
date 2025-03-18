@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Animated, PanResponder, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
@@ -8,15 +8,40 @@ import AboutSection from './AboutSection';
 import LocationSection from './LocationSection';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Match } from '../types/match';
+import { useSelector } from 'react-redux';
+import { buyTicket, resetTicketPurchaseStatus, toggleMatchBookmark } from '../store/matchSlice';
+import { RootState } from '../store';
+import { useAppDispatch } from '../store/hooks';
+import TicketPurchaseStatus from './TicketPurchaseStatus';
 
 export interface MatchPopupProps {
-  match?: Match;
+  match: Match;
   onClose: () => void;
 }
 
 const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
+  const dispatch = useAppDispatch();
+  const { ticketPurchaseStatus, ticketPurchaseError, savedMatches } = useSelector((state: RootState) => state.match);
 
-  const [isSaved, setIsSaved] = useState(false);
+  // Check if the match is saved when component mounts or match changes
+
+  // Reset ticket purchase status when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(resetTicketPurchaseStatus());
+    };
+  }, [dispatch]);
+
+  // Handle successful ticket purchase
+  useEffect(() => {
+    if (ticketPurchaseStatus === 'succeeded') {
+      Alert.alert('Success', 'Ticket purchased successfully!');
+      dispatch(resetTicketPurchaseStatus());
+    } else if (ticketPurchaseStatus === 'failed' && ticketPurchaseError) {
+      Alert.alert('Error', ticketPurchaseError);
+      dispatch(resetTicketPurchaseStatus());
+    }
+  }, [ticketPurchaseStatus, ticketPurchaseError, dispatch]);
 
   // Créer une valeur animée pour le geste de glissement
   const pan = React.useRef(new Animated.ValueXY()).current;
@@ -47,174 +72,203 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
   ).current;
 
   const handleSave = () => {
-    setIsSaved(!isSaved);
+    if (match) {
+      dispatch(toggleMatchBookmark(match));
+      // No need to update local state as it will be updated via the useEffect when savedMatches changes
+    }
   };
 
-
-  // Valeurs par défaut si aucune donnée n'est passée
-  const defaultMatch: Match = {
-    id: 'default',
-    teams: "Morocco Vs Comores",
-    team1Image: "https://www.countryflags.com/wp-content/uploads/morocco-flag-png-large.png",
-    team2Image: "https://www.countryflags.com/wp-content/uploads/comoros-flag-png-large.png",
-    status: "Entertainment",
-    date: "Mon, 10/03 at 9:00 PM",
-    stadium: "Stade Adrar",
-    about: "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...",
+  const handleBuyTicket = () => {
+    if (match && match.id) {
+      dispatch(buyTicket(match.id));
+    } else {
+      Alert.alert('Error', 'Cannot purchase ticket for this match');
+    }
   };
 
-  const currentMatch = match || defaultMatch;
+  
+  const flag = (country: string) => {
+    country = country
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+
+    return `https://www.countryflags.com/wp-content/uploads/${country}-flag-png-large.png`	
+  }
 
   return (
     <Animated.View
-      style={[
-        styles.popup,
-        { transform: [{ translateY: pan.y }] }
-      ]}
-    >
+      style={[styles.container, { transform: [{ translateY: pan.y }] }]}>
+      <View
+        style={[styles.popup]}
+      >
 
-      {/* Header blanc */}
-      <View style={styles.headerSection}>
-        {/* Drag handle */}
-        <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-          <View style={styles.dragHandle} />
-        </View>
+        {/* Header blanc */}
+        <View style={styles.headerSection}>
+          {/* Drag handle */}
+          <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+            <View style={styles.dragHandle} />
+          </View>
 
-        {/* Label de status */}
-        <View style={styles.statusLabel}>
-          <Ionicons name="football" size={15} color="#0000FF" />
-          <Text style={styles.statusLabelText}>{currentMatch.status}</Text>
-        </View>
+          {/* Label de status */}
+          <View style={styles.statusLabel}>
+            <Ionicons name="football" size={15} color="#0000FF" />
+            <Text style={styles.statusLabelText}>status</Text>
+          </View>
 
-        {/* Titre du match */}
-        <Text style={styles.matchTitle}>{currentMatch.teams}</Text>
+          {/* Titre du match */}
+          <Text style={styles.matchTitle}>{match.homeTeam} Vs. {match.awayTeam}</Text>
 
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <CloseButton />
-        </TouchableOpacity>
-      </View>
-
-
-
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Grand conteneur regroupant l'image et les détails */}
-        <View style={styles.grandContainer}>
-          <TouchableOpacity
-            style={[styles.saveButton, isSaved && styles.savedButton]}
-            onPress={handleSave}
-          >
-            <Ionicons
-              name={isSaved ? "bookmark" : "bookmark-outline"}
-              size={24}
-              color={isSaved ? "#888888" : "#000"}
-            />
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <CloseButton />
           </TouchableOpacity>
-
-
-
-          {/* Affichage des images d'équipes avec VS au milieu */}
-          <View style={styles.teamsContainer}>
-            {(currentMatch.homeTeam && currentMatch.awayTeam) ? (
-              <>
-                <Image source={{ uri: currentMatch.homeTeam.flag }} style={styles.teamFlag} />
-                <Text style={styles.vsText}>VS</Text>
-                <Image source={{ uri: currentMatch.awayTeam.flag }} style={styles.teamFlag} />
-              </>
-            ) : (currentMatch.team1Image && currentMatch.team2Image) ? (
-              <>
-                <Image source={{ uri: currentMatch.team1Image }} style={styles.teamFlag} />
-                <Text style={styles.vsText}>VS</Text>
-                <Image source={{ uri: currentMatch.team2Image }} style={styles.teamFlag} />
-              </>
-            ) : (
-              <Image source={{ uri: currentMatch.image }} style={styles.teamImage} />
-            )}
-          </View>
-
-          <View style={styles.detailRow}>
-            {/* Date */}
-            <View style={styles.detailItem}>
-              <View style={styles.iconTitleContainer}>
-                <Fontisto name="date" size={16} color="#656565" />
-                <Text style={styles.detailTitle}>Date</Text>
-              </View>
-              <Text style={styles.detailValue}>{currentMatch.date.split(" at")[0]}</Text>
-            </View>
-
-            {/* Séparateur 1 */}
-            <View style={styles.separator}></View>
-
-            {/* Time */}
-            <View style={styles.detailItem}>
-              <View style={styles.iconTitleContainer}>
-                <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
-                <Text style={styles.detailTitle}>Time</Text>
-              </View>
-              <Text style={styles.detailValue}>
-                {currentMatch.date.includes(" at ")
-                  ? currentMatch.date.split(" at ")[1]
-                  : "9:00 PM"}
-              </Text>
-            </View>
-
-            {/* Séparateur 2 */}
-            <View style={styles.separator}></View>
-
-            {/* Stadium */}
-            <View style={styles.detailItem}>
-              <View style={styles.iconTitleContainer}>
-                <StadiumIconPopup width={16} height={16} />
-                <Text style={styles.detailTitle}>Stadium</Text>
-              </View>
-              <Text style={styles.detailValue}>{currentMatch.stadium}</Text>
-            </View>
-          </View>
         </View>
 
-        {/* About Section */}
-        <AboutSection
-          text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
-        />
+        <View style={styles.divider} />
 
-        {/* Location Section */}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
 
-        <LocationSection
-          address={currentMatch.location?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-          mapUrl={currentMatch.location?.mapUrl}
-        />
-      </ScrollView>
+          {/* Grand conteneur regroupant l'image et les détails */}
+          <View style={styles.content}>
 
-      {/* Bottom Section: Boutons Add to Tour & Buy Tickets */}
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.buyTicketsButton}>
-          <Text style={styles.buyTicketsText}>
-            Buy Tickets
-          </Text>
-        </TouchableOpacity>
+            {/* conntainer */}
+            <View style={styles.grandContainer}>
+              <TouchableOpacity
+                style={[styles.saveButton, match.saved && styles.savedButton]}
+                onPress={handleSave}
+              >
+                <Ionicons
+                  name={match.saved ? "bookmark" : "bookmark-outline"}
+                  size={24}
+                  color={match.saved ? "#888888" : "#000"}
+                />
+              </TouchableOpacity>
+
+
+
+              {/* Affichage des images d'équipes avec VS au milieu */}
+              <View style={styles.teamsContainer}>
+                  <>
+                    <Image source={{ uri: flag(match.homeTeam) }} style={styles.teamFlag} />
+                    <Text style={styles.vsText}>VS</Text>
+                    <Image source={{ uri: flag(match.awayTeam) }} style={styles.teamFlag} />
+                  </>
+                
+              </View>
+
+              <View style={styles.detailRow}>
+                {/* Date */}
+                <View style={styles.detailItem}>
+                  <View style={styles.iconTitleContainer}>
+                    <Fontisto name="date" size={16} color="#656565" />
+                    <Text style={styles.detailTitle}>Date</Text>
+                  </View>
+                  <Text style={styles.detailValue}>{match.date.split(" ")[0]}</Text>
+                </View>
+
+                {/* Séparateur 1 */}
+                <View style={styles.separator}></View>
+
+                {/* Time */}
+                <View style={styles.detailItem}>
+                  <View style={styles.iconTitleContainer}>
+                    <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
+                    <Text style={styles.detailTitle}>Time</Text>
+                  </View>
+                  <Text style={styles.detailValue}>
+                    {match.date.includes(" ")
+                      ? match.date.split(" ")[1]
+                      : "9:00 PM"}
+                  </Text>
+                </View>
+
+                {/* Séparateur 2 */}
+                <View style={styles.separator}></View>
+
+                {/* Stadium */}
+                <View style={styles.detailItem}>
+                  <View style={styles.iconTitleContainer}>
+                    <StadiumIconPopup width={16} height={16} />
+                    <Text style={styles.detailTitle}>Stadium</Text>
+                  </View>
+                  <Text style={styles.detailValue}>{match.spot?.name || "Unknown"}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* About Section */}
+            <AboutSection
+              text={match.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
+            />
+
+            {/* Location Section */}
+            <LocationSection
+              address={match.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
+              mapUrl={match.spot?.coordinates}
+            />
+            
+            {/* Ticket Purchase Status */}
+            <TicketPurchaseStatus 
+              status={ticketPurchaseStatus} 
+              error={ticketPurchaseError} 
+            />
+          </View>
+
+        </ScrollView>
+
+        {/* Bottom Section: Boutons Add to Tour & Buy Tickets */}
+        <View style={styles.bottomContainer}>
+          <TouchableOpacity 
+            style={[
+              styles.buyTicketsButton, 
+              ticketPurchaseStatus === 'loading' && styles.disabledButton
+            ]}
+            onPress={handleBuyTicket}
+            disabled={ticketPurchaseStatus === 'loading'}
+          >
+            {ticketPurchaseStatus === 'loading' ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.buyTicketsText}>
+                Buy Tickets
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+
       </View>
-
-
     </Animated.View>
+
   );
 };
 
 const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
   popup: {
-    width: 395,
-    height: 802,
-    top: 80,
-    borderRadius: 32,
-    backgroundColor: '#FFF7F7',
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    flexDirection: 'column',
+  },
+  content: {
+    flex: 1,
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
   // Nouveaux styles pour le drag handle
+  divider: {
+    height: 1,
+    backgroundColor: '#eee',
+  },
   dragHandleContainer: {
     alignItems: 'center',
     paddingTop: 12,
@@ -226,28 +280,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#D3D3D3',
     borderRadius: 2.5,
   },
-  scrollContainer: {
-    padding: 16,
-    paddingTop: 0,
-    top: -15,
+  scrollContent: {
+    flexGrow: 1,
   },
   matchTitle: {
-    width: 355,
-    height: 31,
-    marginTop: 35, // Ajusté pour tenir compte du drag handle
-    marginLeft: 23,
+    
     fontFamily: 'Raleway',
     fontWeight: '700',
     fontSize: 24,
-    lineHeight: 31,
     color: '#000000',
   },
   statusLabel: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    top: 20, // Ajusté pour tenir compte du drag handle
-    marginLeft: 23,
     borderRadius: 20,
     paddingVertical: 2,
     paddingHorizontal: 5,
@@ -261,10 +307,6 @@ const styles = StyleSheet.create({
   },
   grandContainer: {
     backgroundColor: '#F6FAFF',
-    width: 350,
-    height: 234,
-    marginTop: 20,
-    marginLeft: 6,
     alignItems: 'center',
     borderRadius: 11,
   },
@@ -297,12 +339,7 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
     backgroundColor: '#F8F9FF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginTop: 5,
   },
   detailItem: {
     alignItems: 'center',
@@ -345,28 +382,17 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   detailValue: {
-    /* width: 100,
-    // marginTop: 0,
-     fontFamily: 'Raleway',
-     fontSize: 14,
-     fontWeight: '700',
-     color: '#000000',
-     textAlign: 'center',
-     flexWrap: 'wrap',*/
+    width:100,
     fontFamily: 'Raleway',
     fontSize: 14,
     fontWeight: '700',
     color: '#000000',
     textAlign: 'center',
-    width: '100%', // Assure que le texte utilise toute la largeur disponible
   },
 
   bottomContainer: {
     borderRadius: 4,
-    width: 415,
-    height: 160,
     alignItems: 'center',
-    // backgroundColor: 'blue',
   },
   addToTourText: {
     marginTop: -5,
@@ -377,13 +403,17 @@ const styles = StyleSheet.create({
   },
   buyTicketsButton: {
     marginTop: 8,
-    width: 340,
-    height: 53,
+    width: '80%',
+    paddingVertical: 15,
     borderRadius: 32,
     backgroundColor: '#AE1913',
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0px 4px 20px 0px #AE191366',
+  },
+  disabledButton: {
+    backgroundColor: '#D3D3D3',
+    opacity: 0.7,
   },
   buyTicketsText: {
     color: '#FFFFFF',
@@ -392,11 +422,11 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 17,
-    left: 346,
+    top: 16,
+    right: 16,
   },
   headerSection: {
-    height: 130,
+    paddingHorizontal: 20,
     backgroundColor: 'white',
     borderTopLeftRadius: 32, // Conserve l'arrondi du popup parent
     borderTopRightRadius: 32, // Conserve l'arrondi du popup parent
@@ -405,14 +435,13 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 10,
+    right: 10,
     //backgroundColor: 'white',
     opacity: 0.5,
-    width: 40,
-    height: 40,
     borderRadius: 20,
     borderWidth: 1.7,
+    padding: 3,
     borderColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
@@ -431,4 +460,3 @@ const styles = StyleSheet.create({
 });
 
 export default MatchPopup;
-//Correcte without close button

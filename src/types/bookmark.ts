@@ -2,7 +2,7 @@ export interface Bookmark {
   id: string;
   images: string[];
   type: string;
-  title: string;
+  object: any;
 }
 
 export interface BookmarkState {

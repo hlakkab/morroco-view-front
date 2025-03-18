@@ -19,7 +19,7 @@ const AboutSection: React.FC<AboutSectionProps> = ({
   const [truncatedText, setTruncatedText] = useState('');
 
   return (
-    <View>
+    <View style={styles.aboutContainer}>
       {/* Afficher le titre s'il est fourni */}
       {title && (
         <Text style={[styles.aboutTitle, titleStyle]}>
@@ -59,11 +59,13 @@ const AboutSection: React.FC<AboutSectionProps> = ({
 };
 
 const styles = StyleSheet.create({
+  aboutContainer: {
+    marginTop: 10,
+    flex: 1,
+    gap: 10,
+  },
   aboutTitle: {
-    width: 322,
     height: 30,
-    marginTop: 25,
-    marginLeft: 6,
     fontFamily: 'Raleway',
     fontWeight: '700',
     fontSize: 24,
@@ -71,9 +73,6 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   aboutText: {
-    width: 322,
-    marginTop: 10,
-    marginLeft: 6,
     fontFamily: 'Raleway',
     fontWeight: '400',
     fontSize: 14,

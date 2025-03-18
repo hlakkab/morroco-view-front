@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
-import CardItem from '../components/CardItem';
+import CardItem from '../components/cards/CardItem';
 import { RootStackParamList } from '../types/navigation';
 import { Entertainment } from '../types/Entertainment';
 import Ionicons from '@expo/vector-icons/Ionicons';

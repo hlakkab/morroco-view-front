@@ -32,6 +32,7 @@ const HomeScreen: React.FC = () => {
     } else if (category === 'Entertainment') {
       navigation.navigate('Entertainment');  // Nom exact tel que défini dans le navigateur
     } else if (category in navigation.getState().routeNames) {
+    if (navigation.getState().routeNames.includes(category as keyof RootStackParamList)) {
       navigation.navigate(category as keyof RootStackParamList as never);
     } else {
       console.log(`Invalid navigation destination: ${category}`);
