@@ -140,7 +140,6 @@ const matchSlice = createSlice({
       // Toggle match bookmark
       .addCase(toggleMatchBookmark.pending, (state, action) => {
         state.error = null;
-        console.log(action.payload)
         // Optimistic update - toggle the saved flag immediately
         const matchId = action.meta.arg.id;
         const matches = state.matches.find(m => m.id === matchId)!;
