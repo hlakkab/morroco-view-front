@@ -5,6 +5,21 @@ interface CardItemProps {
   imageUrl?: string;
   title: string;
   subtitle?: string;
+  customStyles?: {
+    container?: object;
+    image?: object;
+    content?: object;
+    title?: object;
+    subtitle?: object;
+    tagsContainer?: object;
+    mainTag?: object;
+    mainTagText?: object;
+    secondaryTagText?: object;
+    priceContainer?: object;
+    priceText?: object;
+    priceValue?: object;
+    actionButton?: object;
+  };
   price?: {
     value: number;
     currency?: string;
@@ -32,6 +47,7 @@ const CardItem: React.FC<CardItemProps> = ({
   imageUrl,
   title,
   subtitle,
+  customStyles = {},
   price,
   tags = [],
   actionIcon,
@@ -45,44 +61,44 @@ const CardItem: React.FC<CardItemProps> = ({
 }) => {
   return (
     <TouchableOpacity 
-      style={[styles.cardContainer, containerStyle]}
+      style={[styles.cardContainer, customStyles.container]}
       onPress={onCardPress}
       disabled={!onCardPress}
     >
       {(imageUrl && (
         <Image 
           source={{ uri: imageUrl }} 
-          style={[styles.cardImage, imageStyle]} 
+          style={[styles.cardImage, customStyles.image]} 
         />
       )) || svgImage}
       
-      <View style={[styles.cardContent, contentStyle]}>
-        <View style={styles.tagsRow}>
+      <View style={[styles.cardContent, customStyles.content]}>
+        <View style={[styles.tagsRow, customStyles.tagsContainer]}>
           {tags.length > 0 && tags[0] && (
-            <View style={styles.mainTagContainer}>
+            <View style={[styles.mainTagContainer, customStyles.mainTag]}>
               {tags[0].icon}
-              <Text style={[styles.mainTagText, tags[0].textStyle]}>{tags[0].label}</Text>
+              <Text style={[styles.mainTagText, customStyles.mainTagText]}>{tags[0].label}</Text>
             </View>
           )}
           
           {tags.length > 1 && tags[1] && (
-            <Text style={styles.secondaryTagText}>{tags[1].label}</Text>
+            <Text style={[styles.secondaryTagText, customStyles.secondaryTagText]}>{tags[1].label}</Text>
           )}
         </View>
         
-        <Text style={styles.cardTitle}>
+        <Text style={[styles.cardTitle, customStyles.title]}>
           {title}
         </Text>
         
         {subtitle && (
-          <Text style={styles.cardSubtitle}>{subtitle}</Text>
+          <Text style={[styles.cardSubtitle, customStyles.subtitle]}>{subtitle}</Text>
         )}
         
         {price && (
-          <View style={styles.priceContainer}>
-            <Text style={styles.priceText}>
+          <View style={[styles.priceContainer, customStyles.priceContainer]}>
+            <Text style={[styles.priceText, customStyles.priceText]}>
               {price.prefix || 'start from'}{' '}
-              <Text style={styles.priceValue}>
+              <Text style={[styles.priceValue, customStyles.priceValue]}>
                 {price.value} {price.currency || 'Dh'}
               </Text>
               {price.suffix && ` ${price.suffix}`}

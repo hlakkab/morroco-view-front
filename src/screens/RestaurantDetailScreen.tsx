@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, StyleSheet, SafeAreaView, ScrollView, Image, Text, TouchableOpacity, Dimensions, FlatList } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +28,8 @@ const RestaurantDetailScreen: React.FC = () => {
 
   const [isSaved, setIsSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+
 
   const handleBack = () => {
     navigation.goBack();

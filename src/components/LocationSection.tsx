@@ -46,6 +46,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({ address, mapUrl }) =>
 const styles = StyleSheet.create({
   locationSection: {
     marginTop: 20,
+    marginLeft: 6,
   },
 
   locationTitle: {

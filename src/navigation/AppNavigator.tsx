@@ -18,6 +18,8 @@ import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import RestaurantScreen from '../screens/RestaurantScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
+import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
+import EntertainmentDetailScreenVo from '../screens/EntertainmentDetailScreenVo';
 
 
 export type RootStackParamList = {
@@ -74,6 +76,19 @@ export type RootStackParamList = {
   Matches: undefined;
   Monuments: undefined;
   Entertainment: undefined;
+  EntertainmentDetail: {
+    id: string;
+    title: string;
+    image?: string;
+    images?: string[];
+    description?: string;
+    rating?: number;
+    ratingCount?: number;
+    fullStars?: number;
+    hasHalfStar?: boolean;
+    location?: string;
+    price?: number;
+  };
   Artisans: undefined;
   EmergencyContacts: undefined;
 };
@@ -182,6 +197,17 @@ export function AppNavigator() {
       <Stack.Screen
         name="RestaurantDetail"
         component={RestaurantDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Entertainment"
+        component={EntertainmentScreenVo}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="EntertainmentDetail"
+        component={EntertainmentDetailScreenVo}
         options={{ headerShown: false }}
       />
 
