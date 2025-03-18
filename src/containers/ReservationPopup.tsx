@@ -3,8 +3,10 @@ import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Button from '../components/Button';
+import LocationPickerModal from '../components/LocationPickerModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
+import "react-native-get-random-values"
 
 interface ReservationPopupProps {
   onClose: () => void;
@@ -15,12 +17,15 @@ interface ReservationPopupProps {
 
 const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupProps) => {
   const dispatch = useAppDispatch();
-  const { bookingStatus, bookingError } = useAppSelector((state) => state.hotelPickupDetails);
+  const { bookingStatus, bookingError } = useAppSelector(
+    (state) => state.hotelPickupDetails
+  );
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [hotelLocation, setHotelLocation] = useState('');
 
   useEffect(() => {
@@ -479,6 +484,12 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                   returnKeyType="done"
                   onSubmitEditing={Keyboard.dismiss}
                 />
+                <TouchableOpacity
+                  style={styles.locationButton}
+                  onPress={() => setShowLocationPicker(true)}
+                >
+                  <MaterialIcons name="map" size={20} color="#999" style={styles.inputIcon} />
+                </TouchableOpacity>
               </View>
               
               {bookingError && (
@@ -502,6 +513,11 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
       {showDatePicker && renderCustomDatePicker()}
       {showTimePicker && renderCustomTimePicker()}
+      <LocationPickerModal
+        visible={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onLocationSelect={setHotelLocation}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -885,6 +901,10 @@ const styles = StyleSheet.create({
   periodText: {
     fontSize: 16,
     color: '#333',
+  },
+  locationButton: {
+    padding: 8,
+    marginLeft: 8,
   },
 });
 

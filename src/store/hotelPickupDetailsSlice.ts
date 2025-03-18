@@ -6,7 +6,6 @@ import { api } from '../service';
 const getPickupDetails = async (id: string) => {
   try {
     const response = await api.get<HotelPickupDetails>(`/pickups/${id}`);
-    console.log('API Response:', response);
     
     if (!response.data) {
       throw new Error('No data received from server');
@@ -57,7 +56,6 @@ export const fetchPickupDetails = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const data = await getPickupDetails(id);
-      console.log('Fetched Details:', data);
       return data;
     } catch (error: any) {
       console.error('Thunk Error:', error);
