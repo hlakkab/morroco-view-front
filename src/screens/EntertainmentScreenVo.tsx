@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, SafeAreaView, ActivityIndicator, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -8,38 +8,57 @@ import SearchBar from '../components/SearchBar';
 import EntertainmentListContainerVo from '../containers/EntertainmentListContainerVo';
 
 import { RootStackParamList } from '../types/navigation';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchEntertainments, EntertainmentState } from '../store/entertainmentSlice';
 import { Entertainment } from '../types/Entertainment';
-
-// Exemple de données d'entertainment
-const SAMPLE_ENTERTAINMENTS: Entertainment[] = [
-  {
-    id: '1',
-    rating: 4.5,
-    ratingCount: 574,
-    fullStars: 4,
-    hasHalfStar: true,
-    image: 'https://www.marrakech-montgolfiere.com/images/montgolfiere/hotair.jpg',
-    title: "Hot air balloon flight: Marrakech desert and atlas views",
-    location: "Marrakech, Morocco",
-    price: "137.56",
-  },
-  // Ajoutez d'autres activités si nécessaire...
-];
 
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
 
 const EntertainmentScreenVo: React.FC = () => {
   const navigation = useNavigation<EntertainmentScreenNavigationProp>();
+  const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { entertainments, loading, error } = useAppSelector(
+    (state): EntertainmentState => state.entertainment
+  );
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
-  const filteredEntertainments = SAMPLE_ENTERTAINMENTS.filter(ent =>
-    ent.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ent.location.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchEntertainments()).unwrap();
+      } catch (error) {
+        console.error('Failed to fetch entertainments:', error);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
+  // Filtrage des entertainments selon la recherche
+  const filteredEntertainments = entertainments.filter((ent: Entertainment) =>
+    ent.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#000" />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -84,6 +103,12 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     paddingTop: 220,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 20,
   },
 });
 

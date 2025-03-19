@@ -6,8 +6,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import CardItem from '../components/cards/CardItem';
 import { RootStackParamList } from '../types/navigation';
-import { Entertainment } from '../types/Entertainment';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 import SaveButton from '../components/SaveButton';
 
 interface EntertainmentListContainerProps {
@@ -21,14 +20,14 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
     const handleEntertainmentPress = (ent: Entertainment) => {
         navigation.navigate('EntertainmentDetail', {
             id: ent.id,
-            rating: ent.rating,
-            ratingCount: ent.ratingCount,
+            rating: ent.reviews.combinedAverageRating,
+            ratingCount: ent.reviews.totalReviews,
             fullStars: ent.fullStars,
             hasHalfStar: ent.hasHalfStar,
             title: ent.title,
             location: ent.location,
-            price: ent.price,
-            image: ent.image,
+            price: entertainmentHelpers.getFormattedPrice(ent),
+            image: entertainmentHelpers.getPrimaryImageUrl(ent),
         });
     };
 
@@ -40,9 +39,8 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
     };
 
     /** Fonction qui génère les étoiles **/
-    const renderStars = (rating: number) => {
-        const fullStars = Math.floor(rating); // Nombre d'étoiles pleines
-        const hasHalfStar = rating % 1 >= 0.5; // Vérifie si une demi-étoile est nécessaire
+    const renderStars = (entertainment: Entertainment) => {
+        const { rating, fullStars } = entertainmentHelpers.getRatingInfo(entertainment);
 
         return (
             <View style={styles.starContainer}>
@@ -52,14 +50,13 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
                 ))}
 
                 {/* Affichage d'une demi-étoile si nécessaire */}
-                {hasHalfStar && <FontAwesome name="star-half-empty" size={20} color="#FFD700" />}
+                {entertainment.hasHalfStar && <FontAwesome name="star-half-empty" size={20} color="#FFD700" />}
 
                 {/* Affichage de la valeur du rating à côté des étoiles */}
                 <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
             </View>
         );
     };
-
 
     return (
         <View style={styles.container}>
@@ -69,82 +66,78 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                         <View style={styles.CardEntertainmentContainer}>
-                        <CardItem
-                            imageUrl={item.image}
-                            title={item.title}
-                            subtitle={`From  $${item.price}`}
-                            customStyles={{
-                                mainTag: {
-                                    marginTop: 10,
-                                    backgroundColor: '#F6FAFF',
-                                    borderWidth: 0,
-                                    borderColor: '#FFD700',
-                                    paddingHorizontal: 6,
-                                    paddingVertical: 3,
-                                    borderRadius: 16,
-                                },
-                                mainTagText: {
-                                    left : 2,
-                                    color: 'black',
-                                    fontWeight: '700',
-                                    fontSize: 14.5,
-                                },  
-                                container: {
-                                    backgroundColor: 'white',
-                                    borderRadius: 12,
-                                    marginBottom: 16,
-                                    overflow: 'hidden',
-                                    elevation: 3,
-                                    shadowColor: '#000',
-                                    shadowOffset: { width: 0, height: 2 },
-                                    shadowOpacity: 0.1,
-                                    shadowRadius: 4,
-                                    //padding: 16,
-                                    flexDirection: 'column',
-                                    paddingHorizontal: 0,
-                                    paddingVertical: 0,
-
-                                },
-                                image: {
-                                    width: '104%',
-                                    height: 200,
-                                    paddingBottom: 30,
-                                    left: 3,
-                                },
-                                content: {
-                                    padding: 16,
-                                    paddingTop: 8,
-                                    gap: 8,
-                                    paddingBottom: 8,
-                                },
-                                title: {
-                                    fontSize: 18,
-                                    fontWeight: 'bold',
-                                    marginBottom: 8,
-                                    color: '#000',
-                                },
-                                subtitle: {
-                                    fontSize: 14,
-                                    fontWeight: 'bold',
-                                    color: '#006400',
-                                },
-                            }}
-                            tags={[
-                                {
-                                  id: 'rating',
-                                  icon: renderStars(item.rating), // Ajout des étoiles + valeur du rating
-                                  label: `(${item.ratingCount} reviews)`,
-                                },
-                              ]}
-                              
-                           
-                            onCardPress={() => handleEntertainmentPress(item)}
-                            containerStyle={{ marginBottom: 16 }}
-                        />
-                        <SaveButton
-                            onPress={() => handleSaveEntertainment(item.id)}
-                            isSaved={savedEntertainments[item.id]}
-                        />
+                            <CardItem
+                                imageUrl={entertainmentHelpers.getPrimaryImageUrl(item)}
+                                title={item.title}
+                                subtitle={`From $${entertainmentHelpers.getFormattedPrice(item)}`}
+                                customStyles={{
+                                    mainTag: {
+                                        marginTop: 10,
+                                        backgroundColor: '#F6FAFF',
+                                        borderWidth: 0,
+                                        borderColor: '#FFD700',
+                                        paddingHorizontal: 6,
+                                        paddingVertical: 3,
+                                        borderRadius: 16,
+                                    },
+                                    mainTagText: {
+                                        left: 2,
+                                        color: 'black',
+                                        fontWeight: '700',
+                                        fontSize: 14.5,
+                                    },
+                                    container: {
+                                        backgroundColor: 'white',
+                                        borderRadius: 12,
+                                        marginBottom: 16,
+                                        overflow: 'hidden',
+                                        elevation: 3,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.1,
+                                        shadowRadius: 4,
+                                        flexDirection: 'column',
+                                        paddingHorizontal: 0,
+                                        paddingVertical: 0,
+                                    },
+                                    image: {
+                                        width: '106%',
+                                        height: 200,
+                                        paddingBottom: 30,
+                                        left: 3,
+                                    },
+                                    content: {
+                                        padding: 16,
+                                        paddingTop: 8,
+                                        gap: 8,
+                                        paddingBottom: 8,
+                                    },
+                                    title: {
+                                        fontSize: 18,
+                                        fontWeight: 'bold',
+                                        marginBottom: 8,
+                                        color: '#000',
+                                    },
+                                    subtitle: {
+                                        fontSize: 14,
+                                        fontWeight: 'bold',
+                                        color: '#006400',
+                                    },
+                                }}
+                                tags={[
+                                    {
+                                        id: 'rating',
+                                        icon: renderStars(item),
+                                        label: `(${item.reviews.totalReviews} reviews)`,
+                                    },
+                                ]}
+                                onCardPress={() => handleEntertainmentPress(item)}
+                                containerStyle={{ marginBottom: 16 }}
+                            />
+                            <SaveButton
+                                onPress={() => handleSaveEntertainment(item.id)}
+                                isSaved={savedEntertainments[item.id]}
+                            />
                         </View>
                     )}
                     contentContainerStyle={styles.listContent}
@@ -188,15 +181,15 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
-        marginLeft: 6, // Espacement entre les étoiles et le texte
-      },
-      CardEntertainmentContainer: {
+        marginLeft: 6,
+    },
+    CardEntertainmentContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         alignContent: 'center',
         alignSelf: 'center',
         justifyContent: 'space-between',
-      },
+    },
 });
 
 export default EntertainmentListContainerVo;

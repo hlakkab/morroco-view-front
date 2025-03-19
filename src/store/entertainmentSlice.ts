@@ -1,38 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { api } from '../service';
+import { Entertainment } from '../types/Entertainment';
 import ViatorService from '../service/ViatorService';
-
-// Define the Entertainment type
-
-interface Images {
-  isCover: boolean;
-  variants: {
-    url: string;
-    width: number;
-    height: number;
-  }[]
-}
-
-interface Reviews {
-  totalReviews: number;
-  combinedAverageRating: number;
-}
-
-
-export interface Entertainment {
-  id?: string;
-  productCode: string;
-  title: string;
-  description: string;
-  images: Images[];
-  reviews: Reviews;
-  pricing: {
-    summary: {
-      fromPrice: number,
-      fromPriceBeforeDiscount: number
-    }
-  }
-}
 
 // Define the state structure
 export interface EntertainmentState {
@@ -50,16 +18,29 @@ const initialState: EntertainmentState = {
   error: null,
 };
 
+// Fonction pour adapter les données de l'API au format Entertainment
+const adaptApiData = (apiData: any): Entertainment => ({
+  id: apiData.productCode,
+  productCode: apiData.productCode,
+  title: apiData.title,
+  description: apiData.description || '',
+  location: 'Morocco', // Valeur par défaut
+  images: apiData.images || [],
+  pricing: apiData.pricing,
+  reviews: apiData.reviews,
+  fullStars: Math.floor(apiData.reviews.combinedAverageRating),
+  hasHalfStar: (apiData.reviews.combinedAverageRating % 1) >= 0.5,
+  mapUrl: undefined
+});
+
 // Async thunks
 export const fetchEntertainments = createAsyncThunk(
   'entertainment/fetchEntertainments',
   async () => {
     const response = await ViatorService.listEntertainments();
-    return response;
+    return response.map(adaptApiData);
   }
 );
-
-
 
 // Create the slice
 const entertainmentSlice = createSlice({
@@ -75,7 +56,6 @@ const entertainmentSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all entertainments
       .addCase(fetchEntertainments.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -87,10 +67,7 @@ const entertainmentSlice = createSlice({
       .addCase(fetchEntertainments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch entertainments';
-      })
-      
-      
-      
+      });
   },
 });
 
