@@ -24,6 +24,8 @@ import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import { RootStackParamList } from '../types/navigation';
 import AddNewTourDestinationsScreen from '../screens/AddNewTourDestinationsScreen';
+import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
+import EntertainmentDetailScreenVo from '../screens/EntertainmentDetailScreenVo';
 
 // export type RootStackParamList = {
 //   Launch: undefined;
@@ -199,13 +201,24 @@ export function AppNavigator() {
         component={RestaurantDetailScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="Entertainment"
+        component={EntertainmentScreenVo}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="EntertainmentDetail"
+        component={EntertainmentDetailScreenVo}
+        options={{ headerShown: false }}
+      />
 
 
-      <Stack.Screen 
+      {/*<Stack.Screen 
         name="Entertainment" 
         component={EntertainmentScreen}
         options={{ headerShown: false }}
-      />
+      />*/}
       <Stack.Screen 
         name="AddNewTour" 
         component={AddNewTourScreen}

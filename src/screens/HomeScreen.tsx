@@ -20,15 +20,37 @@ const HomeScreen: React.FC = () => {
     navigation.navigate('Matches');
   };
 
-  const handleCategoryPress = (category: string) => {
+  /*const handleCategoryPress = (category: string) => {
     // Navigate to category screen based on string parameter
     // We need to check if the category is a valid key in our RootStackParamList
+    /*if (category in navigation.getState().routeNames) {
+      navigation.navigate(category as keyof RootStackParamList as never);
+     }else 
+     
+     if (category === 'Restaurant') {
+      navigation.navigate('Restaurant');  // Nom exact tel que défini dans le navigateur
+    } else if (category === 'Entertainment') {
+      navigation.navigate('Entertainment');  // Nom exact tel que défini dans le navigateur
+    } else if (category in navigation.getState().routeNames) {
     if (navigation.getState().routeNames.includes(category as keyof RootStackParamList)) {
       navigation.navigate(category as keyof RootStackParamList as never);
     } else {
       console.log(`Invalid navigation destination: ${category}`);
     }
+
+  };*/
+  const handleCategoryPress = (category: string) => {
+    const routeNames = navigation.getState().routeNames;
+  
+    if (category === 'Restaurant') {
+      navigation.navigate('Restaurant'); // Navigation spécifique pour Restaurant
+    } else if (routeNames.includes(category as keyof RootStackParamList)) {
+      navigation.navigate(category as keyof RootStackParamList as never);
+    } else {
+      console.log(`Invalid navigation destination: ${category}`);
+    }
   };
+  
 
   const handleEmergencyContacts = () => {
     // Navigate to emergency contacts screen

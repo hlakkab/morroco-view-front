@@ -58,6 +58,10 @@ export type RootStackParamList = {
       endTime?: string;
     };    
     Entertainment: undefined;
+    EntertainmentDetail: {
+        productCode: string;
+        title: string;
+      };
     Artisans: undefined;
     Bookmark: undefined;
     Tickets: undefined;
