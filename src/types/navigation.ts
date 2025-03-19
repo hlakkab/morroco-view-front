@@ -47,17 +47,8 @@ export type RootStackParamList = {
     };    
     Entertainment: undefined;
     EntertainmentDetail: {
-        id: string;
+        productCode: string;
         title: string;
-        image?: string;
-        images?: string[];
-        description?: string;
-        rating?: number;
-        ratingCount?: number;
-        fullStars?: number;
-        hasHalfStar?: boolean;
-        location?: string;
-        price?: string;
       };
     Artisans: undefined;
     Bookmark: undefined;

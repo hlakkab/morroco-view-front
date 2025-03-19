@@ -78,12 +78,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     color: '#000000',
+    marginBottom:-5
   },
   viewMoreText: {
     fontFamily: 'Raleway',
     color: '#AE1913',
-    marginTop: 4,
-    marginLeft: 6,
+    marginTop: 0,
+    marginLeft: 0,
     fontWeight: '500',
   }
 });

@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const SaveButton: React.FC = () => {
-  const [isSaved, setIsSaved] = useState<boolean>(false);
+interface SaveButtonProps {
+  onPress: () => void;
+  isSaved: boolean;
+}
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-  };
-
+const SaveButton: React.FC<SaveButtonProps> = ({ onPress, isSaved }) => {
   return (
     <TouchableOpacity 
       style={[styles.saveButton, isSaved && styles.savedButton]} 
-      onPress={handleSave}
+      onPress={onPress}
     >
       <Ionicons 
         name={isSaved ? "bookmark" : "bookmark-outline"} 
