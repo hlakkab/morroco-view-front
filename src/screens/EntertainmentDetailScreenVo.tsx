@@ -191,7 +191,9 @@ const EntertainmentDetailScreenVo: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScreenHeader title={entertainment.title} />
+            <View style={styles.headerContainer}>
+                <ScreenHeader title={entertainment.title} />
+            </View>
             <ScrollView style={styles.scrollView}>
                 <View style={styles.imageSection}>
                     <FlatList
@@ -297,6 +299,10 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1
+    },
+    headerContainer: {
+        paddingTop: 16,
+        paddingHorizontal: 16,
     },
     imageSection: {
         position: 'relative',

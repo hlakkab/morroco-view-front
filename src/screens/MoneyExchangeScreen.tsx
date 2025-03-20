@@ -106,7 +106,9 @@ const MoneyExchangeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title="Money Exchange" onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="Money Exchange" onBack={handleBack} />
+      </View>
       
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
@@ -302,9 +304,15 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+
   },
   content: {
-    padding: 16,
+    paddingHorizontal: 16,
+
+  },
+  headerContainer: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
   },
   converterCard: {
     backgroundColor: '#fff',

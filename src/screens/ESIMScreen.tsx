@@ -35,10 +35,14 @@ const ESIMScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title="eSIM" onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="eSIM" onBack={handleBack} />
+      </View>
 
       <ScrollView style={styles.scrollContainer}>
-        <ESIMCardsContainer />
+        <View style={styles.content}>
+          <ESIMCardsContainer />
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -62,12 +66,18 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    padding: 16,
   },
   footer: {
     paddingBottom: 25,
     paddingHorizontal: 16,
-  }
+  },
+  headerContainer: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
+  content: {
+    paddingHorizontal: 16,
+  },
 });
 
 export default ESIMScreen;

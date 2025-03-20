@@ -136,11 +136,11 @@ const styles = StyleSheet.create({
   filtersContainer: {
     backgroundColor: '#FCEBEC',
     borderRadius: 12,
-    padding: 12,
+    padding: 8,
     marginBottom: 16,
   },
   filterSection: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   filterContainer: {
     paddingVertical: 8,
@@ -148,12 +148,12 @@ const styles = StyleSheet.create({
   filterDivider: {
     height: 1,
     backgroundColor: '#E0E0E0',
-    marginVertical: 8,
+    marginVertical: 4,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 16,
+    marginBottom: 10,
     color: '#666',
   },
   noPickupsText: {

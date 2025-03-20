@@ -51,24 +51,23 @@ const RestaurantScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerFixed}>    
+      <View style={styles.headerContainer}>
         <ScreenHeader title="Restaurants" />
-        <View style={styles.searchBarContainer}>
-          <SearchBar
+      </View>
+      <View style={styles.content}>
+        <SearchBar
             placeholder="Search restaurants..."
             onChangeText={handleSearch}
             value={searchQuery}
             onFilterPress={() => {}}
           />
+
+          <RestaurantListContainer
+            restaurants={filteredRestaurants}
+            selectedType={selectedType}
+            onSelectType={setSelectedType}
+          />
         </View>
-      </View>
-      <View style={styles.listContainer}>
-        <RestaurantListContainer
-          restaurants={filteredRestaurants}
-          selectedType={selectedType}
-          onSelectType={setSelectedType}
-        />
-      </View>
     </SafeAreaView>
   );
 };
@@ -77,25 +76,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
-  },
-  headerFixed: {
-    position: 'absolute',
-    top: 10,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFF7F7',
-    zIndex: 10,
-  },
-  searchBarContainer: {
-    position: 'absolute',
-    top: 110,
-    left: 0,
-    right: 0,
-    zIndex: 5,
-  },
-  listContainer: {
+    },
+  content: {
     flex: 1,
-    paddingTop: 220,
+    paddingHorizontal: 16,
+  },
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
 });
 

@@ -64,15 +64,19 @@ const QRCodesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header with back button and title */}
-      <ScreenHeader title="QR Codes" onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="QR Codes" onBack={handleBack} />
+      </View>
 
       {/* Search bar component */}
-      <SearchBar 
-        placeholder="Search for by title ..."
-        onChangeText={handleSearch}
-        onFilterPress={handleFilterPress}
-        value={searchQuery}
-      />
+      <View style={styles.content}>
+        <SearchBar 
+          placeholder="Search for by title ..."
+          onChangeText={handleSearch}
+          onFilterPress={handleFilterPress}
+          value={searchQuery}
+        />
+      </View>
 
       {/* Loading indicator */}
       {loading && (
@@ -110,10 +114,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
+    padding: 16,
   },
   footer: {
     paddingVertical: 16,
-    paddingHorizontal: 16,
   },
   loadingContainer: {
     position: 'absolute',
@@ -135,7 +139,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#ff0000',
-  }
+  },
+  headerContainer: {
+  },
+  content: {
+  },
 });
 
 export default QRCodesScreen;

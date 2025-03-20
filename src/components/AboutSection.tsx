@@ -60,9 +60,7 @@ const AboutSection: React.FC<AboutSectionProps> = ({
 
 const styles = StyleSheet.create({
   aboutContainer: {
-    marginTop: 10,
-    flex: 1,
-    gap: 10,
+    marginBottom: 24,
   },
   aboutTitle: {
     height: 30,
@@ -71,6 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 31,
     color: '#000000',
+    marginBottom: 16,
   },
   aboutText: {
     fontFamily: 'Raleway',

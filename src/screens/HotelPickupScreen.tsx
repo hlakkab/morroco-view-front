@@ -83,15 +83,17 @@ const HotelPickupScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title="Hotel Pickup" onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="Hotel Pickup" onBack={handleBack} />
+      </View>
       
-      <SearchBar 
-        placeholder="Search for hotel..."
-        onChangeText={handleSearch}
-        onFilterPress={handleFilter}
-        value={searchQuery}
-      />
       <View style={styles.content}>
+        <SearchBar 
+          placeholder="Search for hotel..."
+          onChangeText={handleSearch}
+          onFilterPress={handleFilter}
+          value={searchQuery}
+        />
         <HotelPickupListContainer 
           pickups={hotelPickups}
           cities={CITIES}
@@ -109,6 +111,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
+  },
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   content: {
     flex: 1,

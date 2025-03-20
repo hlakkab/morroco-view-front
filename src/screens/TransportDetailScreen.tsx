@@ -85,7 +85,9 @@ const TransportDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title={title} onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title={title} onBack={handleBack} />
+      </View>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.imageSection}>
@@ -206,6 +208,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF7F7',
   },
+  headerContainer: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -304,12 +310,12 @@ const styles = StyleSheet.create({
   specificationsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 24,
+    marginBottom: 4,
   },
   specItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '50%',
+    width: '55%',
     marginBottom: 16,
   },
   specText: {

@@ -20,13 +20,10 @@ const BackButton: React.FC = () => {
 
 const styles = StyleSheet.create({
   backButton: {
-    position: 'absolute',
-    top: 45, 
-    left: 25, 
-    width: 41,
-    height: 41,
+    width: 42,
+    height: 42,
     backgroundColor: 'white', 
-    borderRadius: 41 / 2, 
+    borderRadius: 42 / 2, 
     borderWidth: 2, 
     borderColor: '#D3D3D3', 
     justifyContent: 'center',

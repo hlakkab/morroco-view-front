@@ -151,8 +151,10 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     flexDirection: 'row',
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
     marginBottom: 16,
-    paddingHorizontal: 16,
   },
   filterSection: {
     flex: 1,
@@ -161,7 +163,6 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   listContent: {
-    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   cardContainer: {

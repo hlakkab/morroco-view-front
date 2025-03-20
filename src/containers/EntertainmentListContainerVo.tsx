@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import React, { useState } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import CardItem from '../components/cards/CardItem';
-import { RootStackParamList } from '../types/navigation';
-import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 import SaveButton from '../components/SaveButton';
+import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
+import { RootStackParamList } from '../types/navigation';
 
 interface EntertainmentListContainerProps {
   entertainments: Entertainment[];
@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   emptyContainer: {
@@ -172,11 +171,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   CardEntertainmentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignContent: 'center',
-    alignSelf: 'center',
-    justifyContent: 'space-between',
+    
   },
 });
 

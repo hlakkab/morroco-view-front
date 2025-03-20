@@ -76,7 +76,9 @@ const BrokerDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title={brokerDetails.name} onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title={brokerDetails.name} onBack={handleBack} />
+      </View>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.imageSection}>
@@ -228,6 +230,10 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  headerContainer: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
   imageSection: {
     position: 'relative',
     width: '100%',
@@ -288,7 +294,8 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: '#fff',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   brokerTypeContainer: {
     backgroundColor: '#E8F5F0',
@@ -296,7 +303,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#008060',
   },
@@ -304,6 +311,7 @@ const styles = StyleSheet.create({
     color: '#008060',
     fontWeight: '600',
     fontSize: 14,
+    
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -348,10 +356,9 @@ const styles = StyleSheet.create({
     borderRightColor: '#ddd',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 16,
     color: '#000',
   },
   servicesContainer: {

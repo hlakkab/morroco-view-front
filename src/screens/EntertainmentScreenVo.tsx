@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, ActivityIndicator, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import EntertainmentListContainerVo from '../containers/EntertainmentListContainerVo';
 
-import { RootStackParamList } from '../types/navigation';
+import { EntertainmentState, fetchEntertainments } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchEntertainments, EntertainmentState } from '../store/entertainmentSlice';
 import { Entertainment } from '../types/Entertainment';
+import { RootStackParamList } from '../types/navigation';
 
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
 
@@ -39,7 +39,7 @@ const EntertainmentScreenVo: React.FC = () => {
     fetchData();
   }, [dispatch]);
 
-  // Filtrage des entertainments selon la recherche
+  // Filter entertainments based on search query
   const filteredEntertainments = entertainments.filter((ent: Entertainment) =>
     ent.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -47,7 +47,9 @@ const EntertainmentScreenVo: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#000" />
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
       </SafeAreaView>
     );
   }
@@ -55,25 +57,25 @@ const EntertainmentScreenVo: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.centerContent}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerFixed}>
+      <View style={styles.headerContainer}>
         <ScreenHeader title="Entertainment" />
-        <View style={styles.searchBarContainer}>
-          <SearchBar
-            placeholder="Search entertainments..."
-            onChangeText={handleSearch}
-            value={searchQuery}
-            onFilterPress={() => {}}
-          />
-        </View>
       </View>
-      <View style={styles.listContainer}>
+      <View style={styles.content}>
+        <SearchBar
+          placeholder="Search entertainments..."
+          onChangeText={handleSearch}
+          value={searchQuery}
+          onFilterPress={() => {}}
+        />
         <EntertainmentListContainerVo entertainments={filteredEntertainments} />
       </View>
     </SafeAreaView>
@@ -85,24 +87,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF7F7',
   },
-  headerFixed: {
-    position: 'absolute',
-    top: 10,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFF7F7',
-    zIndex: 10,
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
-  searchBarContainer: {
-    position: 'absolute',
-    top: 110,
-    left: 0,
-    right: 0,
-    zIndex: 5,
-  },
-  listContainer: {
+  content: {
     flex: 1,
-    paddingTop: 220,
+    paddingHorizontal: 16,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorText: {
     color: 'red',

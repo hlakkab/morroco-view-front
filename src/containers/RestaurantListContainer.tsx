@@ -77,11 +77,10 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
     <View style={styles.container}>
       <View style={styles.filtersContainer}>
         <FilterSelector
-       //   title="Restaurant Type:"
+         title="Restaurant Type:"
           options={typeOptions}
           selectedOptionId={selectedType}
           onSelectOption={(optionId) => onSelectType(optionId as RestaurantType | "All Types")}
-          containerStyle={styles.filterContainer}
         />
       </View>
       {filteredRestaurants.length > 0 ? (
@@ -135,15 +134,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filtersContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
     marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  filterContainer: {
-    marginTop: -9,
-    marginBottom: 0,
   },
   listContent: {
-    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   cardContainer: {

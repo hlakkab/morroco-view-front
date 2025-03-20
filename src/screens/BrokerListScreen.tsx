@@ -93,7 +93,9 @@ const BrokerListScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title="Money Exchange Brokers" onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="Money Exchange Brokers" onBack={handleBack} />
+      </View>
       
       <View style={styles.content}>
         <SearchBar 
@@ -119,10 +121,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF7F7',
   },
-  content: {
-    flex: 1,
+  headerContainer: {
+    paddingHorizontal: 16,
     paddingTop: 16,
   },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

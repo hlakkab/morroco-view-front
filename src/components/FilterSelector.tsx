@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#555',
     marginLeft: 8,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   optionButton: {
     flexDirection: 'row',

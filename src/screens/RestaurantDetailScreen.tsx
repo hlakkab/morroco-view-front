@@ -54,14 +54,11 @@ const RestaurantDetailScreen: React.FC = () => {
     (params.images && params.images.length > 0 ? params.images : [params.image]) as string[];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
 
-        {/* Header fixe 
-        <View style={styles.headerFixed}>
+        <View style={styles.headerContainer}>
+          <ScreenHeader title={params.title} />
         </View>
-        */}
-        <ScreenHeader title={params.title} />
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.imageContainer}>
@@ -134,42 +131,21 @@ const RestaurantDetailScreen: React.FC = () => {
       </View>
       */}
       <ButtonFixe title="Book a Reservation" onPress={handleReservation} />
-
-      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFF7F7',
-  },
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
   },
-  headerFixed: {
-    position: 'absolute',
-    top: 10,
-    left: 0,
-    right: 0,
-  //  backgroundColor: '#FFF7F7',
-    zIndex: 10, // Assure que l'en-tête reste au-dessus
-    // elevation: 3, // Pour Android
-    shadowColor: '#000', // Pour iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    backgroundColor: 'red',
+  headerContainer: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 1,
-    paddingBottom: 20,
-    //paddingTop: 100,
-    //paddingTop: 100,
-    //marginTop: -70,
   },
   imageSection: {
     position: 'relative',
@@ -179,10 +155,8 @@ const styles = StyleSheet.create({
   },
 
   image: {
-
     width: 370,
     height: 234,
-    alignItems: 'center',
     borderRadius: 30,
   },
   saveButton: {
@@ -230,11 +204,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    width: '100%',
     backgroundColor: '#fff',
     padding: 16,
     paddingBlockEnd: '10%',
-    marginTop: 10,
     borderTopRightRadius: 32,
     borderTopLeftRadius: 32,
   },
@@ -281,8 +253,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6FAFF',
     width: 370,
     height: 234,
-    marginTop: 30,
-    //marginLeft: 10,
     alignItems: 'center',
     alignSelf: 'center',
     borderRadius: 30,

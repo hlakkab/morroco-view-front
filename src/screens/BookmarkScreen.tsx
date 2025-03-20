@@ -29,7 +29,9 @@ const BookmarkScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title="Bookmarks" onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="Bookmarks" onBack={handleBack} />
+      </View>
       <View style={styles.content}>
         <BookmarkListContainer 
           bookmarks={bookmarks}
@@ -50,6 +52,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingHorizontal: 16,
+  },
+  headerContainer: {
+    paddingTop: 16,
     paddingHorizontal: 16,
   },
 });

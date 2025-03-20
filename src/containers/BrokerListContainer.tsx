@@ -76,6 +76,8 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
         </View>
       </View>
       
+      <Text style={styles.sectionTitle}>Available brokers</Text>
+
       {filteredBrokers.length > 0 ? (
         <FlatList
           data={filteredBrokers}
@@ -102,8 +104,10 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     flexDirection: 'row',
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
     marginBottom: 16,
-    paddingHorizontal: 16,
   },
   filterSection: {
     flex: 1,
@@ -111,8 +115,13 @@ const styles = StyleSheet.create({
   filterContainer: {
     marginBottom: 0,
   },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 10,
+    color: '#666',
+  },
   listContent: {
-    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   cardContainer: {
@@ -130,6 +139,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
+  
 });
 
 export default BrokerListContainer; 
