@@ -8,6 +8,7 @@ import { Match, Team } from '../types/match';
 import SearchBar from '../components/SearchBar';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMatches, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
+import ScreenHeader from '../components/ScreenHeader';
 
 // Sample teams data for fallback
 const teams: Record<string, Team> = {
@@ -90,19 +91,19 @@ const ExploreMatchesScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Fixed header */}
-        <View style={styles.headerFixed}>
-          <HeaderContainer />
-          <View style={styles.searchBarContainer}>
-            <SearchBar
-              placeholder="Search matches..."
-              onChangeText={handleSearch}
-              onFilterPress={handleFilterPress}
-              value={searchQuery}
-            />
-          </View>
+    <SafeAreaView style={styles.container}>
+
+        <View style={styles.headerContainer}>
+          <ScreenHeader title="Africa Cup of Nations" />
+        </View>
+
+        <View style={styles.searchBarContainer}>
+          <SearchBar
+            placeholder="Search matches..."
+            onChangeText={handleSearch}
+            onFilterPress={handleFilterPress}
+            value={searchQuery}
+          />
         </View>
 
         <FlatList
@@ -132,50 +133,31 @@ const ExploreMatchesScreen: React.FC = () => {
             />
           </View>
         </Modal>
-      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFF7F7',
-  },
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
   },
-  headerFixed: {
-    position: 'absolute',
-    top: 10,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFF7F7',
-    zIndex: 10, // Assure que l'en-tête reste au-dessus
-   // elevation: 3, // Pour Android
-    shadowColor: '#000', // Pour iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  matchesList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 220,
-  },
+ 
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
   searchBarContainer: {
-   
-    top: 110, // Ajustez cette valeur selon la hauteur de votre HeaderContainer
-    left: 0,
-    right: 0,
-    zIndex: 9,
+    paddingHorizontal: 16,
+  },
+  matchesList: {
+    paddingHorizontal: 16,
   },
 });
 
