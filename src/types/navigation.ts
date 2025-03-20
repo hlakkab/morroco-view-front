@@ -1,4 +1,5 @@
 import { NavigationProp } from "@react-navigation/native";
+import { Restaurant } from "./Restaurant";
 
 export type RootStackParamList = {
     Launch: undefined;
@@ -48,15 +49,7 @@ export type RootStackParamList = {
         about?: string;
     };
     Restaurant: undefined;
-    RestaurantDetail: {
-      id: string;
-      title: string;
-      image?: string;
-      images?: string[];
-      address?: string;
-      startTime?: string;
-      endTime?: string;
-    };    
+    RestaurantDetail: Restaurant;   
     Entertainment: undefined;
     EntertainmentDetail: {
         productCode: string;
@@ -78,6 +71,7 @@ export type RootStackParamList = {
         startDate: string;
         endDate: string;
     };
+    MarrakechMap: undefined;
 };
 
 // Type alias for use with useNavigation hook

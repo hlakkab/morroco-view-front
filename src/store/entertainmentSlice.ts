@@ -8,6 +8,7 @@ export interface EntertainmentState {
   selectedEntertainment: Entertainment | null;
   loading: boolean;
   error: string | null;
+  currentCityCode: string | null;
 }
 
 // État initial
@@ -16,6 +17,7 @@ const initialState: EntertainmentState = {
   selectedEntertainment: null,
   loading: false,
   error: null,
+  currentCityCode: null
 };
 
 // Fonction pour adapter les données de l'API au format Entertainment

@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 interface LocationPickerModalProps {
   visible: boolean;
   onClose: () => void;
-  onLocationSelect: (location: string) => void;
+  onLocationSelect: (longitude: number, latitude: number) => void;
 }
 
 const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
@@ -31,7 +31,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
   const handleConfirm = () => {
     if (selectedLocation) {
-      onLocationSelect(selectedLocation.address);
+      onLocationSelect(selectedLocation.longitude, selectedLocation.latitude);
       onClose();
     }
   };

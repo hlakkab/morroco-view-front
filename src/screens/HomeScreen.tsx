@@ -86,7 +86,7 @@ const HomeScreen: React.FC = () => {
           style={styles.testButton}
           onPress={() => {
             clearTokens();
-            navigation.navigate('Login' as never);
+            navigation.navigate('MarrakechMap' as never);
           }}
         >
           <Text style={styles.testButtonText}>Logout</Text>

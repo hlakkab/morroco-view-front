@@ -11,22 +11,19 @@ import { Restaurant } from '../types/Restaurant';
 import HeaderContainer from '../containers/HeaderContainer';
 import AboutSection from '../components/AboutSection';
 import LocationSection from '../components/LocationSection';
-import SaveButton from '../components/SaveButtonPrf';
 import ButtonFixe from '../components/ButtonFixe';
+import { useAppDispatch } from '../store/hooks';
+import { toggleRestaurantBookmark } from '../store/restaurantSlice';
 
 const { width } = Dimensions.get('window');
 
-interface RouteParams extends Partial<Restaurant> {
-  id: string;
-  title: string;
-}
 
 const RestaurantDetailScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
-  const params = route.params as RouteParams;
+  const params = route.params as Restaurant;
+  const dispatch = useAppDispatch();
 
-  const [isSaved, setIsSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -36,7 +33,7 @@ const RestaurantDetailScreen: React.FC = () => {
   };
 
   const handleSave = () => {
-    setIsSaved(!isSaved);
+    dispatch(toggleRestaurantBookmark(params));
   };
 
   const handleScroll = (event: any) => {
@@ -49,22 +46,20 @@ const RestaurantDetailScreen: React.FC = () => {
     // Implémentez la logique de réservation ici
   };
 
-  // Utilise les images fournies ou, à défaut, l'image principale
-  const images: string[] =
-    (params.images && params.images.length > 0 ? params.images : [params.image]) as string[];
-
   return (
     <SafeAreaView style={styles.container}>
 
         <View style={styles.headerContainer}>
-          <ScreenHeader title={params.title} />
+          <ScreenHeader title={params.name} />
         </View>
+        
+        
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.imageContainer}>
             <View style={styles.imageSection}>
               <FlatList
-                data={images}
+                data={params.images}
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
@@ -75,19 +70,17 @@ const RestaurantDetailScreen: React.FC = () => {
                 )}
               />
 
-              {/*<TouchableOpacity style={[styles.saveButton, isSaved && styles.savedButton]} onPress={handleSave}>
+              <TouchableOpacity style={[styles.saveButton, params.saved && styles.savedButton]} onPress={handleSave}>
                 <Ionicons
-                  name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                  name={params.saved ? 'bookmark' : 'bookmark-outline'}
                   size={24}
-                  color={isSaved ? '#fff' : '#000'}
+                  color={params.saved ? '#fff' : '#000'}
                 />
-              </TouchableOpacity>*/}
-              <SaveButton />
-
+              </TouchableOpacity>
 
               <View style={styles.paginationContainer}>
                 <View style={styles.pagination}>
-                  {images.map((_, index) => (
+                  {params.images?.map((_, index) => (
                     <View
                       key={index}
                       style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
@@ -116,20 +109,11 @@ const RestaurantDetailScreen: React.FC = () => {
 
             <LocationSection
               address={params.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-              mapUrl={params.mapUrl}
+              mapUrl={`https://maps.google.com/?q=${params.coordinates[0]},${params.coordinates[1]}`}
             />
           </View>
         </ScrollView>
 
-        {/* Bottom Section: Book a Reservation
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.reservationButton}>
-          <Text style={styles.reservationText}>
-          Book a Reservation
-          </Text>
-        </TouchableOpacity>
-      </View>
-      */}
       <ButtonFixe title="Book a Reservation" onPress={handleReservation} />
     </SafeAreaView>
   );

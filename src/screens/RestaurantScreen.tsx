@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, SafeAreaView, ActivityIndicator, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+// Import Redux hooks and actions
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchRestaurants, setSelectedType } from '../store/restaurantSlice';
 
 // Import custom components
 import HeaderContainer from '../containers/HeaderContainer';
@@ -14,40 +18,74 @@ import { Restaurant, RestaurantType } from '../types/Restaurant';
 import ScreenHeader from '../components/ScreenHeader';
 import ButtonFixe from '../components/ButtonFixe';
 
-// Sample restaurant data
-const SAMPLE_RESTAURANTS: Restaurant[] = [
-  {
-    id: '1',
-    tag: '🍽️ Restau',
-    image: 'https://img.freepik.com/photos-gratuite/restaurant-interieur_1127-3394.jpg?t=st=1741963257~exp=1741966857~hmac=ee9980c19139091707fd93c956d19257f64c46f9718b6acc4485fec98208b229&w=1380',
-    images: ['https://picsum.photos/200/300','https://img.freepik.com/photos-gratuite/restaurant-interieur_1127-3394.jpg?t=st=1741963257~exp=1741966857~hmac=ee9980c19139091707fd93c956d19257f64c46f9718b6acc4485fec98208b229&w=1380'],
-    title: 'Pâtisserie Amandine Marrakech',
-    address: '123 Rue de la Pâtisserie',
-    startTime: '08:00',
-    endTime: '21:00',
-    type: RestaurantType.Patisserie,
-    // Optionnel : images?: string[]
-  },
-];
-
 type RestaurantScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Restaurant'>;
 
 const RestaurantScreen: React.FC = () => {
   const navigation = useNavigation<RestaurantScreenNavigationProp>();
+  const dispatch = useAppDispatch();
+  
+  // Get data from Redux store
+  const { 
+    filteredRestaurants, 
+    loading, 
+    error, 
+    selectedType 
+  } = useAppSelector(state => state.restaurant);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<RestaurantType | 'All Types'>('All Types');
+
+  // Fetch restaurants when component mounts
+  useEffect(() => {
+    dispatch(fetchRestaurants());
+  }, [dispatch]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
-  const filteredRestaurants = SAMPLE_RESTAURANTS.filter(
-    restaurant =>
-      (selectedType === 'All Types' || restaurant.type === selectedType) &&
-      (restaurant.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        restaurant.address.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const handleTypeSelection = (type: RestaurantType | 'All Types') => {
+    // Convert 'All Types' to 'All' to match our Redux state type
+    const reduxType = type === 'All Types' ? 'All' : type;
+    dispatch(setSelectedType(reduxType));
+  };
+
+  // Apply search filter on top of type filter
+  const searchFilteredRestaurants = searchQuery.trim() === ''
+    ? filteredRestaurants
+    : filteredRestaurants.filter(restaurant =>
+        restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+  // Render loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader title="Restaurants" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#008060" />
+          <Text style={styles.loadingText}>Loading restaurants...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader title="Restaurants" />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Error: {error}</Text>
+          <ButtonFixe 
+            title="Try Again" 
+            onPress={() => dispatch(fetchRestaurants())} 
+            style={styles.retryButton}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,10 +102,18 @@ const RestaurantScreen: React.FC = () => {
 
           <RestaurantListContainer
             restaurants={filteredRestaurants}
-            selectedType={selectedType}
-            onSelectType={setSelectedType}
+            selectedType={selectedType === 'All' ? 'All Types' : selectedType}
+            onSelectType={handleTypeSelection}
           />
         </View>
+      {/* </View>
+      <View style={styles.listContainer}>
+        <RestaurantListContainer
+          restaurants={searchFilteredRestaurants}
+          selectedType={selectedType === 'All' ? 'All Types' : selectedType}
+          onSelectType={handleTypeSelection}
+        />
+      </View> */}
     </SafeAreaView>
   );
 };
@@ -84,6 +130,32 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    marginBottom: 16,
+    fontSize: 16,
+    color: 'red',
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#008060',
+    width: 150,
   },
 });
 

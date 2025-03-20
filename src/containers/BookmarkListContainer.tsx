@@ -27,8 +27,12 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
 
-  const handleSaveBookmark = (id: string) => {
-    dispatch(removeBookmark(id));
+  const handleSaveBookmark = (id: string | {id: string}) => {
+    if (typeof id === 'string') {
+      dispatch(removeBookmark(id));
+    } else {
+      dispatch(removeBookmark(id.id));
+    }
   };
 
   const handleCardPress = (item: Bookmark) => {
@@ -68,28 +72,33 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
             if (item.type === 'PICKUP') {
               const pickup = { 
                 ...item.object,
-                images: item.images
+                images: item.images,
+                saved: true
               };
               
               return (
                 <PickupCard
                   item={pickup}
+                  handleSavePickup={handleSaveBookmark}
                 />
               )
             }
 
             if (item.type === 'MATCH') {
-              
               return (
                 <MatchCard
-                  match={item.object}
+                  match={{...item.object, saved: true}}
+                  handleSaveMatch={handleSaveBookmark}
                 />
               )
             }
 
             if (item.type === 'MONEY_EXCHANGE') {
               return (
-                <BrokerCard item={item.object} />
+                <BrokerCard 
+                  item={{...item.object, saved: true}}
+                  handleSaveBroker={handleSaveBookmark}
+                />
               )
             }
             return null

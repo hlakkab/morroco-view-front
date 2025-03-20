@@ -7,6 +7,7 @@ import exchangeBrokerReducer from './exchangeBrokerSlice';
 import entertainmentReducer from './entertainmentSlice';
 import matchReducer from './matchSlice';
 import ticketReducer from './ticketSlice';
+import restaurantReducer from './restaurantSlice';
 
 const store = configureStore({
   reducer: {
@@ -17,7 +18,8 @@ const store = configureStore({
     exchangeBroker: exchangeBrokerReducer,
     entertainment: entertainmentReducer,
     match: matchReducer,
-    ticket: ticketReducer
+    ticket: ticketReducer,
+    restaurant: restaurantReducer
   },
   middleware: (getDefaultMiddleware) => 
     getDefaultMiddleware({
