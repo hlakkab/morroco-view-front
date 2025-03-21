@@ -5,7 +5,35 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/assets/img/firefighters-emblem.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/gendarmerie-emblem.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/police-emblem.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/senegal-emblem.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ContactItem.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/FilterPopup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/AboutSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/AboutSection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/MatchPopup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/MatchPopup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ScreenHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ScreenHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/navigation/AppNavigator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/navigation/AppNavigator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EmergencyScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EmergencyScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/Entertainment.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/Entertainment.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/Restaurant.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/Restaurant.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/navigation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/navigation.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,7 +62,7 @@
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "Merging main",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/MP40/Desktop/Avant Stage PFE/vd360-test",
     "node.js.detected.package.eslint": "true",
@@ -69,5 +97,8 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="LAST_COMMIT_MESSAGE" value="" />
   </component>
 </project>

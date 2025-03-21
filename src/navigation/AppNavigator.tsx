@@ -26,6 +26,7 @@ import { RootStackParamList } from '../types/navigation';
 import AddNewTourDestinationsScreen from '../screens/AddNewTourDestinationsScreen';
 import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
 import EntertainmentDetailScreenVo from '../screens/EntertainmentDetailScreenVo';
+import EmergencyScreen from "../screens/EmergencyScreen";
 
 // export type RootStackParamList = {
 //   Launch: undefined;
@@ -229,6 +230,14 @@ export function AppNavigator() {
         component={AddNewTourDestinationsScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+          name="Emergency"
+          component={EmergencyScreen}
+          options={{ headerShown: false }}
+      />
+
+
+
     </Stack.Navigator>
   );
 }

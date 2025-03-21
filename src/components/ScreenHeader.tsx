@@ -24,11 +24,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   headerTitle: {
-    marginLeft: 10,
+    paddingHorizontal:6,
+    marginLeft: 6,
     marginRight: 25,
     fontFamily: 'Raleway', 
     fontWeight: '700',
-    fontSize: 20,
+    fontSize: 18,
     lineHeight: 26,  
     letterSpacing: 0,
     color: '#000000'

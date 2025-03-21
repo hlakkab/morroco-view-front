@@ -53,6 +53,7 @@ const EntertainmentDetailScreenVo: React.FC = () => {
 
                 // Adapter les données au format Entertainment
                 const adaptedData: Entertainment = {
+                    city: "",
                     id: detailData.productCode,
                     productCode: detailData.productCode,
                     title: detailData.title || title, // Utiliser le titre passé en paramètre si nécessaire
@@ -72,7 +73,7 @@ const EntertainmentDetailScreenVo: React.FC = () => {
                     itinerary: detailData.itinerary,
                     logistics: detailData.logistics,
                     ticketInfo: detailData.ticketInfo,
-                    languageGuides: detailData.languageGuides,
+                    languageGuides: detailData.languageGuides
                 };
 
                 console.log('Adapted data created successfully');
@@ -213,18 +214,21 @@ const EntertainmentDetailScreenVo: React.FC = () => {
                     {/* Indicateurs de pagination pour les images */}
                     {images.length > 1 && (
                         <View style={styles.paginationContainer}>
-                            {images.map((_, index) => (
-                                <View
-                                    key={index}
-                                    style={[
-                                        styles.paginationDot,
-                                        { backgroundColor: currentImageIndex === index ? '#007AFF' : '#D8D8D8' }
-                                    ]}
-                                />
-                            ))}
+                            <View style={styles.pagination}>
+                                {images.map((_, index) => (
+                                    <View
+                                        key={index}
+                                        style={[
+                                            styles.paginationDot,
+                                            currentImageIndex === index && styles.activePaginationDot
+                                        ]}
+                                    />
+                                ))}
+                            </View>
                         </View>
                     )}
                 </View>
+
 
                 <View style={styles.content}>
                     <View style={styles.ratingContainer}>
@@ -305,7 +309,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     imageSection: {
-        position: 'relative',
+       /* position: 'relative',
         width: 370,
         alignSelf: 'center',
         alignItems: 'center',
@@ -313,17 +317,24 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF7F7',
         padding: 1,
         borderRadius: 32,
-        marginTop: 10,
+        marginTop: 10,*/
+        position: 'relative',
+        width: '100%',
+        height: 240,
+        backgroundColor: '#FFF7F7',
     },
     image: {
-        width: 368.1,
+        /*width: 368.1,
         height: 240,
         borderRadius: 32,
         alignSelf: 'center',
-        marginRight:0.1
+        marginRight:0.1*/
+        width: width,
+        height: 240,
     },
+    /*
     paginationContainer: {
-        position: 'absolute',
+       position: 'absolute',
         bottom: 10,
         flexDirection: 'row',
         justifyContent: 'center',
@@ -333,7 +344,37 @@ const styles = StyleSheet.create({
         height: 8,
         borderRadius: 4,
         marginHorizontal: 4,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: 'rgba(255,255,255,0.5)',
+        marginHorizontal: 4,
+    },*/
+    paginationContainer: {
+        position: 'absolute',
+        bottom: 16,
+        width: '100%',
+        alignItems: 'center',
     },
+    pagination: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+    },
+    paginationDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: 'rgba(255,255,255,0.5)',
+        marginHorizontal: 4,
+    },
+    activePaginationDot: {
+        backgroundColor: '#fff',
+    },
+
+
     content: {
         flex: 1,
         width: '100%',
@@ -347,7 +388,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 16,
-        marginLeft: 6
+        marginLeft: 6,
     },
     ratingText: {
         marginLeft: 4,

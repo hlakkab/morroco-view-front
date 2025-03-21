@@ -4,6 +4,7 @@ import { SafeAreaView, StyleSheet, View } from 'react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import MonumentsListContainer, { Monument } from '../containers/MonumentsListContainer';
+import FilterPopup, {FilterOption} from "../components/FilterPopup";
 
 // Sample data for monuments
 const SAMPLE_MONUMENTS: Monument[] = [
@@ -74,7 +75,22 @@ const MonumentsListScreen: React.FC = () => {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(ALL_LOCATIONS[0]);
+  // État pour stocker les monuments filtrés
   const [filteredMonuments, setFilteredMonuments] = useState<Monument[]>(SAMPLE_MONUMENTS);
+  // État pour contrôler la visibilité du popup
+  const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+  // État pour stocker les options de filtre
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
+    // Définir ici vos options de filtre pour les monuments
+    { id: 'marrakech', label: 'Marrakech', selected: false, category: 'city' },
+    { id: 'medina', label: 'Medina', selected: false, category: 'area' },
+    { id: 'kasbah', label: 'Kasbah', selected: false, category: 'area' },
+    { id: 'gueliz', label: 'Gueliz', selected: false, category: 'area' },
+    // Ajoutez d'autres filtres selon vos besoins
+  ]);
+
+
+
 
   // Filter monuments based on search query
   useEffect(() => {
@@ -99,6 +115,45 @@ const MonumentsListScreen: React.FC = () => {
     setSearchQuery(text);
   };
 
+  // Fonction pour ouvrir le popup de filtre
+  const openFilterPopup = () => {
+    setFilterPopupVisible(true);
+  };
+
+// Fonction pour appliquer les filtres
+  const handleApplyFilters = (selectedOptions: FilterOption[]) => {
+    setFilterOptions(selectedOptions);
+
+    // Filtrer les monuments selon les options sélectionnées
+    const selectedFilters = selectedOptions.filter(option => option.selected);
+
+    if (selectedFilters.length === 0) {
+      // Si aucun filtre n'est sélectionné, afficher tous les monuments
+      setFilteredMonuments(SAMPLE_MONUMENTS);
+    } else {
+      // Filtrer selon les options sélectionnées
+      const filtered = SAMPLE_MONUMENTS.filter(monument => {
+        // Vérifier si le monument correspond à au moins un des filtres sélectionnés
+        return selectedFilters.some(filter => {
+          if (filter.category === 'city') {
+            return monument.location.includes(filter.label);
+          } else if (filter.category === 'area') {
+            return monument.location.includes(filter.label);
+          }
+          // Ajoutez d'autres conditions selon vos besoins
+          return false;
+        });
+      });
+
+      setFilteredMonuments(filtered);
+    }
+  };
+
+
+
+
+
+
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="Historical Monuments" onBack={handleBack} />
@@ -106,8 +161,8 @@ const MonumentsListScreen: React.FC = () => {
       <View style={styles.content}>
         <SearchBar 
           placeholder="Search for monuments..."
-          onChangeText={handleSearch} 
-          onFilterPress={() => {}}
+          onChangeText={handleSearch}
+          onFilterPress={openFilterPopup}
           value={searchQuery}
         />
         
@@ -117,6 +172,15 @@ const MonumentsListScreen: React.FC = () => {
           selectedLocation={selectedLocation}
           onSelectLocation={setSelectedLocation}
         />
+        {/* Popup de filtre */}
+        <FilterPopup
+            visible={filterPopupVisible}
+            onClose={() => setFilterPopupVisible(false)}
+            filterOptions={filterOptions}
+            onApplyFilters={handleApplyFilters}
+            title="Filtrer les monuments"
+        />
+
       </View>
     </SafeAreaView>
   );
@@ -130,7 +194,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
   },
 });
 

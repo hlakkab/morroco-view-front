@@ -54,7 +54,7 @@ const HomeScreen: React.FC = () => {
 
   const handleEmergencyContacts = () => {
     // Navigate to emergency contacts screen
-    navigation.navigate('EmergencyContacts');
+    navigation.navigate('Emergency');
   };
   
   const handleNavigation = (routeName: string) => {
