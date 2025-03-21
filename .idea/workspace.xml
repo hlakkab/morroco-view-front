@@ -4,7 +4,23 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="" />
+    <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/components/FilterPopup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/MatchPopup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/MatchPopup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/Entertainment.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/Entertainment.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/Restaurant.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/Restaurant.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -29,6 +45,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
@@ -47,8 +64,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.15989.150" />
-        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-IU-241.15989.150" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-WS-243.26053.12" />
       </set>
     </attachedChunks>
   </component>
@@ -62,7 +78,8 @@
       <updated>1740884714571</updated>
       <workItem from="1741175396607" duration="1024000" />
       <workItem from="1741350326839" duration="70000" />
-      <workItem from="1742463325880" duration="812000" />
+      <workItem from="1742463325880" duration="24625000" />
+      <workItem from="1742549381842" duration="1815000" />
     </task>
     <servers />
   </component>

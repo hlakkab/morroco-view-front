@@ -98,10 +98,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
   return (
     <Animated.View
       style={[styles.container, { transform: [{ translateY: pan.y }] }]}>
-      <View
-        style={[styles.popup]}
-      >
-
+      <View style={[styles.popup]}>
         {/* Header blanc */}
         <View style={styles.headerSection}>
           {/* Drag handle */}

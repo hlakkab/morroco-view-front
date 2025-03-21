@@ -19,5 +19,6 @@ export enum RestaurantType {
     startTime: string; // Heure d'ouverture (ex: "08:00")
     endTime: string; // Heure de fermeture (ex: "22:00")
     type: RestaurantType; // Type de restaurant
+    city:string;
   }
   

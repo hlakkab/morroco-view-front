@@ -96,7 +96,7 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
                 {
                   id: 'type',
                   //label: item.tag, //.toUpperCase(),
-                  icon: <MaterialIcons name="restaurant" size={12} color="green"/>,
+                  icon: <MaterialIcons name="restaurant" size={12} color="green" style={{ marginRight: 4 }} />,
                   label:  item.type,
                   style: { backgroundColor: '#E8F5F0', borderWidth: 1, borderColor: '#008060' },
                   textStyle: { color: '#008060', fontWeight: '600' },

@@ -9,6 +9,7 @@ import SearchBar from '../components/SearchBar';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMatches, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
 import ScreenHeader from '../components/ScreenHeader';
+import FilterPopup, {FilterOption} from "../components/FilterPopup";
 
 // Sample teams data for fallback
 const teams: Record<string, Team> = {
@@ -35,7 +36,10 @@ const ExploreMatchesScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [useSampleData, setUseSampleData] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+
+
   const dispatch = useAppDispatch();
   const { matches, selectedMatch, loading, error } = 
     useAppSelector(state => state.match);
@@ -53,6 +57,21 @@ const ExploreMatchesScreen: React.FC = () => {
     
     fetchData();
   }, [dispatch]);
+
+  // Initialise les options de filtre dès que les matchs sont chargés
+  useEffect(() => {
+    if (matches.length > 0 && filterOptions.length === 0) {
+      const uniqueTeams = Array.from(new Set(matches.map(match => match.homeTeam)));
+      const options = uniqueTeams.map(team => ({
+        id: team,
+        label: team,
+        selected: false,
+        category: 'team'
+      }));
+      setFilterOptions(options);
+    }
+  }, [matches]);
+
 
   const handleCardPress = (match: Match) => {
     dispatch(setSelectedMatch(match));
@@ -79,16 +98,35 @@ const ExploreMatchesScreen: React.FC = () => {
     console.log('Filter pressed');
   };
 
+  const handleApplyFilters = (selectedOptions: FilterOption[]) => {
+    setFilterOptions(selectedOptions);
+    setFilterPopupVisible(false);
+  };
+
   // Get matches from state or use sample data if API failed
   const displayMatches = matches;
 
-  // Filter matches based on search query
-  const filteredMatches = displayMatches.filter(match => 
-    match.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    match.awayTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    match.spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    match.spot.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+
+
+  // Récupérer les filtres actifs (par exemple, pour l'équipe à domicile)
+  const activeTeamFilters = filterOptions
+      .filter(option => option.category === 'team' && option.selected)
+      .map(option => option.id);
+
+
+  // Filtrer les matchs en fonction de la recherche et du filtre appliqué
+  const filteredMatches = matches.filter(match => {
+    const searchMatch =
+        match.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        match.awayTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        match.spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        match.spot.address.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const teamMatch =
+        activeTeamFilters.length === 0 || activeTeamFilters.includes(match.homeTeam);
+
+    return searchMatch && teamMatch;
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -133,6 +171,14 @@ const ExploreMatchesScreen: React.FC = () => {
             />
           </View>
         </Modal>
+      {/* Intégration du FilterPopup */}
+      <FilterPopup
+          visible={filterPopupVisible}
+          onClose={() => setFilterPopupVisible(false)}
+          filterOptions={filterOptions}
+          onApplyFilters={handleApplyFilters}
+          title="Filtrer les matchs"
+      />
     </SafeAreaView>
   );
 };
