@@ -1,11 +1,15 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import AccountScreen from '../screens/AccountScreen';
+import AddNewTourDestinationsScreen from '../screens/AddNewTourDestinationsScreen';
+import AddNewTourOrganizeScreen from '../screens/AddNewTourOrganizeScreen';
 import AddNewTourScreen from '../screens/AddNewTourScreen';
 import BookmarkScreen from '../screens/BookmarkScreen';
 import BrokerDetailScreen from '../screens/BrokerDetailScreen';
 import BrokerListScreen from '../screens/BrokerListScreen';
+import EntertainmentDetailScreenVo from '../screens/EntertainmentDetailScreenVo';
 import EntertainmentScreen from '../screens/EntertainmentScreen';
+import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
 import ESIMScreen from '../screens/ESIMScreen';
 import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -23,68 +27,6 @@ import TicketsScreen from '../screens/TicketsScreen';
 import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import { RootStackParamList } from '../types/navigation';
-import AddNewTourDestinationsScreen from '../screens/AddNewTourDestinationsScreen';
-import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
-import EntertainmentDetailScreenVo from '../screens/EntertainmentDetailScreenVo';
-
-// export type RootStackParamList = {
-//   Launch: undefined;
-//   Onboarding: undefined;
-//   Login: undefined;
-//   Home: undefined;
-//   ESIM: undefined;
-//   QRCodes: undefined;
-//   HotelPickup: undefined;
-//   Bookmark: undefined;
-//   Restaurant: undefined;
-//   RestaurantDetail: {
-//     id: string;
-//     title: string;
-//     image?: string;
-//     images?: string[]; // Assurez-vous que le type correspond à ce que vous passez
-//     address?: string;
-//     startTime?: string;
-//     endTime?: string;
-//   }; 
-//    TransportDetail: {
-//     id: string;
-//     title: string;
-//     imageUrl: string;
-//     price?: number;
-//     isPrivate?: boolean;
-//   };
-//   BrokerDetail: {
-//     id: string;
-//     name: string;
-//     imageUrl?: string;
-//     location: string;
-//     rating?: number;
-//     isFeatured?: boolean;
-//     exchangeRates?: {
-//       buy: number;
-//       sell: number;
-//     };
-//     services?: string[];
-//     operatingHours?: string;
-//     contactNumber?: string;
-//     website?: string;
-//     about?: string;
-//     isSaved?: boolean;
-//   };
-//   Test: undefined;
-//   MoneyExchange: undefined;
-//   BrokerList: undefined;
-//   ExploreMatches: undefined;
-//   Tickets: undefined;
-//   Tours: undefined;
-//   Account: undefined;
-//   Matches: undefined;
-//   Monuments: undefined;
-//   Entertainment: undefined;
-//   Artisans: undefined;
-//   EmergencyContacts: undefined;
-// };
-
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
@@ -229,8 +171,14 @@ export function AppNavigator() {
         component={AddNewTourDestinationsScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen 
+        name="AddNewTourOrganize" 
+        component={AddNewTourOrganizeScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
 
 export { RootStackParamList };
+

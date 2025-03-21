@@ -1,5 +1,15 @@
 import { NavigationProp } from "@react-navigation/native";
 
+interface SavedItem {
+    id: string;
+    type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
+    title: string;
+    subtitle?: string;
+    city: string;
+    duration?: string;
+    timeSlot?: string;
+}
+
 export type RootStackParamList = {
     Launch: undefined;
     Onboarding: undefined;
@@ -77,6 +87,14 @@ export type RootStackParamList = {
         title: string;
         startDate: string;
         endDate: string;
+    };
+    AddNewTourOrganize: {
+        title: string;
+        startDate: string;
+        endDate: string;
+        selectedItemsByDay: Record<number, string[]>;
+        cities: Record<number, string>;
+        savedItems: SavedItem[];
     };
 };
 
