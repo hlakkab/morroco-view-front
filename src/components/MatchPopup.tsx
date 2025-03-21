@@ -13,6 +13,7 @@ import { buyTicket, resetTicketPurchaseStatus, toggleMatchBookmark } from '../st
 import { RootState } from '../store';
 import { useAppDispatch } from '../store/hooks';
 import TicketPurchaseStatus from './TicketPurchaseStatus';
+import ButtonFixe from "./ButtonFixe";
 
 export interface MatchPopupProps {
   match: Match;
@@ -23,7 +24,16 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
   const dispatch = useAppDispatch();
   const { ticketPurchaseStatus, ticketPurchaseError, savedMatches } = useSelector((state: RootState) => state.match);
 
+  const [isMatchSaved, setIsMatchSaved] = useState(false);
+
+
   // Check if the match is saved when component mounts or match changes
+  useEffect(() => {
+    if (match && savedMatches) {
+      const matchIsSaved = savedMatches.some(savedMatch => savedMatch.id === match.id);
+      setIsMatchSaved(matchIsSaved);
+    }
+  }, [match, savedMatches]);
 
   // Reset ticket purchase status when component unmounts
   useEffect(() => {
@@ -86,14 +96,25 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
     }
   };
 
-  
-  const flag = (country: string) => {
-    country = country
-      .toLowerCase()
-      .replace(/\s+/g, '-');
 
-    return `https://www.countryflags.com/wp-content/uploads/${country}-flag-png-large.png`	
-  }
+  // Utiliser une fonction pour récupérer les drapeaux depuis une source plus fiable
+  const flag = (country: string) => {
+    try {
+      country = country
+        .toLowerCase()
+        .replace(/\s+/g, '-');
+
+      // Approche plus robuste : utiliser une source locale si disponible
+      // ou une API plus fiable si nécessaire
+      return `https://www.countryflags.com/wp-content/uploads/${country}-flag-png-large.png`;
+    } catch (error) {
+      console.error('Erreur lors du chargement du drapeau:', error);
+      // Retourner une URL de secours (placeholder)
+      return 'https://via.placeholder.com/150';
+    }
+  };
+
+
 
   return (
     <Animated.View
@@ -109,7 +130,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
           {/* Label de status */}
           <View style={styles.statusLabel}>
             <Ionicons name="football" size={15} color="#0000FF" />
-            <Text style={styles.statusLabelText}>status</Text>
+            <Text style={styles.statusLabelText}>{match?.status || 'À venir'}
+            </Text>
           </View>
 
           {/* Titre du match */}
@@ -122,8 +144,13 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
 
         <View style={styles.divider} />
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={true}
+          bounces={true}
+          nestedScrollEnabled={true}
+        >
           {/* Grand conteneur regroupant l'image et les détails */}
           <View style={styles.content}>
 
@@ -144,12 +171,12 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
 
               {/* Affichage des images d'équipes avec VS au milieu */}
               <View style={styles.teamsContainer}>
-                  <>
-                    <Image source={{ uri: flag(match.homeTeam) }} style={styles.teamFlag} />
-                    <Text style={styles.vsText}>VS</Text>
-                    <Image source={{ uri: flag(match.awayTeam) }} style={styles.teamFlag} />
-                  </>
-                
+                <>
+                  <Image source={{ uri: flag(match.homeTeam) }} style={styles.teamFlag} />
+                  <Text style={styles.vsText}>VS</Text>
+                  <Image source={{ uri: flag(match.awayTeam) }} style={styles.teamFlag} />
+                </>
+
               </View>
 
               <View style={styles.detailRow}>
@@ -202,17 +229,18 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
               address={match.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
               mapUrl={match.spot?.coordinates}
             />
-            
+
             {/* Ticket Purchase Status */}
-            <TicketPurchaseStatus 
-              status={ticketPurchaseStatus} 
-              error={ticketPurchaseError} 
+            <TicketPurchaseStatus
+              status={ticketPurchaseStatus}
+              error={ticketPurchaseError}
             />
           </View>
 
         </ScrollView>
 
         {/* Bottom Section: Boutons Add to Tour & Buy Tickets */}
+        {/*
         <View style={styles.bottomContainer}>
           <TouchableOpacity 
             style={[
@@ -230,7 +258,8 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
               </Text>
             )}
           </TouchableOpacity>
-        </View>
+        </View>*/}
+        <ButtonFixe title={'Buy Tickets'} onPress={() => { }} />
 
 
       </View>
@@ -279,15 +308,21 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 30,
+  },
+  scrollView: {
+   // flex: 1,
+    width: '100%',
   },
   matchTitle: {
-    
+
     fontFamily: 'Raleway',
     fontWeight: '700',
     fontSize: 24,
     color: '#000000',
   },
   statusLabel: {
+    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
@@ -295,6 +330,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 5,
     backgroundColor: '#F6FAFF',
+    marginBottom: 5
   },
   statusLabelText: {
     fontSize: 12,
@@ -335,18 +371,19 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    //   alignItems: 'center',
     backgroundColor: '#F8F9FF',
+    marginBottom: 10
   },
   detailItem: {
-    alignItems: 'center',
+    //alignItems: 'center',
     justifyContent: 'flex-start',
   },
   iconTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   iconTitleStadium: {
     flexDirection: 'row',
@@ -368,8 +405,9 @@ const styles = StyleSheet.create({
   },
   separator: {
     width: 1,
-    height: 40,
+    height: 60,
     backgroundColor: '#E0E0E0',
+    marginHorizontal: 8
   },
   detailTitle: {
     color: '#656565',
@@ -379,7 +417,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   detailValue: {
-    width:100,
+    width: 100,
     fontFamily: 'Raleway',
     fontSize: 14,
     fontWeight: '700',

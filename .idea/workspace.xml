@@ -5,21 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/FilterPopup.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/firefighters-emblem.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/gendarmerie-emblem.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/police-emblem.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/senegal-emblem.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ContactItem.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/AboutSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/AboutSection.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/MatchPopup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/MatchPopup.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ScreenHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ScreenHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/navigation/AppNavigator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/navigation/AppNavigator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EmergencyScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EmergencyScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/Entertainment.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/Entertainment.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/Restaurant.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/Restaurant.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/navigation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/navigation.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,26 +43,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "oussamaTasks",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/MP40/Desktop/projet PFE/morroco-view-front",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Users\\MP40\\Desktop\\projet PFE\\morroco-view-front\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;oussamaTasks&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/MP40/Desktop/projet PFE/morroco-view-front&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\MP40\\Desktop\\projet PFE\\morroco-view-front\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\MP40\Desktop\projet PFE\morroco-view-front\src\assets\img" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -85,5 +92,16 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

@@ -62,13 +62,20 @@ const ExploreMatchesScreen: React.FC = () => {
   useEffect(() => {
     if (matches.length > 0 && filterOptions.length === 0) {
       const uniqueTeams = Array.from(new Set(matches.map(match => match.homeTeam)));
-      const options = uniqueTeams.map(team => ({
+      const teams = uniqueTeams.map(team => ({
         id: team,
         label: team,
         selected: false,
         category: 'team'
       }));
-      setFilterOptions(options);
+      const uniqueSpots = Array.from(new Set(matches.map(match => match.spot.name)));
+      const spots = uniqueSpots.map(spot => ({
+        id: spot,
+        label: spot,
+        selected: false,
+        category: 'spot'
+      }));
+      setFilterOptions([...teams, ...spots]);
     }
   }, [matches]);
 
@@ -95,7 +102,7 @@ const ExploreMatchesScreen: React.FC = () => {
   };
 
   const handleFilterPress = () => {
-    console.log('Filter pressed');
+    setFilterPopupVisible(true);
   };
 
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
@@ -118,14 +125,22 @@ const ExploreMatchesScreen: React.FC = () => {
   const filteredMatches = matches.filter(match => {
     const searchMatch =
         match.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        match.awayTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        match.spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        match.spot.address.toLowerCase().includes(searchQuery.toLowerCase());
+        match.awayTeam.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const teamMatch =
-        activeTeamFilters.length === 0 || activeTeamFilters.includes(match.homeTeam);
+    // Filtrer par équipe sélectionnée si des filtres sont actifs
+    const teamFilter = activeTeamFilters.length === 0 ||
+        activeTeamFilters.includes(match.homeTeam) ||
+        activeTeamFilters.includes(match.awayTeam);
 
-    return searchMatch && teamMatch;
+    // Filtrer par stade si des filtres de stade sont actifs
+    const activeSpotFilters = filterOptions
+        .filter(option => option.category === 'spot' && option.selected)
+        .map(option => option.id);
+
+    const spotFilter = activeSpotFilters.length === 0 ||
+        activeSpotFilters.includes(match.spot.name);
+
+    return searchMatch && teamFilter && spotFilter;
   });
 
   return (

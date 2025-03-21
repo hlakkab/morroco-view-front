@@ -67,7 +67,7 @@ export type RootStackParamList = {
     Tickets: undefined;
     Tours: undefined;
     Account: undefined;
-    EmergencyContacts: undefined;
+    Emergency: undefined;
     MoneyExchange: undefined;
     BrokerList: undefined;
     ExploreMatches: undefined;
