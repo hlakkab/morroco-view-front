@@ -46,12 +46,11 @@ const adaptApiData = (apiData: any): Entertainment => {
   };
 };
 
-// Thunk asynchrone pour récupérer la liste
 export const fetchEntertainments = createAsyncThunk(
   'entertainment/fetchEntertainments',
-  async (_, { rejectWithValue }) => {
+  async (cityCode: string, { rejectWithValue }) => {
     try {
-      const response = await ViatorService.listEntertainments();
+      const response = await ViatorService.listEntertainments(cityCode);
       return response.map(adaptApiData);
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch entertainments');

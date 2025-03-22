@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, SafeAreaView, FlatList, Modal } from 'react-native';
-import SearchFilterContainer from '../containers/SearchFilterContainer';
-import HeaderContainer from '../containers/HeaderContainer';
+import { FlatList, Modal, SafeAreaView, StyleSheet, View } from 'react-native';
 import MatchCard from '../components/cards/MatchCard';
 import MatchPopup from '../components/MatchPopup';
-import { Match, Team } from '../types/match';
+import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
+import HeaderContainer from '../containers/HeaderContainer';
+import SearchFilterContainer from '../containers/SearchFilterContainer';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMatches, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
-import ScreenHeader from '../components/ScreenHeader';
+import { Match, Team } from '../types/match';
 
 // Sample teams data for fallback
 const teams: Record<string, Team> = {

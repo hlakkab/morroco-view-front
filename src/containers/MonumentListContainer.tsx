@@ -3,82 +3,80 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import CardItem from '../components/cards/CardItem';
 import FilterSelector from '../components/FilterSelector';
 import { RootStackParamList } from '../types/navigation';
-import { Restaurant, RestaurantType } from '../types/Restaurant';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Monument, MonumentType } from '../types/Monument';
 import { useAppDispatch } from '../store/hooks';
-import { setSelectedRestaurant, toggleRestaurantBookmark } from '../store/restaurantSlice';
-import RestaurantCard from '../components/cards/RestaurantCard';
+import { setSelectedMonument, toggleMonumentBookmark } from '../store/monumentSlice';
+import MonumentCard from '../components/cards/MonumentCard';
 
-interface RestaurantListContainerProps {
-  restaurants: Restaurant[];
-  selectedType: RestaurantType | 'All Types';
-  onSelectType: (type: RestaurantType | 'All Types') => void;
+interface MonumentListContainerProps {
+  monuments: Monument[];
+  selectedType: MonumentType | 'All Types';
+  onSelectType: (type: MonumentType | 'All Types') => void;
 }
 
-const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
-  restaurants,
+const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
+  monuments,
   selectedType,
   onSelectType,
 }) => {
-  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(restaurants);
+  const [filteredMonuments, setFilteredMonuments] = useState<Monument[]>(monuments);
   const dispatch = useAppDispatch();
 
-  // Filtrer les restaurants selon le type sélectionné
+  // Filter monuments according to the selected type
   useEffect(() => {
     if (selectedType === 'All Types') {
-      setFilteredRestaurants(restaurants);
+      setFilteredMonuments(monuments);
     } else {
-      setFilteredRestaurants(restaurants.filter(restaurant => restaurant.type === selectedType));
+      setFilteredMonuments(monuments.filter(monument => monument.type === selectedType));
     }
-  }, [selectedType, restaurants]);
+  }, [selectedType, monuments]);
 
-  // Options de filtres pour les types de restaurants
+  // Filter options for monument types
   const typeOptions = [
     {
       id: 'All Types',
       label: 'All Types',
-      icon: <Ionicons name="restaurant-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
+      icon: <Ionicons name="business-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
     },
-    ...Object.values(RestaurantType).map(type => ({
+    ...Object.values(MonumentType).map(type => ({
       id: type,
       label: type,
-      icon: <Ionicons name="restaurant-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
+      icon: <Ionicons name="business-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
     })),
   ];
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleRestaurantPress = (restaurant: Restaurant) => {
-    dispatch(setSelectedRestaurant(restaurant));
-    navigation.navigate('RestaurantDetail', restaurant);
+  const handleMonumentPress = (monument: Monument) => {
+    dispatch(setSelectedMonument(monument));
+    navigation.navigate('MonumentDetail', monument);
   };
 
-  const handleSaveRestaurant = (restaurant: Restaurant) => {
-    dispatch(toggleRestaurantBookmark(restaurant));
+  const handleSaveMonument = (monument: Monument) => {
+    dispatch(toggleMonumentBookmark(monument));
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.filtersContainer}>
         <FilterSelector
-         title="Restaurant Type:"
+          title="Monument Type:"
           options={typeOptions}
           selectedOptionId={selectedType}
-          onSelectOption={(optionId) => onSelectType(optionId as RestaurantType | "All Types")}
+          onSelectOption={(optionId) => onSelectType(optionId as MonumentType | "All Types")}
         />
       </View>
-      {filteredRestaurants.length > 0 ? (
+      {filteredMonuments.length > 0 ? (
         <FlatList
-          data={filteredRestaurants}
+          data={filteredMonuments}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <RestaurantCard
+            <MonumentCard
               item={item}
-              handleSaveRestaurant={handleSaveRestaurant}
-              handleRestaurantPress={handleRestaurantPress}
+              handleSaveMonument={handleSaveMonument}
+              handleMonumentPress={handleMonumentPress}
             />
           )}
           contentContainerStyle={styles.listContent}
@@ -87,7 +85,7 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="search-outline" size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No restaurants found in this type</Text>
+          <Text style={styles.emptyText}>No monuments found in this type</Text>
         </View>
       )}
     </View>
@@ -125,4 +123,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RestaurantListContainer;
+export default MonumentListContainer; 

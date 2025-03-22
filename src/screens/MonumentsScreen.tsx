@@ -5,66 +5,65 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchRestaurants, setSelectedRestaurantType } from '../store/index';
+import { fetchMonuments, setSelectedMonumentType } from '../store/index';
 
 // Import custom components
-import HeaderContainer from '../containers/HeaderContainer';
 import SearchBar from '../components/SearchBar';
-import RestaurantListContainer from '../containers/RestaurantListContainer';
+import MonumentListContainer from '../containers/MonumentListContainer';
 
 // Import types
 import { RootStackParamList } from '../types/navigation';
-import { Restaurant, RestaurantType } from '../types/Restaurant';
+import { MonumentType } from '../types/Monument';
 import ScreenHeader from '../components/ScreenHeader';
 import ButtonFixe from '../components/ButtonFixe';
 
-type RestaurantScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Restaurant'>;
+type MonumentsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Monuments'>;
 
-const RestaurantScreen: React.FC = () => {
-  const navigation = useNavigation<RestaurantScreenNavigationProp>();
+const MonumentsScreen: React.FC = () => {
+  const navigation = useNavigation<MonumentsScreenNavigationProp>();
   const dispatch = useAppDispatch();
   
   // Get data from Redux store
   const { 
-    restaurants, 
+    monuments, 
     loading, 
     error, 
     selectedType 
-  } = useAppSelector(state => state.restaurant);
+  } = useAppSelector(state => state.monument);
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch restaurants when component mounts
+  // Fetch monuments when component mounts
   useEffect(() => {
-    dispatch(fetchRestaurants());
+    dispatch(fetchMonuments());
   }, [dispatch]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
-  const handleTypeSelection = (type: RestaurantType | 'All Types') => {
+  const handleTypeSelection = (type: MonumentType | 'All Types') => {
     // Convert 'All Types' to 'All' to match our Redux state type
     const reduxType = type === 'All Types' ? 'All' : type;
-    dispatch(setSelectedRestaurantType(reduxType));
+    dispatch(setSelectedMonumentType(reduxType));
   };
 
   // Apply search filter on top of type filter
-  const searchFilteredRestaurants = searchQuery.trim() === ''
-    ? restaurants
-    : restaurants.filter(restaurant =>
-        restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
+  const searchFilteredMonuments = searchQuery.trim() === ''
+    ? monuments
+    : monuments.filter(monument =>
+        monument.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        monument.address.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
   // Render loading state
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Restaurants" />
+        <ScreenHeader title="Monuments" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#008060" />
-          <Text style={styles.loadingText}>Loading restaurants...</Text>
+          <Text style={styles.loadingText}>Loading monuments...</Text>
         </View>
       </SafeAreaView>
     );
@@ -74,12 +73,12 @@ const RestaurantScreen: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Restaurants" />
+        <ScreenHeader title="Monuments" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
           <ButtonFixe 
             title="Try Again" 
-            onPress={() => dispatch(fetchRestaurants())} 
+            onPress={() => dispatch(fetchMonuments())} 
             style={styles.retryButton}
           />
         </View>
@@ -87,35 +86,25 @@ const RestaurantScreen: React.FC = () => {
     );
   }
 
-  console.log(restaurants.map(restaurant => restaurant.saved));
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Restaurants" />
+        <ScreenHeader title="Monuments" />
       </View>
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search restaurants..."
+          placeholder="Search monuments..."
           onChangeText={handleSearch}
           value={searchQuery}
           onFilterPress={() => {}}
         />
 
-        <RestaurantListContainer
-          restaurants={restaurants}
+        <MonumentListContainer
+          monuments={monuments}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
         />
       </View>
-      {/* </View>
-      <View style={styles.listContainer}>
-        <RestaurantListContainer
-          restaurants={searchFilteredRestaurants}
-          selectedType={selectedType === 'All' ? 'All Types' : selectedType}
-          onSelectType={handleTypeSelection}
-        />
-      </View> */}
     </SafeAreaView>
   );
 };
@@ -124,7 +113,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
-    },
+  },
   content: {
     flex: 1,
     paddingHorizontal: 16,
@@ -161,4 +150,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RestaurantScreen;
+export default MonumentsScreen; 

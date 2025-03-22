@@ -12,6 +12,7 @@ const listEntertainments = async (cityCode: string = "5408") => {
     BASE_URL, {
       filtering: {
         destination: cityCode,
+        tags: [20217, ]
       },
       pagination: {
         page: 1,

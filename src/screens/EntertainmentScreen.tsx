@@ -8,7 +8,8 @@ import SearchBar from '../components/SearchBar';
 import EntertainmentCard from '../components/EntertainmentCard';
 import FilterSelector from '../components/FilterSelector';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setSelectedEntertainment, Entertainment, fetchEntertainments, EntertainmentState } from '../store/entertainmentSlice';
+import { setSelectedEntertainment, fetchEntertainments, EntertainmentState } from '../store/entertainmentSlice';
+import { Entertainment } from '../types/Entertainment';
 
 const EntertainmentScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -38,7 +39,7 @@ const EntertainmentScreen: React.FC = () => {
 
   const fetchEntertainmentData = async (cityCode?: string) => {
     try {
-      await dispatch(fetchEntertainments(cityCode)).unwrap();
+      await dispatch(fetchEntertainments(cityCode || '5408')).unwrap();
     } catch (error) {
       console.error('Failed to fetch entertainments:', error);
     }

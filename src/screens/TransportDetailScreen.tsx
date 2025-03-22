@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   specItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '55%',
+    width: '50%',
     marginBottom: 16,
   },
   specText: {
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: '#666',
-    marginBottom: 24,
+    marginBottom: 6,
   },
   footer: {
     padding: 16,

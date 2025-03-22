@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Modal, StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { Modal, StyleSheet, View, Text, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 
 interface LocationPickerModalProps {
@@ -15,24 +15,71 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   onClose,
   onLocationSelect,
 }) => {
+  const mapRef = useRef<MapView | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{
     latitude: number;
     longitude: number;
     address: string;
   } | null>(null);
+  const [mapRegion, setMapRegion] = useState<Region | null>(null);
 
   const handleLocationSelect = (data: any, details: any) => {
-    setSelectedLocation({
+    const newLocation = {
       latitude: details.geometry.location.lat,
       longitude: details.geometry.location.lng,
       address: data.description,
-    });
+    };
+    
+    setSelectedLocation(newLocation);
+    
+    // Set the initial map region with appropriate deltas for zoom
+    const newRegion = {
+      latitude: newLocation.latitude,
+      longitude: newLocation.longitude,
+      latitudeDelta: 0.01, // Closer zoom for better visibility
+      longitudeDelta: 0.01,
+    };
+    
+    setMapRegion(newRegion);
+    
+    // Animate to the new region
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(newRegion, 1000);
+    }
+  };
+
+  const handleRegionChange = (region: Region) => {
+    setMapRegion(region);
   };
 
   const handleConfirm = () => {
     if (selectedLocation) {
       onLocationSelect(selectedLocation.longitude, selectedLocation.latitude);
       onClose();
+    }
+  };
+
+  // Zoom in function
+  const zoomIn = () => {
+    if (mapRef.current && mapRegion) {
+      const newRegion = {
+        ...mapRegion,
+        latitudeDelta: mapRegion.latitudeDelta / 2,
+        longitudeDelta: mapRegion.longitudeDelta / 2,
+      };
+      mapRef.current.animateToRegion(newRegion, 300);
+    }
+  };
+
+  // Zoom out function
+  const zoomOut = () => {
+    if (mapRef.current && mapRegion) {
+      const newRegion = {
+        ...mapRegion,
+        latitudeDelta: mapRegion.latitudeDelta * 2,
+        longitudeDelta: mapRegion.longitudeDelta * 2,
+      };
+      mapRef.current.animateToRegion(newRegion, 300);
     }
   };
 
@@ -72,50 +119,56 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               listViewDisplayed={false}
               enablePoweredByContainer={false}
               styles={{
-
                 container: styles.autocompleteContainer,
                 row: styles.autocompleteRow,
                 description: styles.autocompleteDescription,
-
-
               }}
             />
           </View>
 
           <View style={styles.mapContainer}>
             {selectedLocation ? (
-              <MapView
-                provider="google"
-
-                style={styles.map}
-                camera={{
-                  zoom: 13.5,
-                  center: {
+              <View style={styles.mapWrapper}>
+                <MapView
+                  ref={mapRef}
+                  provider={PROVIDER_DEFAULT}
+                  style={styles.map}
+                  initialRegion={{
                     latitude: selectedLocation.latitude,
                     longitude: selectedLocation.longitude,
-                  },
-                  heading: 0,
-                  pitch: 0,
-                }}
-
-                initialRegion={{
-                  latitude: selectedLocation.latitude,
-                  longitude: selectedLocation.longitude,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
-                }}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: selectedLocation.latitude,
-                    longitude: selectedLocation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
                   }}
-                  title="Selected Location"
-                  description={selectedLocation.address}
-                />
-
-
-              </MapView>
+                  region={mapRegion || undefined}
+                  onRegionChangeComplete={handleRegionChange}
+                  showsUserLocation={true}
+                  showsMyLocationButton={true}
+                  showsCompass={true}
+                  rotateEnabled={true}
+                  scrollEnabled={true}
+                  zoomEnabled={true}
+                  pitchEnabled={Platform.OS !== 'ios'} // Disable pitch on iOS to avoid issues
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: selectedLocation.latitude,
+                      longitude: selectedLocation.longitude,
+                    }}
+                    title="Selected Location"
+                    description={selectedLocation.address}
+                  />
+                </MapView>
+                
+                {/* Zoom controls */}
+                <View style={styles.zoomControls}>
+                  <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
+                    <Ionicons name="add" size={24} color="#333" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
+                    <Ionicons name="remove" size={24} color="#333" />
+                  </TouchableOpacity>
+                </View>
+              </View>
             ) : (
               <View style={styles.mapPlaceholder}>
                 <Ionicons name="map-outline" size={48} color="#ccc" />
@@ -199,6 +252,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
+  mapWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
   map: {
     flex: 1,
   },
@@ -212,6 +269,22 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 16,
     color: '#999',
+  },
+  zoomControls: {
+    position: 'absolute',
+    right: 16,
+    bottom: Platform.OS === 'ios' ? 100 : 16, // Position higher on iOS to avoid overlap with system controls
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  zoomButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   confirmButton: {
     backgroundColor: '#008060',

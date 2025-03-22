@@ -12,7 +12,8 @@ import PickupCard from '../components/cards/PickupCard';
 import { HotelPickup } from '../types/transport';
 import MatchCard from '../components/cards/MatchCard';
 import BrokerCard from '../components/cards/BrokerCard';
-
+import RestaurantCard from '../components/cards/RestaurantCard';
+import MonumentCard from '../components/cards/MonumentCard';
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
   loading: boolean;
@@ -35,7 +36,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
     }
   };
 
-  const handleCardPress = (item: Bookmark) => {
+  const handleCardPress = (item: object) => {
     
   };
 
@@ -68,6 +69,8 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
           data={bookmarks}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
+
+            console.log(item.type);
             
             if (item.type === 'PICKUP') {
               const pickup = { 
@@ -101,6 +104,29 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
                 />
               )
             }
+
+
+            if (item.type === 'RESTAURANT') {
+              return (
+                <RestaurantCard
+                  item={{...item.object, images: item.images, saved: true}}
+                  handleSaveRestaurant={handleSaveBookmark}
+                  handleRestaurantPress={handleCardPress}
+                />
+              )
+            }
+
+
+            if (item.type === 'MONUMENT') {
+              return (
+                <MonumentCard
+                  item={{...item.object, images: item.images, saved: true}}
+                  handleSaveMonument={handleSaveBookmark}
+                  handleMonumentPress={handleCardPress}
+                />
+              )
+            }
+
             return null
           }}
           showsVerticalScrollIndicator={false}

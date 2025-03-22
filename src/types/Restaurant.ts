@@ -19,6 +19,7 @@ export enum RestaurantType {
     startTime: string; // Heure d'ouverture (ex: "08:00")
     endTime: string; // Heure de fermeture (ex: "22:00")
     type: RestaurantType; // Type de restaurant
+    mapId: string;
     saved?: boolean; // Indicates if the restaurant is bookmarked
   }
   
