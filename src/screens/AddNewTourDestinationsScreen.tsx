@@ -13,6 +13,20 @@ import TourFlowHeader from '../components/tour/TourFlowHeader';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setTourDestinations } from '../store/tourSlice';
 
+// Calculate the number of days between start and end dates (inclusive)
+export const calculateDaysInclusive = (startDate: string, endDate: string): number => {
+  try {
+    const start = new Date(startDate.replace(/\//g, '-'));
+    const end = new Date(endDate.replace(/\//g, '-'));
+
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return days > 0 ? days : 255;
+  } catch (e) {
+    console.error("Error calculating days:", e);
+    return 255;
+  }
+};
+
 // Morocco cities coordinates
 const CITY_COORDINATES = {
   'Casablanca': { latitude: 33.589886, longitude: -7.603869 },
@@ -176,10 +190,8 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedCities, setSelectedCities] = useState<Record<number, string>>({});
   const [selectedItemsByDay, setSelectedItemsByDay] = useState<Record<number, string[]>>({});
-  const [totalDays, setTotalDays] = useState(3);
+  const [totalDays, setTotalDays] = useState(4);
 
-  // Example cities
-  const cities = ['Casablanca', 'Rabat', 'Agadir'];
 
   // Example saved items
   const [savedItems, setSavedItems] = useState<SavedItem[]>([
@@ -248,6 +260,13 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     }
   ]);
 
+  const cities = useMemo(() => {
+    // Extract unique cities from saved items
+    const uniqueCities = Array.from(new Set(savedItems.map(item => item.city)));
+    // Sort alphabetically
+    return uniqueCities.sort();
+  }, [savedItems]);
+
   const steps = [
     { id: '01', label: 'Basic infos' },
     { id: '02', label: 'Destinations' },
@@ -256,27 +275,22 @@ const AddNewTourDestinationsScreen: React.FC = () => {
 
   useEffect(() => {
     if (startDate && endDate) {
-      try {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-        setTotalDays(days > 0 ? days : 3);
-        
-        // Initialize selected cities and items for all days
-        const initialCities: Record<number, string> = {};
-        const initialSelectedItems: Record<number, string[]> = {};
-        
-        for (let i = 1; i <= days; i++) {
-          initialCities[i] = ''; // Start with no selected city
-          initialSelectedItems[i] = [];
-        }
-        
-        setSelectedCities(initialCities);
-        setSelectedItemsByDay(initialSelectedItems);
-      } catch (e) {
-        console.error("Error calculating days:", e);
-        setTotalDays(3); // Default to 3 days on error
+      // Use the extracted utility function
+      const days = calculateDaysInclusive(startDate, endDate);
+      setTotalDays(days);
+      console.log('days', days);
+      
+      // Initialize selected cities and items for all days
+      const initialCities: Record<number, string> = {};
+      const initialSelectedItems: Record<number, string[]> = {};
+      
+      for (let i = 1; i <= days; i++) {
+        initialCities[i] = ''; // Start with no selected city
+        initialSelectedItems[i] = [];
       }
+      
+      setSelectedCities(initialCities);
+      setSelectedItemsByDay(initialSelectedItems);
     }
   }, [startDate, endDate]);
 

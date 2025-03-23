@@ -105,7 +105,7 @@ const TourMapScreen: React.FC = () => {
   const { tourItems } = route.params || { tourItems: [] };
   
   const [routes, setRoutes] = useState<any[]>([]);
-  const [selectedCity, setSelectedCity] = useState<string>('All');
+  const [selectedCity, setSelectedCity] = useState<string>('');
   const [displayItems, setDisplayItems] = useState<Array<any>>(tourItems);
   const [filteredCities, setFilteredCities] = useState<string[]>([]);
   
@@ -115,7 +115,12 @@ const TourMapScreen: React.FC = () => {
   const GOOGLE_MAPS_API_KEY = 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY';
 
   useEffect(() => {
-    if (!tourItems || tourItems.length === 0) return;
+    if (!tourItems || tourItems.length === 0) {
+      // Show alert when there are no tours
+      alert('No tour items available');
+      navigation.goBack();
+      return;
+    }
     
     // Extract unique cities from tour items
     const cities = [...new Set(tourItems.map(item => item.city))];
@@ -123,18 +128,36 @@ const TourMapScreen: React.FC = () => {
     
     // Set initial city if available
     if (cities.length > 0) {
-      setSelectedCity(cities[0]);
+      const firstCity = cities[0];
+      setSelectedCity(firstCity);
+      
+      // Set display items for first city
+      const cityItems = tourItems.filter(item => item.city === firstCity);
+      setDisplayItems(cityItems);
+      
+      // Calculate appropriate zoom level for first city
+      const validCoordinates = cityItems
+        .filter(item => item.coordinate !== undefined)
+        .map(item => getItemCoordinates(item));
+      
+      // If map reference is already available, animate to the city
+      if (mapRef.current && validCoordinates.length > 0) {
+        const cityCenter = calculateCenter(cityItems);
+        const zoomLevel = calculateZoomLevel(validCoordinates);
+        
+        mapRef.current.animateToRegion({
+          latitude: cityCenter.latitude,
+          longitude: cityCenter.longitude,
+          latitudeDelta: zoomLevel.latitudeDelta,
+          longitudeDelta: zoomLevel.longitudeDelta,
+        }, 500);
+      }
     }
-    
-    // Set display items based on all tour items initially
-    setDisplayItems(tourItems);
-  }, [tourItems]);
+  }, [tourItems, navigation]);
 
   useEffect(() => {
     // Update displayed items based on selected city
-    if (selectedCity === 'All') {
-      setDisplayItems(tourItems);
-    } else {
+    if (selectedCity) {
       const cityItems = tourItems.filter(item => item.city === selectedCity);
       setDisplayItems(cityItems);
     }
@@ -195,8 +218,8 @@ const TourMapScreen: React.FC = () => {
   };
 
   const handleChangeCity = (direction: 'next' | 'prev') => {
-    // Include 'All' option in the city rotation
-    const cities = ['All', ...filteredCities];
+    // Get the list of available cities
+    const cities = [...filteredCities];
     const currentIndex = cities.indexOf(selectedCity);
     let newIndex;
     
@@ -211,13 +234,7 @@ const TourMapScreen: React.FC = () => {
     
     // Center map on the new city
     if (mapRef.current) {
-      let cityItems;
-      
-      if (newCity === 'All') {
-        cityItems = tourItems;
-      } else {
-        cityItems = tourItems.filter(item => item.city === newCity);
-      }
+      const cityItems = tourItems.filter(item => item.city === newCity);
       
       // Calculate center of all items in this city
       const cityCenter = calculateCenter(cityItems);
@@ -251,7 +268,7 @@ const TourMapScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ScreenHeader title={`${selectedCity === 'All' ? 'Tour' : selectedCity} Map`} />
+        <ScreenHeader title={selectedCity ? `${selectedCity} Map` : "Tour Map"} />
       </View>
 
       <View style={styles.mapContainer}>

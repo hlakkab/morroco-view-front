@@ -25,9 +25,9 @@ const AddNewTourScreen: React.FC = () => {
   const tourData = useAppSelector(state => state.tour.currentTour);
   
   const [formData, setFormData] = useState<FormData>({
-    title: tourData.title || 'test',
-    startDate: tourData.startDate || '2024/03/24',
-    endDate: tourData.endDate || '2024/03/26',
+    title: tourData.title,
+    startDate: tourData.startDate,
+    endDate: tourData.endDate,
   });
   
   // Date picker state

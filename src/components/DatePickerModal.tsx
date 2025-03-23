@@ -1,7 +1,21 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import DatePicker from 'react-native-modern-datepicker';
+import { LogBox } from 'react-native';
+import ModernDatePicker from 'react-native-modern-datepicker';
+
+// Suppress the specific warning about defaultProps
+LogBox.ignoreLogs([
+  'Warning: DatePicker: Support for defaultProps will be removed from function components',
+  'Warning: Header: Support for defaultProps will be removed from function components'
+]);
+
+// Create a wrapper component that doesn't rely on defaultProps
+const DatePicker: React.FC<any> = (props) => {
+  return (
+    <ModernDatePicker {...props} />
+  );
+};
 
 // Define a type for the picker mode
 type DatePickerMode = 'start' | 'end';

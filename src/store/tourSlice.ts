@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
 // Define interfaces for tour items
 export interface TourItem {
   id: string;
@@ -58,10 +57,12 @@ const tourSlice = createSlice({
   reducers: {
     // Set tour basic information
     setTourInfo: (state, action: PayloadAction<{ title: string; startDate: string; endDate: string }>) => {
+      console.log('setTourInfo =======', action.payload);
       const { title, startDate, endDate } = action.payload;
       state.currentTour.title = title;
       state.currentTour.startDate = startDate;
       state.currentTour.endDate = endDate;
+
     },
     
     // Update tour title
