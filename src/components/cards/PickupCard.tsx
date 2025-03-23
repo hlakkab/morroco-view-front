@@ -6,7 +6,7 @@ import { HotelPickup } from '../../types/transport';
 
 interface PickupCardProps {
   item: HotelPickup;
-  handleSavePickup?: (item: HotelPickup) => void;
+  handleSavePickup: (item: HotelPickup) => void;
   handleCardPress?: (item: HotelPickup) => void;
 }
 
@@ -15,6 +15,8 @@ const PickupCard : FC<PickupCardProps> = ({
   handleSavePickup = () => {}, 
   handleCardPress = () => {} 
 }) => {
+
+
   return (
     <CardItem
       imageUrl={item.images[0]}

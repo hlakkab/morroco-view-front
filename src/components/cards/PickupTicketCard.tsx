@@ -4,14 +4,18 @@ import { Ticket } from "../../types/ticket";
 import { HotelPickup } from "../../types/transport";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
+
+
 type PickupTicketCardProps = {
-    ticket: Ticket
+    ticket: Ticket 
 }
 
 const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
-    const pickup = ticket.object as HotelPickup;
+
+    const pickup = ticket.object as HotelPickup & {date: string};
     // For demonstration purposes, using a placeholder date
-    const date = new Date();
+
+    const date = new Date(pickup.date);
     const month = format(date, 'MMM').toUpperCase();
     const day = format(date, 'dd');
 

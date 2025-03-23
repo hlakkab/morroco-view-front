@@ -38,6 +38,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY,
+    ...config.extra,
   },
   plugins: [
     [

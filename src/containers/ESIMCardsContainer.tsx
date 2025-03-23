@@ -67,7 +67,7 @@ const ESIMCardsContainer: React.FC<ESIMCardsContainerProps> = () => {
           visible={modalVisible}
           title={selectedESim.name}
           onClose={handleCloseModal}
-          customQRContent={<QRCodeLargeSvg width={300} height={300} />}
+          data={""}
         />
       )}
     </View>

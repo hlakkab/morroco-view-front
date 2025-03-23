@@ -22,13 +22,14 @@ interface BookPickupPayload {
   pickupId: string;
   pickupDate: string;
   pickupTime: string;
-  hotelLocation: string;
+  destination: number[];
 }
 
 const bookPickup = async (payload: BookPickupPayload) => {
   try {
     const response = await api.post(`/pickups/${payload.pickupId}/reserve`, {
       date: payload.pickupDate + ' ' + payload.pickupTime,
+      destination: payload.destination,
     });
     
     if (!response.data) {

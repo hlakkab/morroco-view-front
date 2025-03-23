@@ -22,25 +22,23 @@ import { Restaurant } from '../types/Restaurant';
 import HeaderContainer from '../containers/HeaderContainer';
 import AboutSection from '../components/AboutSection';
 import LocationSection from '../components/LocationSection';
-import SaveButton from '../components/SaveButtonPrf';
 import ButtonFixe from '../components/ButtonFixe';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { toggleRestaurantBookmark } from '../store/restaurantSlice';
 
 const { width, height } = Dimensions.get('window');
 
 
-interface RouteParams extends Partial<Restaurant> {
-  id: string;
-  title: string;
-}
 
 const RestaurantDetailScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
-  const params = route.params as RouteParams;
+  const dispatch = useAppDispatch();
 
-  const [isSaved, setIsSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+
+  const { selectedRestaurant } = useAppSelector((state) => state.restaurant);
 
 
   const handleBack = () => {
@@ -48,7 +46,9 @@ const RestaurantDetailScreen: React.FC = () => {
   };
 
   const handleSave = () => {
-    setIsSaved(!isSaved);
+    if (selectedRestaurant) {
+      dispatch(toggleRestaurantBookmark(selectedRestaurant));
+    }
   };
 
 
@@ -74,49 +74,45 @@ const RestaurantDetailScreen: React.FC = () => {
     // Implémentez la logique de réservation ici
   };
 
-  // Utilise les images fournies ou, à défaut, l'image principale
-  const images: string[] =
-    (params.images && params.images.length > 0 ? params.images : [params.image]) as string[];
-
-
-
   return (
     <SafeAreaView style={styles.container}>
 
         <View style={styles.headerContainer}>
-          <ScreenHeader title={params.title} />
+          <ScreenHeader title={selectedRestaurant!.name} />
         </View>
+        
+        
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.imageContainer}>
             <View style={styles.imageSection}>
               <FlatList
-                  ref={flatListRef}
-                  data={images}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  keyExtractor={(_, index) => index.toString()}
-                  renderItem={({ item }) => (
-                      <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
-                  )}
-                  onViewableItemsChanged={onViewableItemsChanged}
-                  viewabilityConfig={viewabilityConfig}
+                data={selectedRestaurant!.images}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleScroll}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
+                )}
               />
 
-              <SaveButton onPress={handleSave} isSaved={isSaved} />
-
+              <TouchableOpacity style={[styles.saveButton, selectedRestaurant!.saved && styles.savedButton]} onPress={handleSave}>
+                <Ionicons
+                  name={selectedRestaurant!.saved ? 'bookmark' : 'bookmark-outline'}
+                  size={24}
+                  color={selectedRestaurant!.saved ? '#fff' : '#000'}
+                />
+              </TouchableOpacity>
 
               <View style={styles.paginationContainer}>
                 <View style={styles.pagination}>
-                  {images.map((_, index) => (
-                      <View
-                          key={index}
-                          style={[
-                            styles.paginationDot,
-                            index === currentImageIndex && styles.activePaginationDot
-                          ]}
-                      />
+                  {selectedRestaurant!.images?.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
+                    />
                   ))}
                 </View>
               </View>
@@ -130,32 +126,23 @@ const RestaurantDetailScreen: React.FC = () => {
             <View style={styles.operatingHoursContainer}>
               <Ionicons name="time-outline" size={16} color="#137A08" />
               <Text style={styles.operatingHoursText}>
-                Open until {params.endTime}              </Text>
+                Open until {selectedRestaurant!.endTime}              </Text>
             </View>
 
             {/* About Section */}
             <AboutSection
-              text={params.description || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
+              text={selectedRestaurant!.description || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
             />
 
             {/* Location Section */}
 
             <LocationSection
-              address={params.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-              mapUrl={params.mapUrl}
+              address={selectedRestaurant!.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
+              mapUrl={`https://maps.app.goo.gl/${selectedRestaurant!.mapId}`}
             />
           </View>
         </ScrollView>
 
-        {/* Bottom Section: Book a Reservation
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.reservationButton}>
-          <Text style={styles.reservationText}>
-          Book a Reservation
-          </Text>
-        </TouchableOpacity>
-      </View>
-      */}
       <ButtonFixe title="Book a Reservation" onPress={handleReservation} />
     </SafeAreaView>
   );
@@ -282,10 +269,10 @@ const styles = StyleSheet.create({
     height: 234,
     alignItems: 'center',
     alignSelf: 'center',
-    borderRadius: 30,
+    borderRadius: 20,
   },
   bottomContainer: {
-    marginTop: 2,
+    marginTop: 1,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     width: 415,

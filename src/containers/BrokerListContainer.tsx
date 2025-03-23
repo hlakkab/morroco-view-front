@@ -45,14 +45,19 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
   const locationOptions = locations.map(location => ({
     id: location,
     label: location,
-    icon: <Ionicons name="location-outline" size={16} color={selectedLocation === location ? '#fff' : '#888'} style={{ marginRight: 4 }} />
+    icon: <Ionicons 
+      name="location-outline" 
+      size={16} 
+      color={selectedLocation === location ? '#fff' : '#888'} 
+      style={{ marginRight: 4 }} 
+    />
   }));
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleBrokerPress = (broker: Broker) => {
     // Navigate to broker detail screen
-    navigation.navigate('BrokerDetail', broker);
+    navigation.navigate("BrokerDetail", { ...broker, location: broker.city });
   };
 
   const handleSaveBroker = (id: string) => {

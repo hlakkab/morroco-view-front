@@ -7,6 +7,9 @@ import exchangeBrokerReducer from './exchangeBrokerSlice';
 import entertainmentReducer from './entertainmentSlice';
 import matchReducer from './matchSlice';
 import ticketReducer from './ticketSlice';
+import restaurantReducer from './restaurantSlice';
+import monumentReducer from './monumentSlice';
+import tourReducer from './tourSlice';
 
 const store = configureStore({
   reducer: {
@@ -17,7 +20,10 @@ const store = configureStore({
     exchangeBroker: exchangeBrokerReducer,
     entertainment: entertainmentReducer,
     match: matchReducer,
-    ticket: ticketReducer
+    ticket: ticketReducer,
+    restaurant: restaurantReducer,
+    monument: monumentReducer,
+    tour: tourReducer
   },
   middleware: (getDefaultMiddleware) => 
     getDefaultMiddleware({

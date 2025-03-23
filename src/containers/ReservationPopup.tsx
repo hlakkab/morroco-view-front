@@ -27,6 +27,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [hotelLocation, setHotelLocation] = useState('');
+  const [destination, setDestination] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -372,7 +373,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   };
 
   const handleSubmit = async () => {
-    if (!selectedDate || !selectedTime || !hotelLocation) {
+    if (!selectedDate || !selectedTime || !destination) {
       return;
     }
 
@@ -381,7 +382,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         pickupId,
         pickupDate: format(selectedDate, 'yyyy-MM-dd'),
         pickupTime: format(selectedTime, 'HH:mm'),
-        hotelLocation,
+        destination,
       })).unwrap();
     } catch (error) {
       console.error('Failed to book pickup:', error);
@@ -516,7 +517,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
       <LocationPickerModal
         visible={showLocationPicker}
         onClose={() => setShowLocationPicker(false)}
-        onLocationSelect={setHotelLocation}
+        onLocationSelect={(longitude: number, latitude: number) => setDestination([longitude, latitude])}
       />
     </KeyboardAvoidingView>
   );

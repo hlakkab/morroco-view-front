@@ -9,6 +9,8 @@ import {
   saveMatchBookmark
 } from './matchSlice'
 import { TicketState, fetchTickets, fetchTicketById, clearError } from './ticketSlice'
+import { fetchRestaurants, setSelectedType as setSelectedRestaurantType, setSelectedRestaurant } from './restaurantSlice'
+import { fetchMonuments, setSelectedType as setSelectedMonumentType, setSelectedMonument } from './monumentSlice'
 
 export {
   RootState, 
@@ -26,5 +28,13 @@ export {
   TicketState,
   fetchTickets,
   fetchTicketById,
-  clearError
+  clearError,
+  // Restaurant exports
+  fetchRestaurants,
+  setSelectedRestaurantType,
+  setSelectedRestaurant,
+  // Monument exports
+  fetchMonuments,
+  setSelectedMonumentType,
+  setSelectedMonument
 }

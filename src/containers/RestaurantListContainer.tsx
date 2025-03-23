@@ -8,9 +8,9 @@ import FilterSelector from '../components/FilterSelector';
 import { RootStackParamList } from '../types/navigation';
 import { Restaurant, RestaurantType } from '../types/Restaurant';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-
-
-
+import { useAppDispatch } from '../store/hooks';
+import { setSelectedRestaurant, toggleRestaurantBookmark } from '../store/restaurantSlice';
+import RestaurantCard from '../components/cards/RestaurantCard';
 
 interface RestaurantListContainerProps {
   restaurants: Restaurant[];
@@ -23,8 +23,8 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
   selectedType,
   onSelectType,
 }) => {
-  const [savedRestaurants, setSavedRestaurants] = useState<Record<string, boolean>>({});
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(restaurants);
+  const dispatch = useAppDispatch();
 
   // Filtrer les restaurants selon le type sélectionné
   useEffect(() => {
@@ -52,25 +52,12 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleRestaurantPress = (restaurant: Restaurant) => {
-    navigation.navigate('RestaurantDetail', {
-      id: restaurant.id,
-      title: restaurant.title,
-      image: restaurant.image, // propriété requise ajoutée
-      images: restaurant.images && restaurant.images.length > 0 ? restaurant.images : [restaurant.image],
-      address: restaurant.address,
-      startTime: restaurant.startTime,
-      endTime: restaurant.endTime,
-    });
+    dispatch(setSelectedRestaurant(restaurant));
+    navigation.navigate('RestaurantDetail', restaurant);
   };
 
-  
-
-
-  const handleSaveRestaurant = (id: string) => {
-    setSavedRestaurants(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const handleSaveRestaurant = (restaurant: Restaurant) => {
+    dispatch(toggleRestaurantBookmark(restaurant));
   };
 
   return (
@@ -88,32 +75,10 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
           data={filteredRestaurants}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <CardItem
-              imageUrl={item.image}
-              title={item.title}
-              subtitle={item.address}
-              tags={[
-                {
-                  id: 'type',
-                  //label: item.tag, //.toUpperCase(),
-                  icon: <MaterialIcons name="restaurant" size={12} color="green" style={{ marginRight: 4 }} />,
-                  label:  item.type,
-                  style: { backgroundColor: '#E8F5F0', borderWidth: 1, borderColor: '#008060' },
-                  textStyle: { color: '#008060', fontWeight: '600' },
-                },
-              ]}
-              actionIcon={
-                <Ionicons
-                  name={savedRestaurants[item.id] ? 'bookmark' : 'bookmark-outline'}
-                  size={20}
-                  color={savedRestaurants[item.id] ? '#666' : '#000'}
-                />
-              }
-              onActionPress={() => handleSaveRestaurant(item.id)}
-              onCardPress={() => handleRestaurantPress(item)}
-              containerStyle={styles.cardContainer}
-              svgImage={!item.image ? <Ionicons name="restaurant-outline" size={32} color="#fff" /> : undefined}
-              isSaved={savedRestaurants[item.id]}
+            <RestaurantCard
+              item={item}
+              handleSaveRestaurant={handleSaveRestaurant}
+              handleRestaurantPress={handleRestaurantPress}
             />
           )}
           contentContainerStyle={styles.listContent}

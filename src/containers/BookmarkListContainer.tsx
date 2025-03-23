@@ -12,7 +12,8 @@ import PickupCard from '../components/cards/PickupCard';
 import { HotelPickup } from '../types/transport';
 import MatchCard from '../components/cards/MatchCard';
 import BrokerCard from '../components/cards/BrokerCard';
-
+import RestaurantCard from '../components/cards/RestaurantCard';
+import MonumentCard from '../components/cards/MonumentCard';
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
   loading: boolean;
@@ -27,11 +28,15 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
 
-  const handleSaveBookmark = (id: string) => {
-    dispatch(removeBookmark(id));
+  const handleSaveBookmark = (id: string | {id: string}) => {
+    if (typeof id === 'string') {
+      dispatch(removeBookmark(id));
+    } else {
+      dispatch(removeBookmark(id.id));
+    }
   };
 
-  const handleCardPress = (item: Bookmark) => {
+  const handleCardPress = (item: object) => {
     
   };
 
@@ -64,34 +69,64 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
           data={bookmarks}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
+
+            console.log(item.type);
             
             if (item.type === 'PICKUP') {
               const pickup = { 
                 ...item.object,
-                images: item.images
+                images: item.images,
+                saved: true
               };
               
               return (
                 <PickupCard
                   item={pickup}
+                  handleSavePickup={handleSaveBookmark}
                 />
               )
             }
 
             if (item.type === 'MATCH') {
-              
               return (
                 <MatchCard
-                  match={item.object}
+                  match={{...item.object, saved: true}}
+                  handleSaveMatch={handleSaveBookmark}
                 />
               )
             }
 
             if (item.type === 'MONEY_EXCHANGE') {
               return (
-                <BrokerCard item={item.object} />
+                <BrokerCard 
+                  item={{...item.object, saved: true}}
+                  handleSaveBroker={handleSaveBookmark}
+                />
               )
             }
+
+
+            if (item.type === 'RESTAURANT') {
+              return (
+                <RestaurantCard
+                  item={{...item.object, images: item.images, saved: true}}
+                  handleSaveRestaurant={handleSaveBookmark}
+                  handleRestaurantPress={handleCardPress}
+                />
+              )
+            }
+
+
+            if (item.type === 'MONUMENT') {
+              return (
+                <MonumentCard
+                  item={{...item.object, images: item.images, saved: true}}
+                  handleSaveMonument={handleSaveBookmark}
+                  handleMonumentPress={handleCardPress}
+                />
+              )
+            }
+
             return null
           }}
           showsVerticalScrollIndicator={false}

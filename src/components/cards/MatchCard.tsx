@@ -7,7 +7,7 @@ import { Match } from "../../types/match";
 interface MatchCardProps {
   match: Match;
   handleCardPress?: () => void;
-  handleSaveMatch?: () => void;
+  handleSaveMatch: (id: string) => void;
 }
 
 const MatchCard: React.FC<MatchCardProps> = ({
@@ -67,7 +67,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {/* Bouton de sauvegarde */}
       <TouchableOpacity
         style={styles.actionButton}
-        onPress={handleSaveMatch}
+        onPress={() => handleSaveMatch(match.id)}
         disabled={!handleSaveMatch}
       >
         <View style={[

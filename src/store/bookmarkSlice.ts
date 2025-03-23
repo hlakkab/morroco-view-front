@@ -19,6 +19,14 @@ export const fetchBookmarks = createAsyncThunk(
   }
 );
 
+export const addBookmark = createAsyncThunk(
+  'bookmarks/addBookmark',
+  async (body: {elementId: string, type: string}) => {
+    const response = await api.post(`/bookmarks`, body);
+    return response.status;
+  }
+);
+
 
 export const removeBookmark = createAsyncThunk(
   'bookmarks/removeBookmark',

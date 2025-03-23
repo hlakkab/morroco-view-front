@@ -1,18 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator, FlatList, Image, TouchableOpacity } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator, FlatList } from 'react-native';
 
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import EntertainmentCard from '../components/EntertainmentCard';
+import FilterSelector from '../components/FilterSelector';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setSelectedEntertainment, Entertainment, fetchEntertainments, EntertainmentState } from '../store/entertainmentSlice';
+import { setSelectedEntertainment, fetchEntertainments, EntertainmentState } from '../store/entertainmentSlice';
+import { Entertainment } from '../types/Entertainment';
 
 const EntertainmentScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCityId, setSelectedCityId] = useState('5408');
 
   const {
     entertainments,
@@ -22,19 +25,25 @@ const EntertainmentScreen: React.FC = () => {
     (state): EntertainmentState => state.entertainment
   );
 
-  // Use sample data while testing
+  // City filter options for Marrakech and Casablanca
+  const cityFilterOptions = [
+    { id: '5408', label: 'Marrakech' },
+    { id: '4396', label: 'Casablanca' },
+    { id: '4388', label: 'Tangier'},
+  ];
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await dispatch(fetchEntertainments()).unwrap();
-      } catch (error) {
-        console.error('Failed to fetch entertainments:', error);
-      }
-    };
+    // Initial data fetch - default city (Marrakech) will be used
+    fetchEntertainmentData();
+  }, []);
 
-    fetchData();
-  }, [dispatch]);
+  const fetchEntertainmentData = async (cityCode?: string) => {
+    try {
+      await dispatch(fetchEntertainments(cityCode || '5408')).unwrap();
+    } catch (error) {
+      console.error('Failed to fetch entertainments:', error);
+    }
+  };
 
   const handleBack = () => {
     navigation.goBack();
@@ -45,8 +54,20 @@ const EntertainmentScreen: React.FC = () => {
   };
 
   const handleFilter = () => {
-    // Implement filter functionality
-    console.log('Filter pressed');
+    // This function is still needed for the SearchBar's filter button
+    console.log('Filter button pressed');
+  };
+
+  const handleSelectCity = (cityId: string) => {
+    setSelectedCityId(cityId);
+    
+    // Fetch entertainments with the selected city code
+    // If 'all' is selected, don't filter by city (use default)
+    if (cityId === 'all') {
+      fetchEntertainmentData();
+    } else {
+      fetchEntertainmentData(cityId);
+    }
   };
 
   const handleSelectEntertainment = (entertainment: Entertainment) => {
@@ -54,16 +75,6 @@ const EntertainmentScreen: React.FC = () => {
     // Navigate to detail screen if needed
     // navigation.navigate('EntertainmentDetail', { productCode: entertainment.productCode });
   };
-
-  // Filter entertainments based on search query
-  //   const filteredEntertainments = Array.isArray(entertainments) 
-  //     ? entertainments.filter(item => 
-  //         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //         item.description.toLowerCase().includes(searchQuery.toLowerCase())
-  //       )
-  //     : [];
-
-  const filteredEntertainments = entertainments;
 
   if (loading) {
     return (
@@ -80,6 +91,15 @@ const EntertainmentScreen: React.FC = () => {
       </View>
     );
   }
+
+  // Filter entertainments based on search query
+  const filteredEntertainments = Array.isArray(entertainments) 
+    ? entertainments.filter(item => 
+        searchQuery === '' || 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
 
   const renderEntertainmentItem = ({ item }: { item: Entertainment }) => {
     return (
@@ -100,6 +120,16 @@ const EntertainmentScreen: React.FC = () => {
         onFilterPress={handleFilter}
         value={searchQuery}
       />
+
+      <View style={styles.filterContainer}>
+        <FilterSelector
+          options={cityFilterOptions}
+          selectedOptionId={selectedCityId}
+          onSelectOption={handleSelectCity}
+          title="Filter by City"
+        />
+      </View>
+
       <View style={styles.content}>
         <FlatList
           data={filteredEntertainments}
@@ -139,6 +169,10 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 10,
+  },
+  filterContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   card: {
     backgroundColor: 'white',
@@ -181,7 +215,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#666',
-  },
+  }
 });
 
 export default EntertainmentScreen; 
