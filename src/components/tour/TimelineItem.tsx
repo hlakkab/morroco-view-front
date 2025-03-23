@@ -1,6 +1,29 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import React, { memo } from 'react';
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import {
+  Dimensions,
+  LayoutChangeEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import {
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent
+} from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  SharedValue,
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming
+} from 'react-native-reanimated';
+
+const ITEM_HEIGHT = 120; // Approximate height of each item
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface SavedItem {
   id: string;
@@ -17,16 +40,136 @@ interface TimelineItemProps {
   onSetTime: () => void;
   onSetDuration: () => void;
   onDragStart?: () => void;
+  onDragEnd?: () => void;
+  onPositionChange?: (destIndex: number) => void;
   isDragging?: boolean;
+  index: number;
+  totalItems: number;
+  draggingId: SharedValue<string | null>;
+  draggedIndex: SharedValue<number>;
+  currentPositionY: SharedValue<number>;
 }
 
-const TimelineItem: React.FC<TimelineItemProps> = ({ 
+type AnimatedGHContext = {
+  startY: number;
+  currentIndex: number;
+};
+
+const TimelineItem = memo(({ 
   item, 
   onSetTime, 
   onSetDuration, 
   onDragStart,
-  isDragging = false
-}) => {
+  onDragEnd,
+  onPositionChange,
+  isDragging = false,
+  index,
+  totalItems,
+  draggingId,
+  draggedIndex,
+  currentPositionY
+}: TimelineItemProps) => {
+  // Item's measurements
+  const itemHeight = useSharedValue(ITEM_HEIGHT);
+  const itemPosition = useSharedValue(0);
+  const isActive = useSharedValue(false);
+  const y = useSharedValue(0);
+  
+  // Store item's position when measured
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    itemHeight.value = event.nativeEvent.layout.height;
+    itemPosition.value = event.nativeEvent.layout.y;
+  }, [itemHeight, itemPosition]);
+  
+  // Pan gesture handler for dragging
+  const panGestureHandler = useAnimatedGestureHandler<
+    PanGestureHandlerGestureEvent,
+    AnimatedGHContext
+  >({
+    onStart: (_, context) => {
+      context.startY = y.value;
+      context.currentIndex = index;
+      isActive.value = true;
+      
+      if (onDragStart) {
+        runOnJS(onDragStart)();
+      }
+    },
+    onActive: (event, context) => {
+      // Update vertical position
+      y.value = context.startY + event.translationY;
+      currentPositionY.value = y.value;
+      
+      // Calculate possible destination index
+      const newIndex = Math.max(
+        0,
+        Math.min(
+          totalItems - 1,
+          Math.round((context.currentIndex * itemHeight.value + y.value) / itemHeight.value)
+        )
+      );
+      
+      // Call position change function if index changes
+      if (newIndex !== draggedIndex.value && onPositionChange) {
+        draggedIndex.value = newIndex;
+        runOnJS(onPositionChange)(newIndex);
+      }
+    },
+    onEnd: () => {
+      // Reset position with spring animation
+      y.value = withSpring(0);
+      isActive.value = false;
+      
+      // Call drag end callback
+      if (onDragEnd) {
+        runOnJS(onDragEnd)();
+      }
+    },
+  });
+  
+  // Animated styles for draggable item
+  const animatedStyle = useAnimatedStyle(() => {
+    if (draggingId.value === item.id) {
+      // Current item is being dragged
+      return {
+        zIndex: 999,
+        elevation: 5,
+        shadowOpacity: 0.2,
+        transform: [
+          { scale: withTiming(1.03, { duration: 100 }) },
+          { translateY: y.value }
+        ]
+      };
+    } else if (draggingId.value !== null) {
+      // Another item is being dragged
+      const dragPosition = draggedIndex.value;
+      const currentPosition = index;
+      
+      // If we're moving positions, animate accordingly
+      if (
+        dragPosition !== -1 && 
+        currentPosition !== dragPosition &&
+        ((dragPosition > draggedIndex.value && currentPosition >= draggedIndex.value && currentPosition <= dragPosition) ||
+        (dragPosition < draggedIndex.value && currentPosition <= draggedIndex.value && currentPosition >= dragPosition))
+      ) {
+        return {
+          transform: [
+            { translateY: withTiming(dragPosition > currentPosition ? -itemHeight.value : itemHeight.value, { duration: 150 }) }
+          ],
+          transition: { duration: 150 }
+        };
+      }
+    }
+    
+    // Default state - not being dragged and not affected
+    return {
+      transform: [
+        { scale: withTiming(1, { duration: 100 }) },
+        { translateY: withTiming(0, { duration: 100 }) }
+      ]
+    };
+  });
+  
   const getItemTypeIcon = (type: string, size = 18) => {
     switch(type) {
       case 'hotel':
@@ -55,82 +198,77 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
   const iconBgColor = getIconBackgroundColor(item.type);
 
   return (
-    <Pressable 
-      onLongPress={onDragStart}
-      delayLongPress={200}
-      style={({ pressed }) => [
-        styles.container, 
-        isDragging && styles.draggingItem,
-        pressed && styles.pressedItem
-      ]}
-    >
-      <View style={styles.timelineIconContainer}>
-        <View style={styles.horizontalConnector} />
-        <View style={[styles.iconCircle, { backgroundColor: iconBgColor }]}>
-          {getItemTypeIcon(item.type)}
-          {onDragStart && (
+    <PanGestureHandler onGestureEvent={panGestureHandler}>
+      <Animated.View 
+        style={[styles.container, animatedStyle]} 
+        onLayout={handleLayout}
+      >
+        <View style={styles.timelineIconContainer}>
+          <View style={styles.horizontalConnector} />
+          <View style={[styles.iconCircle, { backgroundColor: iconBgColor }]}>
+            {getItemTypeIcon(item.type)}
             <View style={styles.dragIndicator}>
               <Feather name="move" size={10} color="#FFF" />
             </View>
-          )}
-        </View>
-      </View>
-      
-      <View style={styles.cardContainer}>
-        <View style={styles.itemHeader}>
-          <Text style={styles.itemTitle}>{item.title}</Text>
-          <View style={[styles.itemTypeBadge, { backgroundColor: iconBgColor }]}>
-            <Text style={styles.itemTypeText}>
-              {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-            </Text>
           </View>
         </View>
         
-        {item.subtitle && (
-          <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
-        )}
-        
-        <View style={styles.itemFooter}>
-          {item.timeSlot ? (
-            <View style={styles.itemTimeSlot}>
-              <Feather name="clock" size={14} color="#666" style={{ marginRight: 4 }} />
-              <Text style={styles.itemTimeText}>{item.timeSlot}</Text>
+        <View style={styles.cardContainer}>
+          <View style={styles.itemHeader}>
+            <Text style={styles.itemTitle}>{item.title}</Text>
+            <View style={[styles.itemTypeBadge, { backgroundColor: iconBgColor }]}>
+              <Text style={styles.itemTypeText}>
+                {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+              </Text>
             </View>
-          ) : (
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={onSetTime}
-            >
-              <Feather name="clock" size={14} color="#E53935" style={{ marginRight: 4 }} />
-              <Text style={styles.addButtonText}>Set Time</Text>
-            </TouchableOpacity>
+          </View>
+          
+          {item.subtitle && (
+            <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
           )}
           
-          {(item.type === 'match' || item.type === 'entertainment') && (
-            item.duration ? (
-              <View style={styles.itemDuration}>
-                <Feather name="calendar" size={14} color="#666" style={{ marginRight: 4 }} />
-                <Text style={styles.itemDurationText}>{item.duration}</Text>
+          <View style={styles.itemFooter}>
+            {item.timeSlot ? (
+              <View style={styles.itemTimeSlot}>
+                <Feather name="clock" size={14} color="#666" style={{ marginRight: 4 }} />
+                <Text style={styles.itemTimeText}>{item.timeSlot}</Text>
               </View>
             ) : (
               <TouchableOpacity 
                 style={styles.addButton}
-                onPress={onSetDuration}
+                onPress={onSetTime}
               >
-                <Feather name="calendar" size={14} color="#E53935" style={{ marginRight: 4 }} />
-                <Text style={styles.addButtonText}>Set Duration</Text>
+                <Feather name="clock" size={14} color="#E53935" style={{ marginRight: 4 }} />
+                <Text style={styles.addButtonText}>Set Time</Text>
               </TouchableOpacity>
-            )
-          )}
-          
-          <TouchableOpacity style={styles.viewDetailsButton}>
-            <Text style={styles.viewDetailsText}>View Details</Text>
-          </TouchableOpacity>
+            )}
+            
+            {(item.type === 'match' || item.type === 'entertainment') && (
+              item.duration ? (
+                <View style={styles.itemDuration}>
+                  <Feather name="calendar" size={14} color="#666" style={{ marginRight: 4 }} />
+                  <Text style={styles.itemDurationText}>{item.duration}</Text>
+                </View>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.addButton}
+                  onPress={onSetDuration}
+                >
+                  <Feather name="calendar" size={14} color="#E53935" style={{ marginRight: 4 }} />
+                  <Text style={styles.addButtonText}>Set Duration</Text>
+                </TouchableOpacity>
+              )
+            )}
+            
+            <TouchableOpacity style={styles.viewDetailsButton}>
+              <Text style={styles.viewDetailsText}>View Details</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Pressable>
+      </Animated.View>
+    </PanGestureHandler>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -176,11 +314,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
     zIndex: 5,
   },
   itemHeader: {
@@ -269,18 +402,6 @@ const styles = StyleSheet.create({
     color: '#E53935',
     fontWeight: '500',
   },
-  draggingItem: {
-    opacity: 0.9,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.34,
-    shadowRadius: 6.27,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-  },
   dragIndicator: {
     position: 'absolute',
     top: -4,
@@ -289,10 +410,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 2,
   },
-  pressedItem: {
-    opacity: 0.8,
-  },
 });
 
-// Use memo to prevent unnecessary re-renders
-export default memo(TimelineItem);
+export default TimelineItem;
