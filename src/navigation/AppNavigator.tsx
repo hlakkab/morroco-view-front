@@ -28,6 +28,7 @@ import TicketsScreen from '../screens/TicketsScreen';
 import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import { RootStackParamList } from '../types/navigation';
+import EmergencyScreen from "../screens/EmergencyScreen";
 
 import MonumentsScreen from '../screens/MonumentsScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
@@ -174,6 +175,11 @@ export function AppNavigator() {
         name="AddNewTourDestinations" 
         component={AddNewTourDestinationsScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+          name="Emergency"
+          component={EmergencyScreen}
+          options={{ headerShown: false }}
       />
       <Stack.Screen 
         name="MarrakechMap" 

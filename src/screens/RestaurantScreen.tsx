@@ -11,6 +11,7 @@ import { fetchRestaurants, setSelectedRestaurantType } from '../store/index';
 import HeaderContainer from '../containers/HeaderContainer';
 import SearchBar from '../components/SearchBar';
 import RestaurantListContainer from '../containers/RestaurantListContainer';
+import FilterPopup, { FilterOption } from '../components/FilterPopup'; // Importer FilterPopup
 
 // Import types
 import { RootStackParamList } from '../types/navigation';
@@ -38,6 +39,49 @@ const RestaurantScreen: React.FC = () => {
   useEffect(() => {
     dispatch(fetchRestaurants());
   }, [dispatch]);
+
+  // État pour gérer la visibilité du popup de filtres
+  const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+
+// Options de filtres pour le popup
+
+
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>(() => {
+    // Extraire toutes les villes uniques des données
+   // const uniqueCities = [...new Set(SAMPLE_RESTAURANTS.map(restaurant => restaurant.city))];
+
+    return [
+     /* // Options pour le type de restaurant
+      ...Object.values(RestaurantType).map(type => ({
+        id: type,
+        label: type,
+        selected: selectedType === type,
+        category: 'type'
+      })),*/
+      // Options pour les villes
+     /* ...uniqueCities.map(city => ({
+        id: city,
+        label: city,
+        selected: false,
+        category: 'city'
+      }))*/
+    ];
+  });
+
+  // Mettre à jour les options de filtre lorsque selectedType change
+  useEffect(() => {
+    setFilterOptions(prevOptions =>
+        prevOptions.map(option => {
+          if (option.category === 'type') {
+            return {
+              ...option,
+              selected: selectedType === option.id
+            };
+          }
+          return option;
+        })
+    );
+  }, [selectedType]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -87,7 +131,7 @@ const RestaurantScreen: React.FC = () => {
     );
   }
 
-  console.log(restaurants.map(restaurant => restaurant.saved));
+ // console.log(restaurants.map(restaurant => restaurant.saved));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -124,7 +168,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
-    },
+  },
   content: {
     flex: 1,
     paddingHorizontal: 16,

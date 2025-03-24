@@ -30,6 +30,7 @@ const adaptApiData = (apiData: any): Entertainment => {
     description: apiData.description || '',
     location: apiData.location?.name || 'Morocco', // Si non fourni, valeur par défaut
     images: apiData.images || [],
+    city: apiData.city ,
     pricing: apiData.pricing || { 
       summary: { 
         fromPrice: 0, 

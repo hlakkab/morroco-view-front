@@ -2,15 +2,15 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import EntertainmentListContainerVo from '../containers/EntertainmentListContainerVo';
-
 import { EntertainmentState, fetchEntertainments } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Entertainment } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
+import FilterPopup, {FilterOption} from "../components/FilterPopup";
+
 
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
 
@@ -18,6 +18,9 @@ const EntertainmentScreenVo: React.FC = () => {
   const navigation = useNavigation<EntertainmentScreenNavigationProp>();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+
 
   const { entertainments, loading, error } = useAppSelector(
     (state): EntertainmentState => state.entertainment
@@ -39,10 +42,50 @@ const EntertainmentScreenVo: React.FC = () => {
     fetchData();
   }, [dispatch]);
 
-  // Filter entertainments based on search query
-  const filteredEntertainments = entertainments.filter((ent: Entertainment) =>
-    ent.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Initialiser les options de filtre à partir des entertainments (ex : par localisation)
+  useEffect(() => {
+    if (entertainments.length > 0 && filterOptions.length === 0) {
+      const uniqueLocations = Array.from(new Set(entertainments.map(ent => ent.location)));
+      const locationOptions = uniqueLocations.map(location => ({
+        id: location,
+        label: location,
+        selected: false,
+        category: 'location'
+      }));
+// Extraire les villes uniques (supposons qu'il y ait la propriété "city")
+      const uniqueCities = Array.from(new Set(entertainments.map(ent => ent.city)));
+      const cityOptions = uniqueCities.map(city => ({
+        id: city,
+        label: city,
+        selected: false,
+        category: 'city'
+      }));
+
+      // Combine les deux ensembles d'options
+      setFilterOptions([...locationOptions, ...cityOptions]);
+    }
+  }, [entertainments]);
+
+  const handleFilterPress = () => {
+    setFilterPopupVisible(true);
+  };
+
+  const handleApplyFilters = (selectedOptions: FilterOption[]) => {
+    setFilterOptions(selectedOptions);
+    setFilterPopupVisible(false);
+  };
+
+  // Filtrer les entertainments en fonction de la recherche et des filtres de localisation
+  const activeLocationFilters = filterOptions
+      .filter(option => option.category === 'location' && option.selected)
+      .map(option => option.id);
+
+  const filteredEntertainments = entertainments.filter((ent: Entertainment) => {
+    const searchMatch = ent.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const locationMatch =
+        activeLocationFilters.length === 0 || activeLocationFilters.includes(ent.location);
+    return searchMatch && locationMatch;
+  });
 
   if (loading) {
     return (
@@ -71,13 +114,22 @@ const EntertainmentScreenVo: React.FC = () => {
       </View>
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search entertainments..."
-          onChangeText={handleSearch}
-          value={searchQuery}
-          onFilterPress={() => {}}
+            placeholder="Search entertainments..."
+            onChangeText={handleSearch}
+            value={searchQuery}
+            onFilterPress={handleFilterPress}
         />
         <EntertainmentListContainerVo entertainments={filteredEntertainments} />
       </View>
+
+      {/* Intégration du FilterPopup */}
+      <FilterPopup
+          visible={filterPopupVisible}
+          onClose={() => setFilterPopupVisible(false)}
+          filterOptions={filterOptions}
+          onApplyFilters={handleApplyFilters}
+          title="Filtrer les entertainments"
+      />
     </SafeAreaView>
   );
 };

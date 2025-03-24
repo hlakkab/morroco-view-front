@@ -5,7 +5,71 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentsListScreen.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/image.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/img/gitex-africa.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/DatePickerModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ImageGallery.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/cards/MonumentCard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/cards/RestaurantCard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/CitySelector.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/DayHeader.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/DaySelector.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/DurationModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/EmptyCity.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/TimeModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/TimelineItem.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/TourFlowHeader.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/tour/TourSummary.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/containers/MonumentListContainer.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/containers/tour/Timeline.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/AddNewTourOrganizeScreen.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/EventDetailScreen.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/MonumentsScreen.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/TourMapScreen.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/store/monumentSlice.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/store/restaurantSlice.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/store/tourSlice.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/Event.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/Monument.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/babel.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/babel.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/LocationPickerModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/LocationPickerModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/PickupCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/PickupCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/PickupTicketCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/PickupTicketCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/BookmarkListContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/BookmarkListContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/BrokerListContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/BrokerListContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/ESIMCardsContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/ESIMCardsContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/EventBannerContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/EventBannerContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/ReservationPopup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/ReservationPopup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/RestaurantListContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/navigation/AppNavigator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/navigation/AppNavigator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/BrokerDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/BrokerDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/MonumentDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/TicketsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/TicketsScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ToursScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ToursScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/ApiProxy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/ApiProxy.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/ViatorService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/ViatorService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/bookmarkSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/bookmarkSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/entertainmentSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/hotelPickupDetailsSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/hotelPickupDetailsSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/store.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/store.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/Restaurant.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/Restaurant.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/navigation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/navigation.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,25 +91,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/MP40/Desktop/Avant Stage PFE/vd360-test",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Users\\MP40\\Desktop\\projet PFE\\morroco-view-front\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Merging main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/MP40/Desktop/Avant Stage PFE/vd360-test&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\MP40\\Desktop\\projet PFE\\morroco-view-front\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -69,5 +133,8 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="LAST_COMMIT_MESSAGE" value="" />
   </component>
 </project>

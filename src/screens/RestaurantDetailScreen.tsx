@@ -1,5 +1,16 @@
 import React, { useRef, useState } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, Image, Text, TouchableOpacity, Dimensions, FlatList } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  Image,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  FlatList,
+  ViewToken
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,7 +26,8 @@ import ButtonFixe from '../components/ButtonFixe';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleRestaurantBookmark } from '../store/restaurantSlice';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
 
 
 const RestaurantDetailScreen: React.FC = () => {
@@ -39,10 +51,23 @@ const RestaurantDetailScreen: React.FC = () => {
     }
   };
 
+
   const handleScroll = (event: any) => {
     const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / width);
     setCurrentImageIndex(slideIndex);
   };
+
+  const viewabilityConfig = {
+    viewAreaCoveragePercentThreshold: 50, // Détecte quand une image est visible à 50% ou plus
+  };
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0) {
+      // @ts-ignore
+      setCurrentImageIndex(viewableItems[0].index);
+    }
+  }).current;
+
 
   const handleReservation = () => {
     console.log('Book a Reservation');
@@ -91,6 +116,7 @@ const RestaurantDetailScreen: React.FC = () => {
                   ))}
                 </View>
               </View>
+
             </View>
           </View>
 
@@ -122,6 +148,7 @@ const RestaurantDetailScreen: React.FC = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -134,17 +161,41 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+
   imageSection: {
     position: 'relative',
-    width: '100%',
+    width: width,
     height: 240,
     backgroundColor: '#FFF7F7',
-  },
+    overflow: 'hidden', // Pour s'assurer qu'aucun contenu ne déborde
 
+  },
   image: {
-    width: 370,
-    height: 234,
-    borderRadius: 30,
+    width: width,
+    height: 240,
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  pagination: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    marginHorizontal: 4,
+  },
+  activePaginationDot: {
+    backgroundColor: '#fff',
   },
   saveButton: {
     position: 'absolute',
@@ -164,30 +215,6 @@ const styles = StyleSheet.create({
   },
   savedButton: {
     backgroundColor: '#666',
-  },
-  paginationContainer: {
-    position: 'absolute',
-    bottom: 16,
-    width: '100%',
-    alignItems: 'center',
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    marginHorizontal: 4,
-  },
-  activePaginationDot: {
-    backgroundColor: '#fff',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
   },
   content: {
     flex: 1,

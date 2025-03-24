@@ -87,6 +87,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
 const styles = StyleSheet.create({
   cardContainer: {
+
     flexDirection: 'row',
     backgroundColor: 'white',
     borderRadius: 12,
@@ -98,27 +99,29 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     paddingRight: 6,
-    paddingVertical: 10,
+   //paddingVertical: 10,
   },
   teamsImageContainer: {
     width: 120,
-    height: 70,
+    height: 100,
     borderRadius: 8,
     backgroundColor: "#F6FAFF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
     marginRight: 10,
+    paddingHorizontal:6,
   },
   teamFlag: {
     width: 36,
-    height: 24,
+    height: 26,
     borderRadius: 5,
   },
   vsText: {
     fontSize: 14,
     fontWeight: "bold",
     color: "#555",
+    
   },
   matchImage: {
     width: 100,

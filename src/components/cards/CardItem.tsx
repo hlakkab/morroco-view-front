@@ -28,7 +28,7 @@ interface CardItemProps {
   };
   tags?: Array<{
     id: string;
-    label: string;
+    label: string | React.ReactNode;
     icon?: React.ReactNode;
     style?: object;
     textStyle?: object;
