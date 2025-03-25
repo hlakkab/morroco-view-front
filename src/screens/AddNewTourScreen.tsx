@@ -55,7 +55,7 @@ const AddNewTourScreen: React.FC = () => {
       const monthName = months[date.getMonth()];
       const yearNum = date.getFullYear();
       
-      return `${dayName} ${dayNum} ${monthName} ${yearNum}`;
+      return `${dayName} ${dayNum} ${monthName}`;
     } catch (e) {
       return dateString; // Fallback to the original format if parsing fails
     }
@@ -87,12 +87,14 @@ const AddNewTourScreen: React.FC = () => {
   const handleDateSelect = (date: string) => {
     if (pickerMode === 'start') {
       setFormData(prev => ({ ...prev, startDate: date }));
+      setPickerMode('end');
     } else {
       setFormData(prev => ({ ...prev, endDate: date }));
+      setShowDatePicker(false);
     }
     
     // Close the picker after selection
-    setShowDatePicker(false);
+    
   };
 
   return (

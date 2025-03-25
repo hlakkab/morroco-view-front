@@ -1,17 +1,17 @@
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, SafeAreaView, StyleSheet, View } from 'react-native';
+import { Alert, SafeAreaView, StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import Button from '../components/Button';
 import SearchBar from '../components/SearchBar';
 import StepProgress from '../components/StepProgress';
 import CitySelector from '../components/tour/CitySelector';
 import DaySelector from '../components/tour/DaySelector';
 import EmptyCity from '../components/tour/EmptyCity';
-import ItemList, { SavedItem } from '../containers/tour/ItemList';
+import ItemList from '../containers/tour/ItemList';
 import { RootStackParamList } from '../types/navigation';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setTourDestinations } from '../store/tourSlice';
+import { fetchBookmarksAsItems, setTourDestinations, TourItem } from '../store/tourSlice';
 
 // Calculate the number of days between start and end dates (inclusive)
 export const calculateDaysInclusive = (startDate: string, endDate: string): number => {
@@ -56,7 +56,7 @@ const LOCATION_COORDINATES = {
 };
 
 // Helper function to ensure items have coordinates
-const addCoordinatesToItems = (items: SavedItem[]): SavedItem[] => {
+const addCoordinatesToItems = (items: TourItem[]): TourItem[] => {
   return items.map(item => {
     // If item already has coordinates, use them
     if (item.coordinate) {
@@ -184,6 +184,9 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   
   // Get tour data from Redux instead of route params
   const { title, startDate, endDate } = useAppSelector(state => state.tour.currentTour);
+  const availableItems = useAppSelector(state => state.tour.availableItems);
+  const loading = useAppSelector(state => state.tour.loading);
+  const error = useAppSelector(state => state.tour.error);
   const dispatch = useAppDispatch();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -192,80 +195,18 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   const [selectedItemsByDay, setSelectedItemsByDay] = useState<Record<number, string[]>>({});
   const [totalDays, setTotalDays] = useState(4);
 
+  // Fetch bookmarks when component mounts
+  useEffect(() => {
+    dispatch(fetchBookmarksAsItems());
+  }, [dispatch]);
 
-  // Example saved items
-  const [savedItems, setSavedItems] = useState<SavedItem[]>([
-    {
-      id: '1',
-      type: 'hotel',
-      title: 'Four Seasons Hotel',
-      subtitle: 'Anfa Place Living Resort, Boulevard de la...',
-      imageUrl: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/223648290.jpg?k=d7042c5905373d5f217992f67cfb1a1a5a5559a0a2ad4b3ce7536e2848a1bc37&o=&hp=1',
-      city: 'Casablanca',
-      coordinate: { latitude: 33.594910, longitude: -7.634450 } // Specific coordinates for Four Seasons Hotel
-    },
-    {
-      id: '2',
-      type: 'restaurant',
-      title: 'Kōya Restaurant Lounge',
-      subtitle: '408 Bd Driss Slaoui, Casablanca',
-      imageUrl: 'https://media-cdn.tripadvisor.com/media/photo-p/1c/cc/51/db/koya.jpg',
-      city: 'Casablanca',
-      coordinate: { latitude: 33.591850, longitude: -7.631180 } // Specific coordinates for Kōya Restaurant
-    },
-    {
-      id: '3',
-      type: 'match',
-      title: 'Morocco Vs. Comoros',
-      subtitle: 'Stade Moulay Abdallah',
-      imageUrl: 'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg',
-      city: 'Rabat',
-      coordinate: { latitude: 33.960390, longitude: -6.844232 } // Specific coordinates for Stade Moulay Abdallah
-    },
-    {
-      id: '4',
-      type: 'entertainment',
-      title: 'Chellah Jazz Festival',
-      subtitle: 'Chellah Necropolis',
-      imageUrl: 'https://images.pexels.com/photos/4062561/pexels-photo-4062561.jpeg',
-      city: 'Rabat',
-      coordinate: { latitude: 33.954750, longitude: -6.814180 } // Specific coordinates for Chellah Necropolis
-    },
-    {
-      id: '5',
-      type: 'hotel',
-      title: 'Sofitel Agadir Royal Bay',
-      subtitle: 'Baie des Palmiers, Agadir',
-      imageUrl: 'https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg',
-      city: 'Agadir',
-      coordinate: { latitude: 30.403320, longitude: -9.608240 } // Specific coordinates for Sofitel Agadir
-    },
-    {
-      id: '6',
-      type: 'restaurant',
-      title: 'Le Jardin d\'Eau',
-      subtitle: 'Marina, Agadir',
-      imageUrl: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg',
-      city: 'Agadir',
-      coordinate: { latitude: 30.415830, longitude: -9.600680 } // Specific coordinates for Marina location
-    },
-    {
-      id: '7',
-      type: 'match',
-      title: 'Egypt Vs. Ghana',
-      subtitle: 'Stade Adrar',
-      imageUrl: 'https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg',
-      city: 'Agadir',
-      coordinate: { latitude: 30.372240, longitude: -9.532750 } // Specific coordinates for Stade Adrar
-    }
-  ]);
-
+  // Use availableItems from Redux store instead of local state
   const cities = useMemo(() => {
-    // Extract unique cities from saved items
-    const uniqueCities = Array.from(new Set(savedItems.map(item => item.city)));
+    // Extract unique cities from available items
+    const uniqueCities = Array.from(new Set(availableItems.map(item => item.city)));
     // Sort alphabetically
     return uniqueCities.sort();
-  }, [savedItems]);
+  }, [availableItems]);
 
   const steps = [
     { id: '01', label: 'Basic infos' },
@@ -293,11 +234,6 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       setSelectedItemsByDay(initialSelectedItems);
     }
   }, [startDate, endDate]);
-
-  useEffect(() => {
-    // Ensure all saved items have coordinates
-    setSavedItems(prevItems => addCoordinatesToItems(prevItems));
-  }, []);
 
   // Check if a city is locked for the current day
   const isCityLockedForCurrentDay = useMemo(() => {
@@ -403,7 +339,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     dispatch(setTourDestinations(destinationCities));
     
     // Get selected items with their coordinates
-    const selectedItems = savedItems.filter(item => 
+    const selectedItems = availableItems.filter(item => 
       Object.values(selectedItemsByDay).some(dayItems => 
         dayItems.includes(item.id)
       )
@@ -433,7 +369,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
 
   // Filter items by selected city and search query
   const filteredItems = useMemo(() => {
-    const filtered = savedItems.filter(item => {
+    const filtered = availableItems.filter(item => {
       // If a city is selected for the current day, only show items from that city
       const selectedCity = selectedCities[selectedDay];
       const matchesCity = selectedCity ? item.city === selectedCity : true;
@@ -447,7 +383,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     
     // Ensure all filtered items have coordinates
     return addCoordinatesToItems(filtered);
-  }, [savedItems, selectedCities, selectedDay, searchQuery]);
+  }, [availableItems, selectedCities, selectedDay, searchQuery]);
 
   const totalSelectedCount = useMemo(() => {
     return Object.values(selectedItemsByDay).reduce(
@@ -494,17 +430,30 @@ const AddNewTourDestinationsScreen: React.FC = () => {
           onCityChange={handleCityChange}
         />
 
-        {/* Item List or Empty State */}
-        {selectedCities[selectedDay] ? (
-          <ItemList
-            items={filteredItems}
-            selectedCity={selectedCities[selectedDay]}
-            selectedItems={selectedItemsByDay[selectedDay] || []}
-            totalSelectedCount={totalSelectedCount}
-            onSelectItem={handleItemSelect}
-          />
+        {/* Loading State */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#E53935" />
+            <Text style={styles.loadingText}>Loading destinations...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Error loading destinations</Text>
+            <Button title="Retry" onPress={() => dispatch(fetchBookmarksAsItems())} />
+          </View>
         ) : (
-          <EmptyCity selectedDay={selectedDay} />
+          /* Item List or Empty State */
+          selectedCities[selectedDay] ? (
+            <ItemList
+              items={filteredItems}
+              selectedCity={selectedCities[selectedDay]}
+              selectedItems={selectedItemsByDay[selectedDay] || []}
+              totalSelectedCount={totalSelectedCount}
+              onSelectItem={handleItemSelect}
+            />
+          ) : (
+            <EmptyCity selectedDay={selectedDay} />
+          )
         )}
       </View>
 
@@ -512,7 +461,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         <Button 
           title="Next"
           onPress={handleNext}
-          disabled={totalSelectedCount === 0}
+          disabled={totalSelectedCount === 0 || loading}
         />
       </View>
     </SafeAreaView>
@@ -539,6 +488,26 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#555',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#E53935',
   },
 });
 

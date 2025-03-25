@@ -8,6 +8,8 @@ import ImageGallery from '../components/ImageGallery';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
 import { Monument } from '../types/Monument';
+import { useAppDispatch } from '../store/hooks';
+import { toggleMonumentBookmark } from '../store/monumentSlice';
 
 // Sample monument images for the image gallery
 const MONUMENT_IMAGES = [
@@ -74,19 +76,25 @@ const MonumentDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as Monument;
-  
-  const [isSaved, setIsSaved] = useState(false);
+  const dispatch = useAppDispatch();
+
+
+  const [saved, setSaved] = useState(params.saved || false);
   const [showTicketModal, setShowTicketModal] = useState(false);
 
   // Get monument details from sample data or route params
-  const monumentDetails = params;
+  const monumentDetails = { ...params, saved };
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleSave = () => {
-    setIsSaved(!isSaved);
+    // Toggle saved state
+    setSaved(!saved);
+    
+
+    dispatch(toggleMonumentBookmark(monumentDetails));
   };
 
   const handleBuyTicket = () => {
@@ -107,8 +115,8 @@ const MonumentDetailScreen: React.FC = () => {
 
       <ScrollView style={styles.scrollView}>
         <ImageGallery 
-          images={MONUMENT_IMAGES}
-          isSaved={isSaved}
+          images={monumentDetails.images || MONUMENT_IMAGES}
+          isSaved={saved}
           onSavePress={handleSave}
         />
 

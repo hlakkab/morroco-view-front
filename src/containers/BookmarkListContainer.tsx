@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { FlatList, StyleSheet, Text, View, Modal } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/cards/CardItem';
 import { RootStackParamList } from '../types/navigation';
@@ -14,6 +14,10 @@ import MatchCard from '../components/cards/MatchCard';
 import BrokerCard from '../components/cards/BrokerCard';
 import RestaurantCard from '../components/cards/RestaurantCard';
 import MonumentCard from '../components/cards/MonumentCard';
+import MatchPopup from '../components/MatchPopup';
+import { setCurrentMatch, setSelectedMatch } from '../store/matchSlice';
+import { Match } from '../types/match';
+
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
   loading: boolean;
@@ -27,6 +31,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
 }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleSaveBookmark = (id: string | {id: string}) => {
     if (typeof id === 'string') {
@@ -37,7 +42,22 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
   };
 
   const handleCardPress = (item: object) => {
-    
+    // Add specific handling based on item type if needed
+  };
+
+  const handleMatchPress = (match: Match) => {
+    dispatch(setSelectedMatch(match));
+    dispatch(setCurrentMatch(match));
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    // Wait a bit for better animation
+    setTimeout(() => {
+      dispatch(setSelectedMatch(null));
+      dispatch(setCurrentMatch(null));
+    }, 300);
   };
 
   if (loading) {
@@ -88,10 +108,12 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
             }
 
             if (item.type === 'MATCH') {
+              const match = {...item.object, images: item.images, saved: true};
               return (
                 <MatchCard
-                  match={{...item.object, saved: true}}
+                  match={match}
                   handleSaveMatch={handleSaveBookmark}
+                  handleCardPress={() => handleMatchPress(match)}
                 />
               )
             }
@@ -99,7 +121,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
             if (item.type === 'MONEY_EXCHANGE') {
               return (
                 <BrokerCard 
-                  item={{...item.object, saved: true}}
+                  item={{...item.object, images: item.images, saved: true}}
                   handleSaveBroker={handleSaveBookmark}
                 />
               )
@@ -132,6 +154,17 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <MatchPopup onClose={closeModal} />
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -155,6 +188,12 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     marginTop: 24,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
 

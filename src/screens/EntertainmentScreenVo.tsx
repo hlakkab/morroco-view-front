@@ -9,8 +9,8 @@ import { EntertainmentState, fetchEntertainments } from '../store/entertainmentS
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Entertainment } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
-import FilterPopup, {FilterOption} from "../components/FilterPopup";
-
+import FilterSelector from '../components/FilterSelector';
+import FilterPopup, { FilterOption } from '../components/FilterPopup';
 
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
 
@@ -21,25 +21,45 @@ const EntertainmentScreenVo: React.FC = () => {
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
 
+  const [selectedCityId, setSelectedCityId] = useState('5408');
 
   const { entertainments, loading, error } = useAppSelector(
     (state): EntertainmentState => state.entertainment
   );
 
+  // City filter options for Marrakech and Casablanca
+  const cityFilterOptions = [
+    { id: '5408', label: 'Marrakech' },
+    { id: '4396', label: 'Casablanca' },
+    { id: '4388', label: 'Tangier'},
+  ];
+
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await dispatch(fetchEntertainments()).unwrap();
-      } catch (error) {
-        console.error('Failed to fetch entertainments:', error);
-      }
-    };
+  const handleSelectCity = (cityId: string) => {
+    setSelectedCityId(cityId);
+    
+    // Fetch entertainments with the selected city code
+    if (cityId === 'all') {
+      fetchEntertainmentData();
+    } else {
+      fetchEntertainmentData(cityId);
+    }
+  };
 
-    fetchData();
+  const fetchEntertainmentData = async (cityCode?: string) => {
+    try {
+      await dispatch(fetchEntertainments(cityCode || '5408')).unwrap();
+    } catch (error) {
+      console.error('Failed to fetch entertainments:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Initial data fetch with default city
+    fetchEntertainmentData();
   }, [dispatch]);
 
   // Initialiser les options de filtre à partir des entertainments (ex : par localisation)
@@ -119,6 +139,14 @@ const EntertainmentScreenVo: React.FC = () => {
             value={searchQuery}
             onFilterPress={handleFilterPress}
         />
+        <View style={styles.filterContainer}>
+          <FilterSelector
+            options={cityFilterOptions}
+            selectedOptionId={selectedCityId}
+            onSelectOption={handleSelectCity}
+            title="Filter by City"
+          />
+        </View>
         <EntertainmentListContainerVo entertainments={filteredEntertainments} />
       </View>
 
@@ -157,6 +185,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     padding: 20,
+  },
+  filterContainer: {
+    marginBottom: 8,
   },
 });
 
