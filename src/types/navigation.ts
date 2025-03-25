@@ -1,7 +1,7 @@
 import { NavigationProp } from "@react-navigation/native";
-import { Restaurant } from "./Restaurant";
-import { Monument } from "./Monument";
 import { Event } from "./Event";
+import { Monument } from "./Monument";
+import { Restaurant } from "./Restaurant";
 
 interface SavedItem {
     id: string;
@@ -81,6 +81,8 @@ export type RootStackParamList = {
     MarrakechMap: undefined;
     TourMapScreen: {
         tourItems: SavedItem[];
+        title?: string;
+        singleDayView?: boolean;
     };
     AddNewTourOrganize: {
         title: string;

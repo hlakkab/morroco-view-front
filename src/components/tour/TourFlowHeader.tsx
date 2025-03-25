@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -35,7 +35,7 @@ const TourFlowHeader: React.FC<TourFlowHeaderProps> = ({ title }) => {
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#000" />
+      <AntDesign name="left" size={24} color="black" />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>{title}</Text>
     </View>
@@ -50,7 +50,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   backButton: {
-    padding: 8,
+    width: 42,
+    height: 42,
+    backgroundColor: 'white', 
+    borderRadius: 42 / 2, 
+    borderWidth: 2, 
+    borderColor: '#D3D3D3', 
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     marginLeft: 10,

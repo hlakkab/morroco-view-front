@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import React, { FC } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Tour } from '../../types/tour';
 import CardItem from './CardItem';
 
@@ -14,21 +14,45 @@ const TourCard: FC<TourCardProps> = ({
   item, 
   handleCardPress = () => {} 
 }) => {
+  // Format the destinations text based on type
+  const formatDestinationText = () => {
+    if (!item.destinations) return '0 Destination';
+    if (typeof item.destinations === 'string') return '1 Destination';
+    if (Array.isArray(item.destinations)) {
+      const count = item.destinations.length;
+      return `${count} ${count === 1 ? 'Destination' : 'Destinations'}`;
+    }
+    return '0 Destination';
+  };
+
+  // Format dates for display
+  const formatDates = () => {
+    if (item.startDate && item.endDate) {
+      return `${item.startDate} - ${item.endDate}`;
+    }
+    return item.startDate || 'No dates';
+  };
+
   return (
     <CardItem
       imageUrl={item.imageUrl}
       title={item.title}
-      subtitle={`${item.destinations.length} Destination`}
+      subtitle={formatDestinationText()}
       tags={[
         {
           id: 'date',
-          label: item.startDate,
+          label: formatDates(),
           icon: <Ionicons name="calendar-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
+        },
+        {
+          id: 'duration',
+          label: `${item.duration} ${item.duration === 1 ? 'day' : 'days'}`,
+          icon: <Feather name="clock" size={14} color="#666" style={{ marginRight: 4 }} />,
         }
       ]}
       actionIcon={
         <Ionicons
-          name="pencil-outline"
+          name={item.isEditable ? "eye-outline" : "pencil-outline"}
           size={20}
           color="#115167"
           style={{ backgroundColor: '#E0F7FF', borderRadius: 25, padding: 6}}

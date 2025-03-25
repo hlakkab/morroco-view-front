@@ -23,7 +23,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const ITEM_HEIGHT = 120; // Approximate height of each item
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const MAX_DRAG_RANGE = SCREEN_HEIGHT * 0.6; // Limit drag to 60% of screen height
 
 interface SavedItem {
   id: string;
@@ -74,6 +75,7 @@ const TimelineItem = memo(({
   const itemPosition = useSharedValue(0);
   const isActive = useSharedValue(false);
   const y = useSharedValue(0);
+  const originalIndex = useSharedValue(index);
   
   // Store item's position when measured
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
@@ -90,22 +92,31 @@ const TimelineItem = memo(({
       context.startY = y.value;
       context.currentIndex = index;
       isActive.value = true;
+      originalIndex.value = index;
       
       if (onDragStart) {
         runOnJS(onDragStart)();
       }
     },
     onActive: (event, context) => {
-      // Update vertical position
-      y.value = context.startY + event.translationY;
-      currentPositionY.value = y.value;
+      // Keep the item directly under finger by just using the translation from gesture
+      const translation = event.translationY;
       
-      // Calculate possible destination index
+      // Limit the drag range to prevent it from going off screen
+      const maxTranslation = Math.min(MAX_DRAG_RANGE, (totalItems - index) * itemHeight.value);
+      const minTranslation = Math.max(-MAX_DRAG_RANGE, -index * itemHeight.value);
+      const limitedTranslation = Math.min(maxTranslation, Math.max(minTranslation, translation));
+      
+      // Update position
+      y.value = limitedTranslation;
+      currentPositionY.value = limitedTranslation;
+      
+      // Calculate new index based on translation
       const newIndex = Math.max(
         0,
         Math.min(
           totalItems - 1,
-          Math.round((context.currentIndex * itemHeight.value + y.value) / itemHeight.value)
+          Math.round(index + (limitedTranslation / itemHeight.value))
         )
       );
       
@@ -117,7 +128,7 @@ const TimelineItem = memo(({
     },
     onEnd: () => {
       // Reset position with spring animation
-      y.value = withSpring(0);
+      y.value = withSpring(0, { damping: 15, stiffness: 150 });
       isActive.value = false;
       
       // Call drag end callback
@@ -133,39 +144,44 @@ const TimelineItem = memo(({
       // Current item is being dragged
       return {
         zIndex: 999,
-        elevation: 5,
-        shadowOpacity: 0.2,
+        elevation: 10,
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
         transform: [
-          { scale: withTiming(1.03, { duration: 100 }) },
-          { translateY: y.value }
+          { scale: withTiming(1.02, { duration: 150 }) },
+          { translateY: y.value } // Direct mapping to follow finger
         ]
       };
     } else if (draggingId.value !== null) {
       // Another item is being dragged
-      const dragPosition = draggedIndex.value;
-      const currentPosition = index;
+      const draggedTo = draggedIndex.value;
+      const thisPosition = index;
+      const draggedFrom = originalIndex.value;
       
-      // If we're moving positions, animate accordingly
-      if (
-        dragPosition !== -1 && 
-        currentPosition !== dragPosition &&
-        ((dragPosition > draggedIndex.value && currentPosition >= draggedIndex.value && currentPosition <= dragPosition) ||
-        (dragPosition < draggedIndex.value && currentPosition <= draggedIndex.value && currentPosition >= dragPosition))
-      ) {
-        return {
-          transform: [
-            { translateY: withTiming(dragPosition > currentPosition ? -itemHeight.value : itemHeight.value, { duration: 150 }) }
-          ],
-          transition: { duration: 150 }
-        };
+      // If this item needs to move to make space for the dragged item
+      if (draggedTo !== draggedFrom && draggedTo !== -1) {
+        // Calculate if this item is in the affected range
+        const shouldMove = 
+          (draggedTo > draggedFrom && thisPosition <= draggedTo && thisPosition > draggedFrom) || 
+          (draggedTo < draggedFrom && thisPosition >= draggedTo && thisPosition < draggedFrom);
+        
+        if (shouldMove) {
+          // Move up or down based on drag direction
+          const direction = draggedTo > draggedFrom ? -1 : 1;
+          return {
+            transform: [
+              { translateY: withTiming(direction * itemHeight.value, { duration: 150 }) }
+            ]
+          };
+        }
       }
     }
     
     // Default state - not being dragged and not affected
     return {
       transform: [
-        { scale: withTiming(1, { duration: 100 }) },
-        { translateY: withTiming(0, { duration: 100 }) }
+        { scale: withTiming(1, { duration: 150 }) },
+        { translateY: withTiming(0, { duration: 150 }) }
       ]
     };
   });

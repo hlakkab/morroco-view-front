@@ -117,6 +117,8 @@ const Timeline: React.FC<TimelineProps> = ({
     const handleSetTimeCallback = () => onSetTime(index);
     const handleSetDurationCallback = () => onSetDuration(index);
     
+    // Fix for accessing shared values in render functions:
+    // Instead of directly accessing draggingId.value, we pass the shared value object
     return (
       <TimelineItem
         key={item.id}
@@ -127,7 +129,7 @@ const Timeline: React.FC<TimelineProps> = ({
         onDragStart={() => handleDragStart(item.id, index)}
         onDragEnd={handleDragEnd}
         onPositionChange={(destIndex: number) => handlePositionChange(item.id, destIndex)}
-        isDragging={draggingId.value === item.id}
+        isDragging={false} // Static value to avoid shared value warning
         totalItems={itemsCopy.length}
         draggingId={draggingId}
         draggedIndex={draggedIndex}
@@ -164,6 +166,11 @@ const Timeline: React.FC<TimelineProps> = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.flatListContainer}
             removeClippedSubviews={false}
+            CellRendererComponent={({ children, ...props }) => (
+              <View {...props}>
+                {children}
+              </View>
+            )}
           />
         </View>
       </GestureHandlerRootView>
@@ -213,7 +220,8 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   flatListContainer: {
-    paddingBottom: 0,
+    paddingBottom: 16,
+    paddingTop: 8,
   },
 });
 

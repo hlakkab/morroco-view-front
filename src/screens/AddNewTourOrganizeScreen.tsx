@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View
@@ -17,10 +19,12 @@ import StepProgress from '../components/StepProgress';
 import DayHeader from '../components/tour/DayHeader';
 import DurationModal from '../components/tour/DurationModal';
 import TimeModal from '../components/tour/TimeModal';
+import TourDayHeader from '../components/tour/TourDayHeader';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
 import TourSummary from '../components/tour/TourSummary';
+import TrajectoryButton from '../components/tour/TrajectoryButton';
 import Timeline from '../containers/tour/Timeline';
-import { setTourItems, saveTour } from '../store/tourSlice';
+import { saveTour, setTourItems } from '../store/tourSlice';
 import { RootStackParamList } from '../types/navigation';
 
 // Morocco cities coordinates
@@ -68,6 +72,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<{dayIndex: number, itemIndex: number} | null>(null);
   const [durationText, setDurationText] = useState('');
   const [timeText, setTimeText] = useState('');
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
   const steps = [
     { id: '01', label: 'Basic infos' },
@@ -324,6 +329,49 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     });
   };
 
+  // Create day options for TourDayHeader
+  const dayOptions = useMemo(() => {
+    return schedule.map((day, index) => ({
+      id: index + 1,
+      label: `Day ${index + 1}`,
+      city: day.city,
+      date: day.date
+    }));
+  }, [schedule]);
+
+  // Callbacks for navigating between days
+  const handlePrevDay = useCallback(() => {
+    if (selectedDayIndex > 0) {
+      setSelectedDayIndex(selectedDayIndex - 1);
+    }
+  }, [selectedDayIndex]);
+
+  const handleNextDay = useCallback(() => {
+    if (selectedDayIndex < schedule.length - 1) {
+      setSelectedDayIndex(selectedDayIndex + 1);
+    }
+  }, [selectedDayIndex, schedule.length]);
+
+  // Handle day selection
+  const handleSelectDay = useCallback((dayId: number) => {
+    setSelectedDayIndex(dayId - 1);
+  }, []);
+
+  // Handle preview trajectory button press
+  const handleViewTrajectory = useCallback(() => {
+    if (schedule[selectedDayIndex]) {
+      const dayItems = schedule[selectedDayIndex].items;
+      const itemsWithCoordinates = addCoordinatesToItems(dayItems);
+      
+      // Navigate to map view with the items for this day
+      navigation.navigate('TourMapScreen', {
+        tourItems: itemsWithCoordinates,
+        title: `Day ${selectedDayIndex + 1} - ${schedule[selectedDayIndex].city}`,
+        singleDayView: true
+      });
+    }
+  }, [schedule, selectedDayIndex, navigation]);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -339,43 +387,57 @@ const AddNewTourOrganizeScreen: React.FC = () => {
           />
         </View>
         
-        <ScrollView 
-          style={styles.content}
-          scrollEventThrottle={16}
-          nestedScrollEnabled={true}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <Text style={styles.tourTitle}>{title || "My Tour"}</Text>
-          
-          {schedule.length > 0 ? (
-            schedule.map((day, dayIndex) => (
-              <View key={`day-${dayIndex}`} style={styles.dayContainer}>
+        {schedule.length > 0 ? (
+          <>
+            <View style={styles.dayHeaderContainer}>
+              <TourDayHeader
+                title={title || "My Tour"}
+                days={dayOptions}
+                selectedDay={selectedDayIndex + 1}
+                onSelectDay={handleSelectDay}
+                onPrevDay={handlePrevDay}
+                onNextDay={handleNextDay}
+              />
+            </View>
+            
+            <ScrollView 
+              style={styles.content}
+              scrollEventThrottle={16}
+              nestedScrollEnabled={true}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <View style={styles.dayContainer}>
                 <DayHeader 
-                  date={day.date}
-                  dayNumber={dayIndex + 1}
-                  city={day.city}
+                  date={schedule[selectedDayIndex].date}
+                  dayNumber={selectedDayIndex + 1}
+                  city={schedule[selectedDayIndex].city}
                 />
                 
                 <Timeline 
-                  items={day.items}
-                  onSetTime={(itemIndex) => handleSetTime(dayIndex, itemIndex)}
-                  onSetDuration={(itemIndex) => handleSetDuration(dayIndex, itemIndex)}
-                  onReorderItems={(newItems) => handleReorderItems(dayIndex, newItems)}
+                  items={schedule[selectedDayIndex].items}
+                  onSetTime={(itemIndex) => handleSetTime(selectedDayIndex, itemIndex)}
+                  onSetDuration={(itemIndex) => handleSetDuration(selectedDayIndex, itemIndex)}
+                  onReorderItems={(newItems) => handleReorderItems(selectedDayIndex, newItems)}
+                />
+                
+                <TrajectoryButton
+                  onPress={handleViewTrajectory}
+                  itemCount={schedule[selectedDayIndex].items.length}
                 />
               </View>
-            ))
-          ) : (
-            <View style={styles.noDataContainer}>
-              <Ionicons name="calendar-outline" size={64} color="#E0E0E0" />
-              <Text style={styles.noDataText}>No schedule data available</Text>
-              <Text style={styles.noDataHint}>
-                Add some destinations in the previous step to see your tour schedule
-              </Text>
-            </View>
-          )}
-          
-          <TourSummary schedule={schedule} />
-        </ScrollView>
+              
+              <TourSummary schedule={schedule} />
+            </ScrollView>
+          </>
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Ionicons name="calendar-outline" size={64} color="#E0E0E0" />
+            <Text style={styles.noDataText}>No schedule data available</Text>
+            <Text style={styles.noDataHint}>
+              Add some destinations in the previous step to see your tour schedule
+            </Text>
+          </View>
+        )}
         
         <View style={styles.footer}>
           <Button 
@@ -416,23 +478,21 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   stepProgressContainer: {
-    marginVertical: 8,
+    marginVertical: 0,
+  },
+  dayHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   content: {
     flex: 1,
     paddingHorizontal: 16,
   },
-  tourTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
   dayContainer: {
-    marginBottom: 24,
+    
   },
   noDataContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
