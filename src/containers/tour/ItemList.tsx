@@ -2,22 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import CardItem from '../../components/cards/CardItem';
+import { TourSavedItem } from '../../types/tour';
 
-export interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  imageUrl?: string;
-  city: string;
-  coordinate?: {
-    latitude: number;
-    longitude: number;
-  };
-}
+
 
 interface ItemListProps {
-  items: SavedItem[];
+  items: TourSavedItem[];
   selectedCity: string;
   selectedItems: string[];
   totalSelectedCount: number;
@@ -42,19 +32,23 @@ const ItemList: React.FC<ItemListProps> = ({
         return <Ionicons name="football-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
       case 'entertainment':
         return <Ionicons name="musical-notes-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
+      case 'monument':
+        return <Ionicons name="business-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
+      case 'money-exchange':
+        return <Ionicons name="cash-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
       default:
         return <Ionicons name="location-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
     }
   };
 
-  const renderSavedItem = ({ item }: { item: SavedItem }) => {
+  const renderSavedItem = ({ item }: { item: TourSavedItem }) => {
     const isSelected = selectedItems.includes(item.id);
     const isDisabled = selectedCity && item.city !== selectedCity;
 
     return (
       <View style={styles.cardContainer}>
         <CardItem
-          imageUrl={item.imageUrl}
+          images={item.images}
           title={item.title}
           subtitle={item.subtitle}
           tags={[

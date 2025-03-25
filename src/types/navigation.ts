@@ -5,9 +5,10 @@ import { Restaurant } from "./Restaurant";
 
 interface SavedItem {
     id: string;
-    type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
+    type: 'hotel' | 'restaurant' | 'match' | 'entertainment' | 'monument' | 'money-exchange';
     title: string;
     subtitle?: string;
+    images?: string[];
     city: string;
     duration?: string;
     timeSlot?: string;

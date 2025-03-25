@@ -7,6 +7,7 @@ import { removeBookmark } from './bookmarkSlice';
 export interface MatchState {
   matches: Match[];
   selectedMatch: Match | null;
+  currentMatch: Match | null;
   loading: boolean;
   error: string | null;
   ticketPurchaseStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -17,6 +18,7 @@ export interface MatchState {
 const initialState: MatchState = {
   matches: [],
   selectedMatch: null,
+  currentMatch: null,
   loading: false,
   error: null,
   ticketPurchaseStatus: 'idle',
@@ -66,8 +68,7 @@ export const saveMatchBookmark = createAsyncThunk(
 export const toggleMatchBookmark = createAsyncThunk(
   'match/toggleBookmark',
   async (match: Match, { dispatch, getState }) => {
-    
-    
+
     if (match.saved) {
       await dispatch(removeBookmark(match.id)).unwrap();
     } else {
@@ -85,6 +86,9 @@ const matchSlice = createSlice({
   reducers: {
     setSelectedMatch: (state, action: PayloadAction<Match | null>) => {
       state.selectedMatch = action.payload;
+    },
+    setCurrentMatch: (state, action: PayloadAction<Match | null>) => {
+      state.currentMatch = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -141,9 +145,17 @@ const matchSlice = createSlice({
       .addCase(toggleMatchBookmark.pending, (state, action) => {
         state.error = null;
         // Optimistic update - toggle the saved flag immediately
+
+        const currentMatch = state.currentMatch; 
+        if (currentMatch) {
+          currentMatch.saved = !currentMatch.saved;
+        }
+        
         const matchId = action.meta.arg.id;
-        const matches = state.matches.find(m => m.id === matchId)!;
-        matches.saved = !matches.saved;
+        const match = state.matches.find(m => m.id === matchId)!;
+
+        match.saved = !match.saved;
+        console.log('match', match.saved);
       })
       .addCase(toggleMatchBookmark.fulfilled, (state) => {
         // No need to toggle again since we already did it in pending
@@ -154,9 +166,14 @@ const matchSlice = createSlice({
         const matches = state.matches.find(m => m.id === matchId)!;
         matches.saved = !matches.saved;
         state.error = action.error.message || 'Failed to toggle bookmark';
+
+        const currentMatch = state.currentMatch; 
+        if (currentMatch) {
+          currentMatch.saved = !currentMatch.saved;
+        }
       })
   },
 });
 
-export const { setSelectedMatch, clearError, resetTicketPurchaseStatus } = matchSlice.actions;
+export const { setSelectedMatch, setCurrentMatch, clearError, resetTicketPurchaseStatus } = matchSlice.actions;
 export default matchSlice.reducer; 

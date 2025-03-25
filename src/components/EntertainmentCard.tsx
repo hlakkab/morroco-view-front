@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from '@expo/vector-icons';
-import { Entertainment } from "../store/entertainmentSlice";
+import { Entertainment, EntertainmentImage, ImageVariant } from "../types/Entertainment";
 
 type EntertainmentCardProps = {
   item: Entertainment;
@@ -10,8 +10,8 @@ type EntertainmentCardProps = {
 
 const EntertainmentCard: FC<EntertainmentCardProps> = ({ item, onPress }) => {
   const coverImage = item.images
-    ?.find((img) => img.isCover)
-    ?.variants.find((variant) => variant.width === 720)
+    ?.find((img: EntertainmentImage) => img.isCover)
+    ?.variants.find((variant: ImageVariant) => variant.width === 720)
     ?.url
     || (item.images && item.images.length > 0 ? item.images[0].variants[0]?.url : null);
 

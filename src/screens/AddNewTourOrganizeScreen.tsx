@@ -12,7 +12,7 @@ import {
   View
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../store';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import StepProgress from '../components/StepProgress';
@@ -24,7 +24,8 @@ import TourFlowHeader from '../components/tour/TourFlowHeader';
 import TourSummary from '../components/tour/TourSummary';
 import TrajectoryButton from '../components/tour/TrajectoryButton';
 import Timeline from '../containers/tour/Timeline';
-import { saveTour, setTourItems } from '../store/tourSlice';
+import { setTourItems, saveTour, saveTourThunk } from '../store/tourSlice';
+import { TourSavedItem } from '../types/tour';
 import { RootStackParamList } from '../types/navigation';
 
 // Morocco cities coordinates
@@ -39,32 +40,47 @@ const CITY_COORDINATES = {
   'Essaouira': { latitude: 31.513056, longitude: -9.77 },
 };
 
-interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  imageUrl?: string;
-  city: string;
+// Extend TourSavedItem to include tour-specific properties
+interface TourItem extends TourSavedItem {
   duration?: string;
   timeSlot?: string;
-  coordinate?: {
-    latitude: number;
-    longitude: number;
-  };
 }
 
 interface DailySchedule {
   date: string;
   city: string;
-  items: SavedItem[];
+  items: TourItem[];
 }
+
+// Define SavedItem interface for Timeline compatibility
+interface SavedItem {
+  id: string;
+  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
+  title: string;
+  subtitle?: string;
+  city: string;
+  duration?: string;
+  timeSlot?: string;
+}
+
+// Map TourItem to SavedItem for Timeline compatibility
+const mapTourItemToSavedItem = (item: TourItem): SavedItem => {
+  return {
+    id: item.id,
+    type: item.type === 'monument' || item.type === 'money-exchange' ? 'entertainment' : item.type,
+    title: item.title,
+    subtitle: item.subtitle,
+    city: item.city,
+    duration: item.duration,
+    timeSlot: item.timeSlot
+  };
+};
 
 const AddNewTourOrganizeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'AddNewTourOrganize'>>();
   const { title, startDate, endDate, selectedItemsByDay, cities, savedItems } = route.params;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   
   const [schedule, setSchedule] = useState<DailySchedule[]>([]);
   const [showDurationModal, setShowDurationModal] = useState(false);
@@ -120,7 +136,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         const dayItems = selectedItemsByDay[dayNumber].map(itemId => {
           const item = savedItems.find(saved => saved.id === itemId);
           return item ? { ...item } : null;
-        }).filter(Boolean) as SavedItem[];
+        }).filter(Boolean) as TourSavedItem[];
         
         // Only add days with items
         if (dayItems.length > 0) {
@@ -268,9 +284,20 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     setSchedule(prevSchedule => {
       return prevSchedule.map((day, idx) => {
         if (idx === dayIndex) {
+          // Map SavedItem back to TourItem
+          const tourItems = newItems.map(item => {
+            const originalItem = day.items.find(original => original.id === item.id);
+            if (!originalItem) return null;
+            return {
+              ...originalItem,
+              duration: item.duration,
+              timeSlot: item.timeSlot
+            };
+          }).filter(Boolean) as TourItem[];
+          
           return {
             ...day,
-            items: newItems
+            items: tourItems
           };
         }
         return day;
@@ -279,7 +306,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
   }, []);
 
   // Add coordinates to items based on city
-  const addCoordinatesToItems = (items: SavedItem[]): SavedItem[] => {
+  const addCoordinatesToItems = (items: TourSavedItem[]): TourSavedItem[] => {
     return items.map(item => {
       // If item already has coordinates, use them
       if (item.coordinate) {
@@ -304,7 +331,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
 
   const handleSaveTour = () => {
     // Process all items from the schedule and add coordinates
-    const allItems: SavedItem[] = [];
+    const allItems: TourSavedItem[] = [];
     
     schedule.forEach(day => {
       day.items.forEach(item => {
@@ -321,7 +348,30 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       cities
     }));
     
-    dispatch(saveTour());
+    // Transform date from yyyy/mm/dd to yyyy-mm-dd if needed
+    const formatDate = (dateStr: string): string => {
+      if (dateStr.includes('/')) {
+        return dateStr.split('/').join('-');
+      }
+      return dateStr;
+    };
+
+    // Transform items to use coordinates instead of coordinate
+    const transformedItems = itemsWithCoordinates.map(item => {
+      const { coordinate, ...rest } = item;
+      return {
+        ...rest,
+        coordinates: coordinate ? `${coordinate.latitude},${coordinate.longitude}` : undefined
+      };
+    });
+    
+    // Use the saveTourThunk instead of saveTour
+    dispatch(saveTourThunk({
+      title: title || "My Tour",
+      from: formatDate(startDate),
+      to: formatDate(endDate),
+      destinations: transformedItems as unknown as TourSavedItem[]
+    }));
     
     // Navigate to map view with the items
     navigation.navigate('TourMapScreen', {
@@ -414,15 +464,19 @@ const AddNewTourOrganizeScreen: React.FC = () => {
                 />
                 
                 <Timeline 
-                  items={schedule[selectedDayIndex].items}
-                  onSetTime={(itemIndex) => handleSetTime(selectedDayIndex, itemIndex)}
-                  onSetDuration={(itemIndex) => handleSetDuration(selectedDayIndex, itemIndex)}
-                  onReorderItems={(newItems) => handleReorderItems(selectedDayIndex, newItems)}
+                  items={schedule[selectedDayIndex].items.map(mapTourItemToSavedItem)}
+                  onSetTime={(itemIndex: number) => handleSetTime(selectedDayIndex, itemIndex)}
+                  onSetDuration={(itemIndex: number) => handleSetDuration(selectedDayIndex, itemIndex)}
+                  onReorderItems={(newItems: SavedItem[]) => handleReorderItems(selectedDayIndex, newItems)}
                 />
                 
                 <TrajectoryButton
                   onPress={handleViewTrajectory}
                   itemCount={schedule[selectedDayIndex].items.length}
+                  // items={schedule[selectedDayIndex].items.map(mapTourItemToSavedItem)}
+                  // onSetTime={(itemIndex: number) => handleSetTime(selectedDayIndex, itemIndex)}
+                  // onSetDuration={(itemIndex: number) => handleSetDuration(selectedDayIndex, itemIndex)}
+                  // onReorderItems={(newItems: SavedItem[]) => handleReorderItems(selectedDayIndex, newItems)}
                 />
               </View>
               

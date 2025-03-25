@@ -6,6 +6,7 @@ export interface Team {
 
 export interface Stadium {
   name: string;
+  city: string;
   address: string;
   coordinates: string;
 }

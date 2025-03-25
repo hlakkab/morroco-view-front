@@ -3,6 +3,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 interface CardItemProps {
   imageUrl?: string;
+  images?: string[];
   title: string;
   subtitle?: string;
   customStyles?: {
@@ -46,6 +47,7 @@ interface CardItemProps {
 
 const CardItem: React.FC<CardItemProps> = ({
   imageUrl,
+  images,
   title,
   subtitle,
   customStyles = {},
@@ -61,15 +63,20 @@ const CardItem: React.FC<CardItemProps> = ({
   isSaved = false,
   isEditable = false,
 }) => {
+  // Determine image source - prioritize images array if available
+  const imageSource = images && images.length > 0 
+    ? images[0] 
+    : imageUrl;
+
   return (
     <TouchableOpacity 
       style={[styles.cardContainer, customStyles.container]}
       onPress={onCardPress}
       disabled={!onCardPress}
     >
-      {(imageUrl && (
+      {(imageSource && (
         <Image 
-          source={{ uri: imageUrl }} 
+          source={{ uri: imageSource }} 
           style={[styles.cardImage, customStyles.image]} 
         />
       )) || svgImage}

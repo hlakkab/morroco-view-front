@@ -50,7 +50,7 @@ const EventBanner: React.FC<EventBannerProps> = (props) => {
       >
         <LinearGradient
           dither={true}
-          colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.1)', 'rgba(0, 0, 0, 0)']}
+          colors={['rgb(253, 70, 70)', 'rgba(253, 70, 70, 0.1)', 'rgba(0, 0, 0, 0)']}
           locations={[0, 0.6, 1]}
           start={{ x: 1, y: 1 }}
           end={{ x: 1, y: 0 }}
@@ -96,7 +96,7 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
 
 
   const handleScroll = (event: any) => {
-    const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / width);
+    const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / (width - 24));
     setCurrentIndex(slideIndex);
   };
 
@@ -145,6 +145,9 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
           showsHorizontalScrollIndicator={false}
           pagingEnabled
           onScroll={handleScroll}
+          style={{
+            borderRadius: 20,
+          }}
         />
 
         <View style={styles.paginationContainer}>
@@ -173,6 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     marginBottom: 20,
+    paddingHorizontal: 12,
   },
 
   imageSection: {
@@ -184,11 +188,10 @@ const styles = StyleSheet.create({
  
   banner: {
     height: 200,
-    borderRadius: 15,
     overflow: 'visible',
   },
   backgroundImage: {
-    width: width,
+    width: width - 24,
     height: '100%',
   },
   bannerGradient: {

@@ -35,13 +35,13 @@ const TourCard: FC<TourCardProps> = ({
 
   return (
     <CardItem
-      imageUrl={item.imageUrl}
+      imageUrl={"https://orioly.com/wp-content/uploads/2016/12/qualities-of-a-good-tour-guide-cover-illustration.png"}
       title={item.title}
-      subtitle={formatDestinationText()}
+      subtitle={`${item.destinationCount} Destination`}
       tags={[
         {
           id: 'date',
-          label: formatDates(),
+          label: `${item.from} - ${item.to}`,
           icon: <Ionicons name="calendar-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
         },
         {

@@ -1,9 +1,10 @@
 export interface Broker {
     id: string;
     name: string;
-    imageUrl?: string;
+    images: string[];
     address: string;
     city: string;
+    coordinates: string; // Format: "x,y" from backend
     rating?: number;
     isFeatured?: boolean;
     isSaved?: boolean;

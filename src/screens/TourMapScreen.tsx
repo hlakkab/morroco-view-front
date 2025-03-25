@@ -18,11 +18,37 @@ const CITY_COORDINATES = {
   'Agadir': { latitude: 30.427755, longitude: -9.598107 },
 };
 
+// Hotels coordinates for each city
+const HOTELS_BY_CITY = {
+  'Marrakech': {
+    title: 'Riad Kbour & Chou',
+    coordinate: { latitude: 31.629722, longitude: -7.988889 }
+  },
+  'Casablanca': {
+    title: 'Four Seasons Casablanca',
+    coordinate: { latitude: 33.604437, longitude: -7.670120 }
+  },
+  'Rabat': {
+    title: 'Sofitel Rabat Jardin des Roses',
+    coordinate: { latitude: 34.015731, longitude: -6.841783 }
+  },
+  'Agadir': {
+    title: 'Sofitel Agadir Royal Bay Resort',
+    coordinate: { latitude: 30.413723, longitude: -9.600754 }
+  }
+};
+
 // Function to get precise coordinates based on title or use city coordinates as fallback
 const getItemCoordinates = (item: any): {latitude: number, longitude: number} => {
   // If item already has coordinates, use them
   if (item.coordinate) {
     return item.coordinate;
+  }
+  
+  // Check for hotel coordinates
+  const cityHotel = Object.values(HOTELS_BY_CITY).find(hotel => hotel.title === item.title);
+  if (cityHotel) {
+    return cityHotel.coordinate;
   }
   
   // Fallback to city coordinates
@@ -130,19 +156,40 @@ const TourMapScreen: React.FC = () => {
     if (cities.length > 0) {
       const firstCity = cities[0];
       setSelectedCity(firstCity);
+    }
+
+    // Set initial display items (hotels will be added by the selectedCity useEffect)
+    setDisplayItems(tourItems);
+  }, [tourItems, navigation]);
+  
+  // Update displayItems whenever selectedCity changes
+  useEffect(() => {
+    if (selectedCity && tourItems.length > 0) {
+      // Get the hotel for the selected city
+      const cityHotel = HOTELS_BY_CITY[selectedCity as keyof typeof HOTELS_BY_CITY];
+      const hotelItem = {
+        id: `hotel-${selectedCity.toLowerCase()}`,
+        title: cityHotel.title,
+        city: selectedCity,
+        type: 'hotel',
+        coordinate: cityHotel.coordinate,
+        subtitle: 'Your Hotel'
+      };
+
+      // Set display items for selected city, including the hotel
+      const cityItems = tourItems.filter(item => item.city === selectedCity);
+      // Always put hotel as first item
+      const itemsWithHotel = [hotelItem, ...cityItems];
+      setDisplayItems(itemsWithHotel);
       
-      // Set display items for first city
-      const cityItems = tourItems.filter(item => item.city === firstCity);
-      setDisplayItems(cityItems);
-      
-      // Calculate appropriate zoom level for first city
-      const validCoordinates = cityItems
+      // Calculate appropriate zoom level for city
+      const validCoordinates = itemsWithHotel
         .filter(item => item.coordinate !== undefined)
         .map(item => getItemCoordinates(item));
       
       // If map reference is already available, animate to the city
       if (mapRef.current && validCoordinates.length > 0) {
-        const cityCenter = calculateCenter(cityItems);
+        const cityCenter = calculateCenter(itemsWithHotel);
         const zoomLevel = calculateZoomLevel(validCoordinates);
         
         mapRef.current.animateToRegion({
@@ -153,24 +200,33 @@ const TourMapScreen: React.FC = () => {
         }, 500);
       }
     }
-  }, [tourItems, navigation]);
-
-  useEffect(() => {
-    // Update displayed items based on selected city
-    if (selectedCity) {
-      const cityItems = tourItems.filter(item => item.city === selectedCity);
-      setDisplayItems(cityItems);
-    }
   }, [selectedCity, tourItems]);
 
   useEffect(() => {
-    if (displayItems.length < 2) return; // Need at least 2 points for a route
+    if (displayItems.length < 1) return; // Need at least 1 point for a route
 
     const fetchRoutes = async () => {
       const newRoutes = [];
-      for (let i = 0; i < displayItems.length - 1; i++) {
-        const origin = `${getItemCoordinates(displayItems[i]).latitude},${getItemCoordinates(displayItems[i]).longitude}`;
-        const destination = `${getItemCoordinates(displayItems[i + 1]).latitude},${getItemCoordinates(displayItems[i + 1]).longitude}`;
+      // Only get items for the selected city
+      const selectedCityItems = displayItems.filter(item => item.city === selectedCity);
+      
+      // If we have less than 1 item for this city, we can't create routes
+      if (selectedCityItems.length < 1) {
+        setRoutes([]);
+        return;
+      }
+      
+      // Create circular route: hotel -> destinations -> hotel
+      const hotel = selectedCityItems.find(item => item.type === 'hotel');
+      if (!hotel) return;
+
+      // Generate routes from hotel to each destination and back
+      for (let i = 0; i < selectedCityItems.length; i++) {
+        const currentItem = selectedCityItems[i];
+        const nextItem = selectedCityItems[(i + 1) % selectedCityItems.length];
+        
+        const origin = `${getItemCoordinates(currentItem).latitude},${getItemCoordinates(currentItem).longitude}`;
+        const destination = `${getItemCoordinates(nextItem).latitude},${getItemCoordinates(nextItem).longitude}`;
         const url = `https://maps.googleapis.com/maps/api/directions/json`
           + `?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_API_KEY}`;
 
@@ -187,7 +243,7 @@ const TourMapScreen: React.FC = () => {
       setRoutes(newRoutes);
     };
     fetchRoutes();
-  }, [displayItems]);
+  }, [displayItems, selectedCity]);
 
   const decodePolyline = (encoded: string) => {
     let points = [];
@@ -231,29 +287,7 @@ const TourMapScreen: React.FC = () => {
     
     const newCity = cities[newIndex];
     setSelectedCity(newCity);
-    
-    // Center map on the new city
-    if (mapRef.current) {
-      const cityItems = tourItems.filter(item => item.city === newCity);
-      
-      // Calculate center of all items in this city
-      const cityCenter = calculateCenter(cityItems);
-      
-      // Calculate appropriate zoom level
-      const validCoordinates = cityItems
-        .filter(item => item.coordinate !== undefined)
-        .map(item => getItemCoordinates(item));
-      
-      const zoomLevel = calculateZoomLevel(validCoordinates);
-      
-      // Animate map to new center with appropriate zoom
-      mapRef.current.animateToRegion({
-        latitude: cityCenter.latitude,
-        longitude: cityCenter.longitude,
-        latitudeDelta: zoomLevel.latitudeDelta,
-        longitudeDelta: zoomLevel.longitudeDelta,
-      }, 800);
-    }
+    // The map will update automatically through the useEffect hook that watches selectedCity
   };
 
   const center = calculateCenter(displayItems);
@@ -268,7 +302,7 @@ const TourMapScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ScreenHeader title={selectedCity ? `${selectedCity} Map` : "Tour Map"} />
+        <ScreenHeader title={selectedCity ? `${selectedCity} Tour Map` : "Tour Map"} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -283,7 +317,7 @@ const TourMapScreen: React.FC = () => {
             longitudeDelta: zoomLevel.longitudeDelta,
           }}
         >
-          {displayItems.map((item) => (
+          {displayItems.map((item, index) => (
             <Marker
               key={item.id}
               coordinate={getItemCoordinates(item)}
@@ -292,6 +326,9 @@ const TourMapScreen: React.FC = () => {
             >
               {item.type && (
                 <View style={styles.markerContainer}>
+                  <View style={styles.indexBadge}>
+                    <Text style={styles.indexText}>{index + 1}</Text>
+                  </View>
                   <View style={styles.markerIconContainer}>
                     <Ionicons 
                       name={
@@ -315,6 +352,15 @@ const TourMapScreen: React.FC = () => {
           ))}
         </MapView>
 
+        {displayItems.length < 2 && (
+          <View style={styles.noticeContainer}>
+            <View style={styles.noticeBox}>
+              <Ionicons name="information-circle-outline" size={24} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.noticeText}>Need at least 2 destinations to show routes.</Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.controlsContainer}>
           <TouchableOpacity 
             style={styles.controlButton}
@@ -322,7 +368,12 @@ const TourMapScreen: React.FC = () => {
           >
             <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.controlText}>{selectedCity}</Text>
+          <View style={styles.cityInfoContainer}>
+            <Text style={styles.controlText}>{selectedCity}</Text>
+            <Text style={styles.destinationCount}>
+              {displayItems.length} destination{displayItems.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
           <TouchableOpacity 
             style={styles.controlButton}
             onPress={() => handleChangeCity('next')}
@@ -373,7 +424,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#000',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderRadius: 50,
     padding: 10,
   },
@@ -391,10 +442,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFF',
+    textAlign: 'center',
+  },
+  cityInfoContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  destinationCount: {
+    fontSize: 12,
+    color: '#DDD',
+    marginTop: 2,
   },
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    // position: 'relative',
   },
   markerIconContainer: {
     backgroundColor: '#E53935',
@@ -404,8 +466,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
+    margin: 5,
     borderColor: '#fff',
-  }
+  },
+  indexBadge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: '#2196F3',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  indexText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  noticeContainer: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+  },
+  noticeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  noticeText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
 
 export default TourMapScreen; 

@@ -7,29 +7,9 @@ import SearchBar from '../components/SearchBar';
 import HeaderContainer from '../containers/HeaderContainer';
 import SearchFilterContainer from '../containers/SearchFilterContainer';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchMatches, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
+import { fetchMatches, setSelectedMatch, setCurrentMatch, toggleMatchBookmark } from '../store/matchSlice';
 import FilterPopup, {FilterOption} from "../components/FilterPopup";
 import { Match, Team } from '../types/match';
-
-// Sample teams data for fallback
-const teams: Record<string, Team> = {
-  morocco: {
-    id: 'mor',
-    name: 'Morocco',
-    flag: 'https://www.countryflags.com/wp-content/uploads/morocco-flag-png-large.png'
-  },
-  comoros: {
-    id: 'com',
-    name: 'Comoros',
-    flag: 'https://www.countryflags.com/wp-content/uploads/comoros-flag-png-large.png'
-  },
-  senegal: {
-    id: 'sen',
-    name: 'Senegal',
-    flag: 'https://www.countryflags.com/wp-content/uploads/senegal-flag-png-large.png'
-  }
-};
-
 
 
 const ExploreMatchesScreen: React.FC = () => {
@@ -82,6 +62,7 @@ const ExploreMatchesScreen: React.FC = () => {
 
   const handleCardPress = (match: Match) => {
     dispatch(setSelectedMatch(match));
+    dispatch(setCurrentMatch(match));
     setModalVisible(true);
   };
 
@@ -94,6 +75,7 @@ const ExploreMatchesScreen: React.FC = () => {
     // Wait a bit for better animation
     setTimeout(() => {
       dispatch(setSelectedMatch(null));
+      dispatch(setCurrentMatch(null));
     }, 300);
   };
 
@@ -180,10 +162,7 @@ const ExploreMatchesScreen: React.FC = () => {
           onRequestClose={closeModal}
         >
           <View style={styles.modalOverlay}>
-            <MatchPopup
-              match={selectedMatch!}
-              onClose={closeModal}
-            />
+            <MatchPopup onClose={closeModal} />
           </View>
         </Modal>
       {/* Intégration du FilterPopup */}

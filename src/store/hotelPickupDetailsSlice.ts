@@ -89,6 +89,11 @@ const hotelPickupDetailsSlice = createSlice({
       state.bookingStatus = 'idle';
       state.bookingError = null;
     },
+    toggleSavedStatus: (state) => {
+      if (state.currentPickup) {
+        state.currentPickup.saved = !state.currentPickup.saved;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -122,5 +127,5 @@ const hotelPickupDetailsSlice = createSlice({
   },
 });
 
-export const { clearPickupDetails, resetBookingStatus } = hotelPickupDetailsSlice.actions;
+export const { clearPickupDetails, resetBookingStatus, toggleSavedStatus } = hotelPickupDetailsSlice.actions;
 export default hotelPickupDetailsSlice.reducer; 

@@ -1,218 +1,217 @@
-import {Ionicons} from '@expo/vector-icons';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    ActivityIndicator
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator
 } from 'react-native';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import ReservationPopup from '../containers/ReservationPopup';
-import {useAppDispatch, useAppSelector} from '../store/hooks';
-import {fetchPickupDetails, clearPickupDetails} from '../store/hotelPickupDetailsSlice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchPickupDetails, clearPickupDetails, toggleSavedStatus } from '../store/hotelPickupDetailsSlice';
 
 interface RouteParams {
-    id: string;
-    title: string;
-    imageUrl: string;
-    price: number;
-    isPrivate: boolean;
+  id: string;
+  title: string;
+  imageUrl: string;
+  price: number;
+  isPrivate: boolean;
 }
 
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const TransportDetailScreen: React.FC = () => {
-    const navigation = useNavigation();
-    const route = useRoute();
-    const {id, title, price} = route.params as RouteParams;
-    const dispatch = useAppDispatch();
-    const {currentPickup, loading, error} = useAppSelector((state) => state.hotelPickupDetails);
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { id, title, price } = route.params as RouteParams;
+  const dispatch = useAppDispatch();
+  const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
 
-    const [isSaved, setIsSaved] = useState(false);
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [showReservation, setShowReservation] = useState(false);
-    const flatListRef = useRef<FlatList>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showReservation, setShowReservation] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
 
-    useEffect(() => {
-        dispatch(fetchPickupDetails(id)).unwrap();
-        return () => {
-            dispatch(clearPickupDetails());
-        };
-    }, [dispatch, id]);
-
-    const handleBack = () => {
-        navigation.goBack();
+  useEffect(() => {
+    dispatch(fetchPickupDetails(id)).unwrap();
+    return () => {
+      dispatch(clearPickupDetails());
     };
+  }, [dispatch, id]);
 
-    const handleSave = () => {
-        setIsSaved(!isSaved);
-    };
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
-    const handleScroll = (event: any) => {
-        const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / width);
-        setCurrentImageIndex(slideIndex);
-    };
+  const handleSave = () => {
+    dispatch(toggleSavedStatus());
+  };
 
-    const handleReservePress = () => {
-        setShowReservation(true);
-    };
+  const handleScroll = (event: any) => {
+    const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / width);
+    setCurrentImageIndex(slideIndex);
+  };
 
-    const handleCloseReservation = () => {
-        setShowReservation(false);
-    };
+  const handleReservePress = () => {
+    setShowReservation(true);
+  };
 
-    if (loading) {
-        return (
-            <View style={[styles.container, styles.centerContent]}>
-                <ActivityIndicator size="large" color="#000"/>
-            </View>
-        );
-    }
+  const handleCloseReservation = () => {
+    setShowReservation(false);
+  };
 
-    if (error) {
-        return (
-            <View style={[styles.container, styles.centerContent]}>
-                <Text style={styles.errorText}>{error}</Text>
-            </View>
-        );
-    }
-
-    if (!currentPickup) {
-        return (
-            <View style={[styles.container, styles.centerContent]}>
-                <Text style={styles.errorText}>No pickup details found</Text>
-            </View>
-        );
-    }
-
+  if (loading) {
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.headerContainer}>
-                <ScreenHeader title={title} onBack={handleBack}/>
-            </View>
-
-            <ScrollView style={styles.scrollView}>
-                <View style={styles.imageSection}>
-                    <FlatList
-                        ref={flatListRef}
-                        data={currentPickup.images}
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        onScroll={handleScroll}
-                        keyExtractor={(_, index) => index.toString()}
-                        renderItem={({item}) => (
-                            <Image
-                                source={{uri: item}}
-                                style={styles.image}
-                                resizeMode="cover"
-                            />
-                        )}
-                    />
-
-                    <TouchableOpacity
-                        style={[styles.saveButton, isSaved && styles.savedButton]}
-                        onPress={handleSave}
-                    >
-                        <Ionicons
-                            name={isSaved ? "bookmark" : "bookmark-outline"}
-                            size={24}
-                            color={isSaved ? "white" : "#666"}
-                        />
-                    </TouchableOpacity>
-
-                    <View style={styles.paginationContainer}>
-                        <View style={styles.pagination}>
-                            {currentPickup.images.map((_, index) => (
-                                <View
-                                    key={index}
-                                    style={[
-                                        styles.paginationDot,
-                                        index === currentImageIndex && styles.activePaginationDot
-                                    ]}
-                                />
-                            ))}
-                        </View>
-                    </View>
-                </View>
-
-                <View style={styles.content}>
-                    <View style={styles.transportTypeContainer}>
-                        <Text style={styles.transportType}>
-                            {currentPickup.private ? 'Private Pickup' : 'Shared Pickup'}
-                        </Text>
-                    </View>
-
-                    <Text style={styles.sectionTitle}>Specifications</Text>
-
-                    <View style={styles.specificationsContainer}>
-                        <View style={styles.specItem}>
-                            <Ionicons name="people-outline" size={20} color="#666"/>
-                            <Text style={styles.specText}>{currentPickup.nbSeats} seats</Text>
-                        </View>
-
-                        <View style={styles.specItem}>
-                            <Ionicons name="briefcase-outline" size={20} color="#666"/>
-                            <Text style={styles.specText}>{currentPickup.bagCapacity} Large bags</Text>
-                        </View>
-
-                        <View style={styles.specItem}>
-                            <Ionicons name="car-outline" size={20} color="#666"/>
-                            <Text style={styles.specText}>{currentPickup.nbDoors} Doors</Text>
-                        </View>
-
-                        <View style={styles.specItem}>
-                            <Ionicons name="snow-outline" size={20} color="#666"/>
-                            <Text style={styles.specText}>
-                                {currentPickup.airConditioning ? 'Air conditioning' : 'No air conditioning'}
-                            </Text>
-                        </View>
-
-                        <View style={styles.specItem}>
-                            <Ionicons name="time-outline" size={20} color="#666"/>
-                            <Text style={styles.specText}>60 min</Text>
-                        </View>
-                    </View>
-
-                    <Text style={styles.sectionTitle}>About</Text>
-                    <Text style={styles.aboutText}>{currentPickup.about}</Text>
-                </View>
-            </ScrollView>
-
-            <View style={styles.footer}>
-                <Button
-                    title="Reserve Pickup"
-                    style={styles.reserveButton}
-                    icon={<Ionicons name="car" size={20} color="#fff" style={{marginRight: 8}}/>}
-                    onPress={handleReservePress}
-                />
-            </View>
-
-            <Modal
-                visible={showReservation}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={handleCloseReservation}
-            >
-                <ReservationPopup
-                    onClose={handleCloseReservation}
-                    title={title}
-                    price={price}
-                    pickupId={id}
-                />
-            </Modal>
-        </SafeAreaView>
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
     );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!currentPickup) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>No pickup details found</Text>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <ScreenHeader title={title} onBack={handleBack} />
+      </View>
+
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.imageSection}>
+          <FlatList
+            ref={flatListRef}
+            data={currentPickup.images}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            keyExtractor={(_, index) => index.toString()}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: item }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+            )}
+          />
+
+          <TouchableOpacity
+            style={[styles.saveButton, currentPickup.saved && styles.savedButton]}
+            onPress={handleSave}
+          >
+            <Ionicons
+              name={currentPickup.saved ? "bookmark" : "bookmark-outline"}
+              size={24}
+              color={currentPickup.saved ? "white" : "#666"}
+            />
+          </TouchableOpacity>
+
+          <View style={styles.paginationContainer}>
+            <View style={styles.pagination}>
+              {currentPickup.images.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    index === currentImageIndex && styles.activePaginationDot
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.content}>
+          <View style={styles.transportTypeContainer}>
+            <Text style={styles.transportType}>
+              {currentPickup.private ? 'Private Pickup' : 'Shared Pickup'}
+            </Text>
+          </View>
+
+          <Text style={styles.sectionTitle}>Specifications</Text>
+
+          <View style={styles.specificationsContainer}>
+            <View style={styles.specItem}>
+              <Ionicons name="people-outline" size={20} color="#666" />
+              <Text style={styles.specText}>{currentPickup.nbSeats} seats</Text>
+            </View>
+
+            <View style={styles.specItem}>
+              <Ionicons name="briefcase-outline" size={20} color="#666" />
+              <Text style={styles.specText}>{currentPickup.bagCapacity} Large bags</Text>
+            </View>
+
+            <View style={styles.specItem}>
+              <Ionicons name="car-outline" size={20} color="#666" />
+              <Text style={styles.specText}>{currentPickup.nbDoors} Doors</Text>
+            </View>
+
+            <View style={styles.specItem}>
+              <Ionicons name="snow-outline" size={20} color="#666" />
+              <Text style={styles.specText}>
+                {currentPickup.airConditioning ? 'Air conditioning' : 'No air conditioning'}
+              </Text>
+            </View>
+
+            <View style={styles.specItem}>
+              <Ionicons name="time-outline" size={20} color="#666" />
+              <Text style={styles.specText}>60 min</Text>
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.aboutText}>{currentPickup.about}</Text>
+        </View>
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <Button
+          title="Reserve Pickup"
+          style={styles.reserveButton}
+          icon={<Ionicons name="car" size={20} color="#fff" style={{ marginRight: 8 }} />}
+          onPress={handleReservePress}
+        />
+      </View>
+
+      <Modal
+        visible={showReservation}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseReservation}
+      >
+        <ReservationPopup
+          onClose={handleCloseReservation}
+          title={title}
+          price={price}
+          pickupId={id}
+        />
+      </Modal>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -267,9 +266,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   savedButton: {
-      opacity: 1,
-      backgroundColor: '#888888',
-      borderColor: '#fff',
+    opacity: 1,
+    backgroundColor: '#888888',
+    borderColor: '#fff',
   },
   paginationContainer: {
     position: 'absolute',

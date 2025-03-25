@@ -1,14 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import FilterSelector from '../components/FilterSelector';
+import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchTours} from '../store/tourSlice';
 import TourDetailsModal from '../components/TourDetailsModal';
 import TourCard from '../components/cards/TourCard';
 import { Destination, Tour } from '../types/tour';
 
+
 const TourListContainer: React.FC = () => {
   const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+
+  const { savedTours, loading, error } = useAppSelector((state) => state.tour);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -63,9 +67,16 @@ const TourListContainer: React.FC = () => {
       city: 'Multiple',
       duration: 5,
       totalDestinations: 5,
-      isEditable: true
+      isEditable: true,
+      destinationCount: 5,
+      from: '03/Oct',
+      to: '11/Oct'
     }
   ];
+
+  useEffect(() => {
+    dispatch(fetchTours());
+  }, [dispatch]);
 
   const handleTourPress = (tour: Tour) => {
     setSelectedTour(tour);
@@ -83,12 +94,36 @@ const TourListContainer: React.FC = () => {
     />
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#AE1913" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!savedTours || savedTours.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No tours available</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Available Tours</Text>
       
       <FlatList
-        data={tours}
+        data={savedTours} 
         renderItem={renderTourCard}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -114,6 +149,29 @@ const TourListContainer: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#AE1913',
+    fontSize: 16,
+  },
+  emptyText: {
+    color: '#666',
+    fontSize: 16,
   },
   sectionTitle: {
     fontSize: 16,

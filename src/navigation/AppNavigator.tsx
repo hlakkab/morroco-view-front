@@ -196,6 +196,7 @@ export function AppNavigator() {
         component={AddNewTourOrganizeScreen}
         options={{ headerShown: false }}
       />
+      
     </Stack.Navigator>
   );
 }

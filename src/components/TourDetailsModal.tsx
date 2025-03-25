@@ -32,6 +32,7 @@ interface TourDetailsModalProps {
   duration: number;
   startDate: string;
   endDate: string;
+  
 }
 
 const { width, height } = Dimensions.get('window');

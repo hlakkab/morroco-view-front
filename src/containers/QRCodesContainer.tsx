@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import QRCodeCard from '../components/QRCodeCard';
 import QRCodeModal from '../components/QRCodeModal';
-import QRCodeLargeSvg from '../assets/serviceIcons/qrcode-large.svg'; // Ensure this exists
 import QRCode from '../types/qrcode'; 
 import { useAppSelector } from '../hooks/reduxHooks';
 

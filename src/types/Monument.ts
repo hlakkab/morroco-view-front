@@ -13,8 +13,7 @@ export interface Monument {
   name: string; // Ex: "Koutoubia Mosque"
   description?: string; // Ex: "The iconic mosque of Marrakech, located in the Medina..."
   address: string;
-  coordinates: number[];
-  mapUrl?: string; // URL of the Google Maps location
+  coordinates: string; // Format: "x,y" from backend
   images?: string[]; // Multiple images for details page
   visitingHours?: string; // Ex: "09:00-17:00"
   entryFee?: string; // Ex: "70" (in MAD)
@@ -27,4 +26,5 @@ export interface Monument {
   location?: string; // For backward compatibility
   isFeatured?: boolean; // Featured monument flag
   about?: string; // Detailed description
+  city: string;
 } 
