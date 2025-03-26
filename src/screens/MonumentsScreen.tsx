@@ -10,6 +10,7 @@ import { fetchMonuments, setSelectedMonumentType } from '../store/index';
 
 // Import custom components
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
+import FilterSelector from '../components/FilterSelector';
 import SearchBar from '../components/SearchBar';
 import MonumentListContainer from '../containers/MonumentListContainer';
 
@@ -17,8 +18,10 @@ import MonumentListContainer from '../containers/MonumentListContainer';
 import ButtonFixe from '../components/ButtonFixe';
 import ScreenHeader from '../components/ScreenHeader';
 import {
+  cities,
   createMonumentFilterOptions,
   monumentFilterCategories,
+  monumentTypes,
   normalizeString
 } from '../data/filterData';
 import { Monument, MonumentType } from '../types/Monument';
@@ -41,28 +44,23 @@ const MonumentsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+  const [selectedCity, setSelectedCity] = useState('all');
 
-  // Add icons to filter categories
+  // Add icons to filter categories - only include monument_type for FilterPopup
   const categoriesWithIcons = {
-    ...monumentFilterCategories,
-    monument_city: {
-      ...monumentFilterCategories.monument_city,
-      icon: <Ionicons name="location" size={20} color="#CE1126" />
-    },
-    // Commenting out the monument type filter for now
-    // monument_type: {
-    //   ...monumentFilterCategories.monument_type,
-    //   icon: <Ionicons name="business" size={20} color="#CE1126" />
-    // }
+    monument_type: {
+      ...monumentFilterCategories.monument_type,
+      icon: <Ionicons name="business" size={20} color="#CE1126" />
+    }
   };
 
-  // Initialize filter options (excluding monument type)
+  // Initialize filter options (only for monument_type)
   useEffect(() => {
     if (filterOptions.length === 0) {
-      // Get all filter options but only use city options
+      // Get all filter options but only use type options
       const allOptions = createMonumentFilterOptions();
-      const cityOptions = allOptions.filter(option => option.category === 'monument_city');
-      setFilterOptions(cityOptions);
+      const typeOptions = allOptions.filter(option => option.category === 'monument_type');
+      setFilterOptions(typeOptions);
     }
   }, []);
 
@@ -70,6 +68,20 @@ const MonumentsScreen: React.FC = () => {
   useEffect(() => {
     dispatch(fetchMonuments());
   }, [dispatch]);
+
+  // Create city options for FilterSelector
+  const cityOptions = [
+    { 
+      id: 'all', 
+      label: 'All Cities', 
+      icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
+    },
+    ...cities.map(city => ({
+      id: normalizeString(city.id),
+      label: city.label,
+      icon: <Ionicons name="location-outline" size={16} color="#888" style={{ marginRight: 4 }} />
+    }))
+  ];
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -87,65 +99,58 @@ const MonumentsScreen: React.FC = () => {
     setFilterOptions(selectedOptions);
     setFilterPopupVisible(false);
 
-    // Comment out the type filter logic
-    // // Find selected monument type filter if any
-    // const selectedMonumentType = selectedOptions.find(
-    //   option => option.category === 'monument_type' && option.selected
-    // );
+    // Find selected monument type filter if any
+    const selectedMonumentType = selectedOptions.find(
+      option => option.category === 'monument_type' && option.selected
+    );
 
-    // // Update the Redux store with the selected type if a type is selected
-    // if (selectedMonumentType) {
-    //   const typeValue = selectedMonumentType.id.charAt(0).toUpperCase() + selectedMonumentType.id.slice(1);
-    //   dispatch(setSelectedMonumentType(typeValue as MonumentType | 'All'));
-    // } else {
-    //   // Reset to All if no type is selected
-    //   dispatch(setSelectedMonumentType('All'));
-    // }
+    // Update the Redux store with the selected type if a type is selected
+    if (selectedMonumentType) {
+      // Convert the normalized id back to proper MonumentType format
+      const selectedTypeId = selectedMonumentType.id;
+      const matchingType = Object.values(MonumentType).find(
+        type => normalizeString(type) === selectedTypeId
+      );
+      
+      if (matchingType) {
+        dispatch(setSelectedMonumentType(matchingType as MonumentType));
+      }
+    } else {
+      // Reset to All if no type is selected
+      dispatch(setSelectedMonumentType('All'));
+    }
   };
 
-  // Get active filters
-  const activeCityFilters = filterOptions
-    .filter(option => option.category === 'monument_city' && option.selected)
+  const handleCitySelect = (cityId: string) => {
+    setSelectedCity(cityId);
+  };
+
+  // Get active type filters
+  const activeTypeFilters = filterOptions
+    .filter(option => option.category === 'monument_type' && option.selected)
     .map(option => option.id);
 
-  // Comment out the type filters
-  // const activeTypeFilters = filterOptions
-  //   .filter(option => option.category === 'monument_type' && option.selected)
-  //   .map(option => option.id);
-
+  // Handler for type selection from MonumentListContainer
   const handleTypeSelection = (type: MonumentType | 'All Types') => {
     // Convert 'All Types' to 'All' to match our Redux state type
     const reduxType = type === 'All Types' ? 'All' : type;
     dispatch(setSelectedMonumentType(reduxType));
-
-    // Comment out the filter options update
-    // // Update filter options to reflect the selected type
-    // if (type !== 'All Types') {
-    //   setFilterOptions(prevOptions =>
-    //     prevOptions.map(option => {
-    //       if (option.category === 'monument_type') {
-    //         return {
-    //           ...option,
-    //           selected: normalizeString(type) === option.id
-    //         };
-    //       }
-    //       return option;
-    //     })
-    //   );
-    // } else {
-    //   // Clear type selections in filter
-    //   setFilterOptions(prevOptions =>
-    //     prevOptions.map(option => {
-    //       if (option.category === 'monument_type') {
-    //         return { ...option, selected: false };
-    //       }
-    //       return option;
-    //     })
-    //   );
-    // }
+    
+    // Update filter options to reflect the selected type
+    setFilterOptions(prevOptions =>
+      prevOptions.map(option => {
+        if (option.category === 'monument_type') {
+          return {
+            ...option,
+            selected: normalizeString(type) === option.id
+          };
+        }
+        return option;
+      })
+    );
   };
 
-  // Apply search and city filters on top of type filter
+  // Apply search and city filters
   const filteredMonuments = monuments.filter(monument => {
     // Search match
     const searchMatch = searchQuery.trim() === '' || 
@@ -153,11 +158,9 @@ const MonumentsScreen: React.FC = () => {
       (monument.description && normalizeString(monument.description).includes(normalizeString(searchQuery))) ||
       normalizeString(monument.address).includes(normalizeString(searchQuery));
     
-    // City filter - if no city is selected, show all
-    const cityFilter = activeCityFilters.length === 0 ||
-      activeCityFilters.includes(normalizeString(monument.city));
-    
-    // Type filter is already handled by the Redux state and MonumentListContainer
+    // City filter
+    const cityFilter = selectedCity === 'all' ||
+      normalizeString(monument.city) === selectedCity;
     
     return searchMatch && cityFilter;
   });
@@ -205,10 +208,20 @@ const MonumentsScreen: React.FC = () => {
           onFilterPress={handleFilterPress}
         />
 
+        <View style={styles.cityFilterContainer}>
+          <FilterSelector
+            options={cityOptions}
+            selectedOptionId={selectedCity}
+            onSelectOption={handleCitySelect}
+            title="City :"
+          />
+        </View>
+
         <MonumentListContainer
           monuments={filteredMonuments}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
+          showTypeFilter={false}
         />
 
         <FilterPopup
@@ -236,6 +249,12 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
+  },
+  cityFilterContainer: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,

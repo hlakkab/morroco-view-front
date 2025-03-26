@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 16,
-    backgroundColor: '#FFF7F7',
+    backgroundColor: '#fff',
   },
   ticketButton: {
     backgroundColor: '#008060',

@@ -14,12 +14,14 @@ interface MonumentListContainerProps {
   monuments: Monument[];
   selectedType: MonumentType | 'All Types';
   onSelectType: (type: MonumentType | 'All Types') => void;
+  showTypeFilter?: boolean;
 }
 
 const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
   monuments,
   selectedType,
   onSelectType,
+  showTypeFilter = true,
 }) => {
   const [filteredMonuments, setFilteredMonuments] = useState<Monument[]>(monuments);
   const dispatch = useAppDispatch();
@@ -71,14 +73,16 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.filtersContainer}>
-        <FilterSelector
-          title="Monument Type:"
-          options={typeOptions}
-          selectedOptionId={selectedType}
-          onSelectOption={(optionId) => onSelectType(optionId as MonumentType | "All Types")}
-        />
-      </View>
+      {showTypeFilter && (
+        <View style={styles.filtersContainer}>
+          <FilterSelector
+            title="Monument Type:"
+            options={typeOptions}
+            selectedOptionId={selectedType}
+            onSelectOption={(optionId) => onSelectType(optionId as MonumentType | "All Types")}
+          />
+        </View>
+      )}
       {filteredMonuments.length > 0 ? (
         <FlatList
           data={filteredMonuments}

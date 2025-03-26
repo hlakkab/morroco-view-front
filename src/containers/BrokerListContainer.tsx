@@ -1,9 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { FlatList, StyleSheet, View } from 'react-native';
 import BrokerCard from '../components/cards/BrokerCard';
-import FilterSelector from '../components/FilterSelector';
 import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
 import { useAppDispatch } from '../store/hooks';
 import { Broker } from '../types/exchange-broker';
@@ -11,31 +9,12 @@ import { RootStackParamList } from '../types/navigation';
 
 interface BrokerListContainerProps {
   brokers: Broker[];
-  locations: string[];
-  selectedLocation: string;
-  onSelectLocation: (location: string) => void;
 }
 
 const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
-  brokers,
-  locations,
-  selectedLocation,
-  onSelectLocation,
+  brokers
 }) => {
   const dispatch = useAppDispatch();
-  
-  // Convert locations to filter options format
-  const locationOptions = locations.map(location => ({
-    id: location,
-    label: location,
-    icon: <Ionicons 
-      name="location-outline" 
-      size={16} 
-      color={selectedLocation === location ? '#fff' : '#888'} 
-      style={{ marginRight: 4 }} 
-    />
-  }));
-
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleBrokerPress = (broker: Broker) => {
@@ -52,36 +31,15 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.filtersContainer}>
-        <View style={styles.filterSection}>
-          <FilterSelector
-            title="Location:"
-            options={locationOptions}
-            selectedOptionId={selectedLocation}
-            onSelectOption={onSelectLocation}
-            containerStyle={styles.filterContainer}
-          />
-        </View>
-      </View>
-      
-      <Text style={styles.sectionTitle}>Available brokers</Text>
-
-      {brokers.length > 0 ? (
-        <FlatList
-          data={brokers}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <BrokerCard item={item} handleSaveBroker={handleSaveBroker} handleBrokerPress={handleBrokerPress} />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="search-outline" size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No brokers found for the selected filters</Text>
-        </View>
-      )}
+      <FlatList
+        data={brokers}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <BrokerCard item={item} handleSaveBroker={handleSaveBroker} handleBrokerPress={handleBrokerPress} />
+        )}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
@@ -90,44 +48,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  filtersContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FCEBEC',
-    borderRadius: 12,
-    padding: 8,
-    marginBottom: 16,
-  },
-  filterSection: {
-    flex: 1,
-  },
-  filterContainer: {
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 10,
-    color: '#666',
-  },
   listContent: {
     paddingBottom: 16,
   },
   cardContainer: {
     marginBottom: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-    marginBottom: 100,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 16,
-    textAlign: 'center',
-  },
+  }
 });
 
 export default BrokerListContainer; 

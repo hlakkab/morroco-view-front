@@ -96,6 +96,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
           </Text>
         </View>
       ) : (
+        <View style={styles.content}>
         <FlatList
           data={bookmarks}
           keyExtractor={(item) => item.id}
@@ -162,6 +163,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={bookmarks.length > 0 ? styles.listContent : styles.emptyListContent}
         />
+        </View>
       )}
 
       <Modal
@@ -216,6 +218,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
     marginBottom: 150,
+  },
+  content: {
+    marginBottom: 100,
   },
   listContent: {
     paddingBottom: 16,

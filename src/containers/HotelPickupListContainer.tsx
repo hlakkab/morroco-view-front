@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/cards/CardItem';
 import PickupCard from '../components/cards/PickupCard';
@@ -70,7 +70,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.filtersContainer}>
-        <View style={styles.filterSection}>
+        <View style={styles.filterFromSection}>
           <FilterSelector
             title="From :"
             options={airportOptions}
@@ -85,9 +85,28 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
           />
         </View>
 
-        <View style={styles.filterDivider} />
+        {/* <View style={styles.filterDivider} /> */}
+        
+        <TouchableOpacity 
+          style={styles.swapButton}
+          // onPress={() => {
+          //   const tempCity = selectedAirport;
+          //   setSelectedAirport(_ => {
+          //     onSelectCity(selectedCity, 'from');
+          //     return selectedCity;
+          //   });
+          //   setSelectedCity(_ => {
+          //     onSelectCity(tempCity, 'to');
+          //     return tempCity;
+          //   });
+          // }}
+        >
+          <View style={styles.swapButtonInner}>
+            <Ionicons name="swap-vertical" size={20} color="#CE1126" />
+          </View>
+        </TouchableOpacity>
 
-        <View style={styles.filterSection}>
+        <View style={styles.filterToSection}>
           <FilterSelector
             title="To :"
             options={cityOptions}
@@ -135,13 +154,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filtersContainer: {
-    backgroundColor: '#FCEBEC',
-    borderRadius: 12,
-    padding: 8,
+    // backgroundColor: '#FCEBEC',
+    // borderRadius: 12,
+    // padding: 8,
     marginBottom: 16,
   },
-  filterSection: {
-    marginBottom: 4,
+  filterFromSection: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  filterToSection: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   filterContainer: {
     paddingVertical: 8,
@@ -150,6 +178,25 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#E0E0E0',
     marginVertical: 4,
+  },
+  swapButton: {
+    alignSelf: 'center',
+    marginVertical: 8,
+  },
+  swapButtonInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   sectionTitle: {
     fontSize: 16,

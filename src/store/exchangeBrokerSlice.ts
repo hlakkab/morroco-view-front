@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import api from '../service/ApiProxy';
 import { Broker, ExchangeBrokerState } from '../types/exchange-broker';
 import { removeBookmark } from './bookmarkSlice';

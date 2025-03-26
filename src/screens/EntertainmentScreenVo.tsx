@@ -16,31 +16,17 @@ import { RootStackParamList } from '../types/navigation';
 
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
 
-// Define all available cities to show in the filter popup
-const ALL_CITIES = cities.map(city => ({
-  id: normalizeString(city.id),
-  label: city.label
-}));
-
 const EntertainmentScreenVo: React.FC = () => {
   const navigation = useNavigation<EntertainmentScreenNavigationProp>();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
-
-  const [selectedCityId, setSelectedCityId] = useState('5408');
+  const [selectedCityId, setSelectedCityId] = useState('all');
 
   const { entertainments, loading, error } = useAppSelector(
     (state): EntertainmentState => state.entertainment
   );
-
-  // City filter options for dropdown selector
-  const cityFilterOptions = [
-    { id: '5408', label: 'Marrakech' },
-    { id: '4396', label: 'Casablanca' },
-    { id: '4388', label: 'Tangier'},
-  ];
 
   // Map to align API city codes with city names for filtering
   const cityCodes: Record<string, string> = {
@@ -49,13 +35,15 @@ const EntertainmentScreenVo: React.FC = () => {
     '4388': 'tangier',
   };
 
-  // Add icons to filter categories
+  // Reverse map for going from city name to code
+  const cityNameToCodes: Record<string, string> = {
+    'marrakech': '5408',
+    'casablanca': '4396',
+    'tangier': '4388',
+  };
+
+  // Add icons to filter categories - only for location
   const categoriesWithIcons = {
-    entertainment_city: {
-      key: 'entertainment_city',
-      label: 'By City',
-      icon: <Ionicons name="location" size={20} color="#CE1126" />
-    },
     location: {
       key: 'location',
       label: 'By Location',
@@ -63,16 +51,24 @@ const EntertainmentScreenVo: React.FC = () => {
     }
   };
 
-  // Initialize filter options
-  useEffect(() => {
-    // Create city filter options for all cities
-    const cityOptions = ALL_CITIES.map(city => ({
-      id: city.id,
-      label: city.label,
-      selected: selectedCityId !== 'all' ? normalizeString(cityCodes[selectedCityId]) === city.id : false,
-      category: 'entertainment_city'
-    }));
+  // Create city options for FilterSelector
+  const cityOptions = [
+    { 
+      id: 'all', 
+      label: 'All Cities', 
+      icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
+    },
+    ...cities
+      .filter(city => ['casablanca', 'marrakech', 'tangier'].includes(normalizeString(city.id)))
+      .map(city => ({
+        id: normalizeString(city.id),
+        label: city.label,
+        icon: <Ionicons name="location-outline" size={16} color="#888" style={{ marginRight: 4 }} />
+      }))
+  ];
 
+  // Initialize filter options - only for location filter, not cities
+  useEffect(() => {
     if (entertainments.length > 0) {
       // Create location filter options from the actual data
       const uniqueLocations = Array.from(new Set(entertainments
@@ -86,53 +82,25 @@ const EntertainmentScreenVo: React.FC = () => {
         category: 'location'
       }));
 
-      setFilterOptions([...cityOptions, ...locationOptions]);
-    } else {
-      // If no entertainments yet, still show city options
-      setFilterOptions(cityOptions);
+      setFilterOptions(locationOptions);
     }
-  }, [entertainments, selectedCityId]);
+  }, [entertainments]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
-  const handleSelectCity = (cityId: string) => {
+  const handleCitySelect = (cityId: string) => {
     setSelectedCityId(cityId);
-    
-    // Update filter options to match the selected city in dropdown
-    if (cityId !== 'all') {
-      setFilterOptions(prevOptions => 
-        prevOptions.map(option => {
-          if (option.category === 'entertainment_city') {
-            return {
-              ...option,
-              selected: normalizeString(cityCodes[cityId]) === option.id
-            };
-          }
-          return option;
-        })
-      );
-    } else {
-      // Reset city filters when "all" is selected
-      setFilterOptions(prevOptions => 
-        prevOptions.map(option => {
-          if (option.category === 'entertainment_city') {
-            return {
-              ...option,
-              selected: false
-            };
-          }
-          return option;
-        })
-      );
-    }
     
     // Fetch entertainments with the selected city code
     if (cityId === 'all') {
-      fetchEntertainmentData();
+      // Default to Marrakech when "All Cities" is selected
+      fetchEntertainmentData('5408');
     } else {
-      fetchEntertainmentData(cityId);
+      // Get the corresponding city code for the API
+      const cityCode = cityNameToCodes[cityId] || '5408';
+      fetchEntertainmentData(cityCode);
     }
   };
 
@@ -146,7 +114,7 @@ const EntertainmentScreenVo: React.FC = () => {
 
   useEffect(() => {
     // Initial data fetch with default city
-    fetchEntertainmentData();
+    fetchEntertainmentData('5408');
   }, [dispatch]);
 
   const handleFilterPress = () => {
@@ -160,37 +128,11 @@ const EntertainmentScreenVo: React.FC = () => {
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
     setFilterOptions(selectedOptions);
     setFilterPopupVisible(false);
-    
-    // Check if any city is selected in the popup
-    const selectedCity = selectedOptions.find(
-      option => option.category === 'entertainment_city' && option.selected
-    );
-    
-    // Update the dropdown selector to match the popup selection
-    if (selectedCity) {
-      // Find the corresponding city code for the API
-      const cityCode = Object.entries(cityCodes).find(
-        ([code, cityName]) => normalizeString(cityName) === selectedCity.id
-      )?.[0];
-      
-      if (cityCode) {
-        setSelectedCityId(cityCode);
-        fetchEntertainmentData(cityCode);
-      }
-    } else {
-      // If no city is selected in the popup, reset to showing all
-      setSelectedCityId('all');
-      fetchEntertainmentData();
-    }
   };
 
-  // Get active filters
+  // Get active location filters
   const activeLocationFilters = filterOptions
     .filter(option => option.category === 'location' && option.selected)
-    .map(option => option.id);
-
-  const activeCityFilters = filterOptions
-    .filter(option => option.category === 'entertainment_city' && option.selected)
     .map(option => option.id);
 
   // Filter entertainments based on search and location (city filtering is handled by the API)
@@ -203,18 +145,18 @@ const EntertainmentScreenVo: React.FC = () => {
     const locationMatch = activeLocationFilters.length === 0 || 
       (ent.location && activeLocationFilters.includes(normalizeString(ent.location)));
     
-    // City filtering is primarily handled by the API, but we can apply additional filtering if needed
-    // This is just for the local UI filtering if we need to narrow down further
-    const cityMatch = true; // We already filtered by city in the API call
-    
-    return searchMatch && locationMatch && cityMatch;
+    return searchMatch && locationMatch;
   });
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color="#000" />
+        <View style={styles.headerContainer}>
+          <ScreenHeader title="Entertainment" />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#CE1126" />
+          <Text style={styles.loadingText}>Loading entertainments...</Text>
         </View>
       </SafeAreaView>
     );
@@ -223,7 +165,10 @@ const EntertainmentScreenVo: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.centerContent}>
+        <View style={styles.headerContainer}>
+          <ScreenHeader title="Entertainment" />
+        </View>
+        <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       </SafeAreaView>
@@ -242,24 +187,24 @@ const EntertainmentScreenVo: React.FC = () => {
             value={searchQuery}
             onFilterPress={handleFilterPress}
         />
-        <View style={styles.filterContainer}>
-          {/* <FilterSelector
-            options={cityFilterOptions}
+        <View style={styles.cityFilterContainer}>
+          <FilterSelector
+            options={cityOptions}
             selectedOptionId={selectedCityId}
-            onSelectOption={handleSelectCity}
-            title="Filter by City"
-          /> */}
+            onSelectOption={handleCitySelect}
+            title="City :"
+          />
         </View>
         <EntertainmentListContainerVo entertainments={filteredEntertainments} />
       </View>
 
-      {/* Filter Popup with both city and location filters */}
+      {/* Filter Popup with location filters only */}
       <FilterPopup
           visible={filterPopupVisible}
           onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
-          title="Filter Entertainments"
+          title="Filter Entertainment"
           categories={categoriesWithIcons}
       />
     </SafeAreaView>
@@ -279,7 +224,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  centerContent: {
+  cityFilterContainer: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -289,9 +250,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     padding: 20,
-  },
-  filterContainer: {
-    marginBottom: 8,
   },
 });
 

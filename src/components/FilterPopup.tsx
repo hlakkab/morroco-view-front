@@ -149,14 +149,23 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
                                 <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
                                     <View style={styles.dragHandle} />
                                 </View>
-                                <View style={styles.modalHeader} {...panResponder.panHandlers}>
-                                    <Text style={styles.modalTitle}>{title}</Text>
-                                    <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
-                                        <Text style={styles.resetText}>Reset</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                                        <CloseButton />
-                                    </TouchableOpacity>
+                                <View style={styles.headerSection}>
+                                    <View style={styles.modalHeader} {...panResponder.panHandlers}>
+                                        <View style={styles.titleContainer}>
+                                            <Ionicons name="filter" size={22} color="#CE1126" style={styles.titleIcon} />
+                                            <Text style={styles.modalTitle}>{title}</Text>
+                                        </View>
+                                        <View style={styles.headerControls}>
+                                            <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
+                                                <Ionicons name="refresh-outline" size={14} color="#CE1126" style={styles.resetIcon} />
+                                                <Text style={styles.resetText}>Reset</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                                                <CloseButton />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                    <View style={styles.headerDivider} />
                                 </View>
 
                                 <ScrollView style={styles.filterContainer}>
@@ -218,42 +227,69 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         backgroundColor: '#FFF7F7',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
         height: '85%',
+    },
+    headerSection: {
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        overflow: 'hidden',
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
-        backgroundColor: '#FFFFFF',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        paddingVertical: 18,
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    titleIcon: {
+        marginRight: 6,
+    },
+    headerControls: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     closeButton: {
-        padding: 4,
+        marginLeft: 6,
     },
     resetButton: {
-        padding: 4,
+        backgroundColor: '#FCEBEC',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    resetIcon: {
+        marginRight: 4,
     },
     resetText: {
-        color: '#FF6B81',
-        fontSize: 15,
+        color: '#CE1126',
+        fontSize: 14,
+        fontWeight: '600',
     },
     modalTitle: {
         fontSize: 18,
-        fontWeight: '600',
+        fontWeight: '700',
         color: '#333',
     },
+    headerDivider: {
+        height: 1,
+        backgroundColor: '#F0F0F0',
+        width: '100%',
+    },
     filterContainer: {
-        padding: 16,
+        padding: 20,
         maxHeight: '70%',
     },
     categoryContainer: {
-        marginBottom: 20,
+        marginBottom: 24,
     },
     categoryHeaderContainer: {
         flexDirection: 'row',
@@ -300,9 +336,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
     },
     dragHandle: {
-        width: 100,
+        width: 40,
         height: 5,
-        backgroundColor: '#D3D3D3',
+        backgroundColor: '#E0E0E0',
         borderRadius: 2.5,
     },
 });

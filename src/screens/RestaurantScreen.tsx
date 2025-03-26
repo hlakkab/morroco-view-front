@@ -10,8 +10,8 @@ import { fetchRestaurants, setSelectedRestaurantType } from '../store/index';
 
 // Import custom components
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
+import FilterSelector from '../components/FilterSelector';
 import SearchBar from '../components/SearchBar';
-import HeaderContainer from '../containers/HeaderContainer';
 import RestaurantListContainer from '../containers/RestaurantListContainer';
 
 // Import types
@@ -38,28 +38,29 @@ const RestaurantScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+  const [selectedCity, setSelectedCity] = useState('all');
 
-  // Add icons to filter categories
+  // Add icons to filter categories - only for restaurant type
   const categoriesWithIcons = {
-    restaurant_city: {
-      key: 'restaurant_city',
-      label: 'By City',
-      icon: <Ionicons name="location" size={20} color="#CE1126" />
+    restaurant_type: {
+      key: 'restaurant_type',
+      label: 'By Type',
+      icon: <Ionicons name="restaurant" size={20} color="#CE1126" />
     }
   };
 
   // Initialize filter options
   useEffect(() => {
     if (filterOptions.length === 0 && restaurants.length > 0) {
-      // Create city filter options
-      const cityOptions = cities.map(city => ({
-        id: normalizeString(city.id),
-        label: city.label,
+      // Create restaurant type filter options
+      const typeOptions = Object.values(RestaurantType).map(type => ({
+        id: normalizeString(type),
+        label: type,
         selected: false,
-        category: 'restaurant_city'
+        category: 'restaurant_type'
       }));
       
-      setFilterOptions(cityOptions);
+      setFilterOptions(typeOptions);
     }
   }, [restaurants]);
 
@@ -67,6 +68,20 @@ const RestaurantScreen: React.FC = () => {
   useEffect(() => {
     dispatch(fetchRestaurants());
   }, [dispatch]);
+
+  // Create city options for FilterSelector
+  const cityOptions = [
+    { 
+      id: 'all', 
+      label: 'All Cities', 
+      icon: <Ionicons name="globe-outline" size={18} color="#CE1126" /> 
+    },
+    ...cities.map(city => ({
+      id: normalizeString(city.id),
+      label: city.label,
+      icon: <Ionicons name="location-outline" size={18} color="#CE1126" />
+    }))
+  ];
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -83,18 +98,63 @@ const RestaurantScreen: React.FC = () => {
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
     setFilterOptions(selectedOptions);
     setFilterPopupVisible(false);
+
+    // Find selected restaurant type filter if any
+    const selectedRestaurantType = selectedOptions.find(
+      option => option.category === 'restaurant_type' && option.selected
+    );
+
+    // Update the Redux store with the selected type if a type is selected
+    if (selectedRestaurantType) {
+      // Convert the normalized id back to proper RestaurantType format
+      const selectedTypeId = selectedRestaurantType.id;
+      const matchingType = Object.values(RestaurantType).find(
+        type => normalizeString(type) === selectedTypeId
+      );
+      
+      if (matchingType) {
+        dispatch(setSelectedRestaurantType(matchingType as RestaurantType));
+      }
+    } else {
+      // Reset to All if no type is selected
+      dispatch(setSelectedRestaurantType('All'));
+    }
+  };
+
+  const handleCitySelect = (cityId: string) => {
+    setSelectedCity(cityId);
   };
 
   const handleTypeSelection = (type: RestaurantType | 'All Types') => {
     // Convert 'All Types' to 'All' to match our Redux state type
     const reduxType = type === 'All Types' ? 'All' : type;
     dispatch(setSelectedRestaurantType(reduxType));
-  };
 
-  // Get active city filters
-  const activeCityFilters = filterOptions
-    .filter(option => option.category === 'restaurant_city' && option.selected)
-    .map(option => option.id);
+    // Update filter options to reflect the selected type
+    if (type !== 'All Types') {
+      setFilterOptions(prevOptions =>
+        prevOptions.map(option => {
+          if (option.category === 'restaurant_type') {
+            return {
+              ...option,
+              selected: normalizeString(type) === option.id
+            };
+          }
+          return option;
+        })
+      );
+    } else {
+      // Clear type selections in filter
+      setFilterOptions(prevOptions =>
+        prevOptions.map(option => {
+          if (option.category === 'restaurant_type') {
+            return { ...option, selected: false };
+          }
+          return option;
+        })
+      );
+    }
+  };
 
   // Apply search and city filters 
   const filteredRestaurants = restaurants.filter(restaurant => {
@@ -103,9 +163,9 @@ const RestaurantScreen: React.FC = () => {
       normalizeString(restaurant.name).includes(normalizeString(searchQuery)) ||
       normalizeString(restaurant.address).includes(normalizeString(searchQuery));
     
-    // City filter - if no city is selected, show all
-    const cityFilter = activeCityFilters.length === 0 ||
-      (restaurant.city && activeCityFilters.includes(normalizeString(restaurant.city)));
+    // City filter
+    const cityFilter = selectedCity === 'all' ||
+      (restaurant.city && normalizeString(restaurant.city) === selectedCity);
     
     return searchMatch && cityFilter;
   });
@@ -153,10 +213,20 @@ const RestaurantScreen: React.FC = () => {
           onFilterPress={handleFilterPress}
         />
 
+        <View style={styles.cityFilterContainer}>
+          <FilterSelector
+            options={cityOptions}
+            selectedOptionId={selectedCity}
+            onSelectOption={handleCitySelect}
+            title="City :"
+          />
+        </View>
+
         <RestaurantListContainer
           restaurants={filteredRestaurants}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
+          showTypeFilter={false}
         />
 
         <FilterPopup
@@ -184,6 +254,12 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
+  },
+  cityFilterContainer: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,

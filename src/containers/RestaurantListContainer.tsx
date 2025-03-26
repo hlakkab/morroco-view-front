@@ -15,12 +15,14 @@ interface RestaurantListContainerProps {
   restaurants: Restaurant[];
   selectedType: RestaurantType | 'All Types';
   onSelectType: (type: RestaurantType | 'All Types') => void;
+  showTypeFilter?: boolean;
 }
 
 const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
   restaurants,
   selectedType,
   onSelectType,
+  showTypeFilter = true,
 }) => {
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(restaurants);
   const dispatch = useAppDispatch();
@@ -72,14 +74,16 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.filtersContainer}>
-        <FilterSelector
-         title="Restaurant Type:"
-          options={typeOptions}
-          selectedOptionId={selectedType}
-          onSelectOption={(optionId) => onSelectType(optionId as RestaurantType | "All Types")}
-        />
-      </View>
+      {showTypeFilter && (
+        <View style={styles.filtersContainer}>
+          <FilterSelector
+           title="Restaurant Type:"
+            options={typeOptions}
+            selectedOptionId={selectedType}
+            onSelectOption={(optionId) => onSelectType(optionId as RestaurantType | "All Types")}
+          />
+        </View>
+      )}
       {filteredRestaurants.length > 0 ? (
         <FlatList
           data={filteredRestaurants}

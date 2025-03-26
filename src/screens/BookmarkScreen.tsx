@@ -3,6 +3,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Alert, SafeAreaView, StyleSheet, View } from 'react-native';
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
+import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import BookmarkListContainer from '../containers/BookmarkListContainer';
@@ -30,15 +31,26 @@ const BookmarkScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+  const [selectedCityId, setSelectedCityId] = useState('all');
   const [filteredBookmarks, setFilteredBookmarks] = useState(bookmarks);
 
-  // Add icons to filter categories
-  const categoriesWithIcons = {
-    bookmark_city: {
-      key: 'bookmark_city',
-      label: 'By City',
-      icon: <Ionicons name="location" size={20} color="#CE1126" />
+  // Create city options for FilterSelector
+  const cityOptions = [
+    { 
+      id: 'all', 
+      label: 'All Cities', 
+      icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
+    ...cities
+      .map(city => ({
+        id: normalizeString(city.id),
+        label: city.label,
+        icon: <Ionicons name="location-outline" size={16} color="#888" style={{ marginRight: 4 }} />
+      }))
+  ];
+
+  // Add icons to filter categories - only for service type
+  const categoriesWithIcons = {
     bookmark_type: {
       key: 'bookmark_type',
       label: 'By Service Type',
@@ -46,17 +58,9 @@ const BookmarkScreen: React.FC = () => {
     }
   };
 
-  // Initialize filter options
+  // Initialize filter options - only for service types
   useEffect(() => {
     if (bookmarks.length > 0 || filterOptions.length === 0) {
-      // Create city filter options
-      const cityOptions = cities.map(city => ({
-        id: normalizeString(city.id),
-        label: city.label,
-        selected: false,
-        category: 'bookmark_city'
-      }));
-
       // Create service type filter options (always showing all possible service types)
       const typeOptions = ALL_SERVICE_TYPES.map(service => ({
         id: normalizeString(service.type),
@@ -65,14 +69,14 @@ const BookmarkScreen: React.FC = () => {
         category: 'bookmark_type'
       }));
 
-      setFilterOptions([...cityOptions, ...typeOptions]);
+      setFilterOptions(typeOptions);
     }
   }, [bookmarks]);
 
   // Apply search and filters to bookmarks
   useEffect(() => {
     filterBookmarks();
-  }, [searchQuery, filterOptions, bookmarks]);
+  }, [searchQuery, filterOptions, bookmarks, selectedCityId]);
 
   // Fetch bookmarks when component mounts
   useEffect(() => {
@@ -106,6 +110,10 @@ const BookmarkScreen: React.FC = () => {
     setFilterPopupVisible(false);
   };
 
+  const handleCitySelect = (cityId: string) => {
+    setSelectedCityId(cityId);
+  };
+
   // Filter bookmarks based on search query and selected filters
   const filterBookmarks = () => {
     if (!bookmarks || bookmarks.length === 0) {
@@ -114,10 +122,6 @@ const BookmarkScreen: React.FC = () => {
     }
 
     // Get active filters
-    const activeCityFilters = filterOptions
-      .filter(option => option.category === 'bookmark_city' && option.selected)
-      .map(option => option.id);
-    
     const activeTypeFilters = filterOptions
       .filter(option => option.category === 'bookmark_type' && option.selected)
       .map(option => option.id);
@@ -135,10 +139,10 @@ const BookmarkScreen: React.FC = () => {
           )
         );
       
-      // City filter - if no city is selected, show all
-      const cityMatch = activeCityFilters.length === 0 || 
+      // City filter - if 'all' is selected, show all
+      const cityMatch = selectedCityId === 'all' || 
         (bookmark.object && bookmark.object.city && 
-          activeCityFilters.includes(normalizeString(bookmark.object.city)));
+          normalizeString(bookmark.object.city) === selectedCityId);
       
       // Type filter - if no type is selected, show all
       const typeMatch = activeTypeFilters.length === 0 || 
@@ -162,6 +166,14 @@ const BookmarkScreen: React.FC = () => {
           value={searchQuery}
           onFilterPress={handleFilterPress}
         />
+        <View style={styles.cityFilterContainer}>
+          <FilterSelector
+            options={cityOptions}
+            selectedOptionId={selectedCityId}
+            onSelectOption={handleCitySelect}
+            title="City :"
+          />
+        </View>
         <BookmarkListContainer 
           bookmarks={filteredBookmarks}
           loading={loading}
@@ -195,6 +207,12 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: 16,
     paddingHorizontal: 16,
+  },
+  cityFilterContainer: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 16,
   },
 });
 
