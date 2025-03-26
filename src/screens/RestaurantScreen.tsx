@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, ActivityIndicator, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchRestaurants, setSelectedRestaurantType } from '../store/index';
 
 // Import custom components
-import HeaderContainer from '../containers/HeaderContainer';
+import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import SearchBar from '../components/SearchBar';
+import HeaderContainer from '../containers/HeaderContainer';
 import RestaurantListContainer from '../containers/RestaurantListContainer';
-import FilterPopup, { FilterOption } from '../components/FilterPopup'; // Importer FilterPopup
 
 // Import types
+import ButtonFixe from '../components/ButtonFixe';
+import ScreenHeader from '../components/ScreenHeader';
+import { cities, normalizeString } from '../data/filterData';
 import { RootStackParamList } from '../types/navigation';
 import { Restaurant, RestaurantType } from '../types/Restaurant';
-import ScreenHeader from '../components/ScreenHeader';
-import ButtonFixe from '../components/ButtonFixe';
 
 type RestaurantScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Restaurant'>;
 
@@ -34,57 +36,53 @@ const RestaurantScreen: React.FC = () => {
   } = useAppSelector(state => state.restaurant);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+
+  // Add icons to filter categories
+  const categoriesWithIcons = {
+    restaurant_city: {
+      key: 'restaurant_city',
+      label: 'By City',
+      icon: <Ionicons name="location" size={20} color="#CE1126" />
+    }
+  };
+
+  // Initialize filter options
+  useEffect(() => {
+    if (filterOptions.length === 0 && restaurants.length > 0) {
+      // Create city filter options
+      const cityOptions = cities.map(city => ({
+        id: normalizeString(city.id),
+        label: city.label,
+        selected: false,
+        category: 'restaurant_city'
+      }));
+      
+      setFilterOptions(cityOptions);
+    }
+  }, [restaurants]);
 
   // Fetch restaurants when component mounts
   useEffect(() => {
     dispatch(fetchRestaurants());
   }, [dispatch]);
 
-  // État pour gérer la visibilité du popup de filtres
-  const [filterPopupVisible, setFilterPopupVisible] = useState(false);
-
-// Options de filtres pour le popup
-
-
-  const [filterOptions, setFilterOptions] = useState<FilterOption[]>(() => {
-    // Extraire toutes les villes uniques des données
-   // const uniqueCities = [...new Set(SAMPLE_RESTAURANTS.map(restaurant => restaurant.city))];
-
-    return [
-     /* // Options pour le type de restaurant
-      ...Object.values(RestaurantType).map(type => ({
-        id: type,
-        label: type,
-        selected: selectedType === type,
-        category: 'type'
-      })),*/
-      // Options pour les villes
-     /* ...uniqueCities.map(city => ({
-        id: city,
-        label: city,
-        selected: false,
-        category: 'city'
-      }))*/
-    ];
-  });
-
-  // Mettre à jour les options de filtre lorsque selectedType change
-  useEffect(() => {
-    setFilterOptions(prevOptions =>
-        prevOptions.map(option => {
-          if (option.category === 'type') {
-            return {
-              ...option,
-              selected: selectedType === option.id
-            };
-          }
-          return option;
-        })
-    );
-  }, [selectedType]);
-
   const handleSearch = (text: string) => {
     setSearchQuery(text);
+  };
+
+  const handleFilterPress = () => {
+    setFilterPopupVisible(true);
+  };
+
+  const handleCloseFilter = () => {
+    setFilterPopupVisible(false);
+  };
+
+  const handleApplyFilters = (selectedOptions: FilterOption[]) => {
+    setFilterOptions(selectedOptions);
+    setFilterPopupVisible(false);
   };
 
   const handleTypeSelection = (type: RestaurantType | 'All Types') => {
@@ -93,13 +91,24 @@ const RestaurantScreen: React.FC = () => {
     dispatch(setSelectedRestaurantType(reduxType));
   };
 
-  // Apply search filter on top of type filter
-  const searchFilteredRestaurants = searchQuery.trim() === ''
-    ? restaurants
-    : restaurants.filter(restaurant =>
-        restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  // Get active city filters
+  const activeCityFilters = filterOptions
+    .filter(option => option.category === 'restaurant_city' && option.selected)
+    .map(option => option.id);
+
+  // Apply search and city filters 
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    // Search match
+    const searchMatch = searchQuery.trim() === '' || 
+      normalizeString(restaurant.name).includes(normalizeString(searchQuery)) ||
+      normalizeString(restaurant.address).includes(normalizeString(searchQuery));
+    
+    // City filter - if no city is selected, show all
+    const cityFilter = activeCityFilters.length === 0 ||
+      (restaurant.city && activeCityFilters.includes(normalizeString(restaurant.city)));
+    
+    return searchMatch && cityFilter;
+  });
 
   // Render loading state
   if (loading) {
@@ -131,8 +140,6 @@ const RestaurantScreen: React.FC = () => {
     );
   }
 
- // console.log(restaurants.map(restaurant => restaurant.saved));
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -143,23 +150,24 @@ const RestaurantScreen: React.FC = () => {
           placeholder="Search restaurants..."
           onChangeText={handleSearch}
           value={searchQuery}
-          onFilterPress={() => {}}
+          onFilterPress={handleFilterPress}
         />
 
         <RestaurantListContainer
-          restaurants={restaurants}
+          restaurants={filteredRestaurants}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
+        />
+
+        <FilterPopup
+          visible={filterPopupVisible}
+          onClose={handleCloseFilter}
+          filterOptions={filterOptions}
+          onApplyFilters={handleApplyFilters}
+          title="Filter Restaurants"
+          categories={categoriesWithIcons}
         />
       </View>
-      {/* </View>
-      <View style={styles.listContainer}>
-        <RestaurantListContainer
-          restaurants={searchFilteredRestaurants}
-          selectedType={selectedType === 'All' ? 'All Types' : selectedType}
-          onSelectType={handleTypeSelection}
-        />
-      </View> */}
     </SafeAreaView>
   );
 };

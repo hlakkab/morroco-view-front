@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/cards/CardItem';
+import PickupCard from '../components/cards/PickupCard';
 import FilterSelector from '../components/FilterSelector';
-import { RootStackParamList } from '../types/navigation';
-import { HotelPickup } from '../types/transport';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleHotelPickupBookmark } from '../store/hotelPickupSlice';
-import PickupCard from '../components/cards/PickupCard';
+import { RootStackParamList } from '../types/navigation';
+import { HotelPickup } from '../types/transport';
 
 interface HotelPickupListContainerProps {
   pickups: HotelPickup[];
@@ -33,8 +33,6 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   const [selectedCity, setSelectedCity] = useState(selectedToCity);
   const dispatch = useAppDispatch();
   const bookmarks = useAppSelector(state => state.bookmark.bookmarks);
-
-  const filteredPickups = pickups;
 
   const handleSavePickup = (pickup: HotelPickup) => {
     dispatch(toggleHotelPickupBookmark(pickup));
@@ -107,13 +105,16 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
 
       <Text style={styles.sectionTitle}>Available pickups</Text>
 
-      {filteredPickups.length === 0 ? (
-        <Text style={styles.noPickupsText}>
-          No pickups available from {selectedAirport} to {selectedCity}
-        </Text>
+      {pickups.length === 0 ? (
+        <View style={styles.noPickupsContainer}>
+          <Ionicons name="search-outline" size={48} color="#ccc" />
+          <Text style={styles.noPickupsText}>
+            No pickups available for the selected filters
+          </Text>
+        </View>
       ) : (
         <FlatList
-          data={filteredPickups}
+          data={pickups}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <PickupCard
@@ -158,8 +159,14 @@ const styles = StyleSheet.create({
   },
   noPickupsText: {
     textAlign: 'center',
-    marginTop: 24,
     color: '#888',
+    fontSize: 16,
+  },
+  noPickupsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 150,
   },
 });
 

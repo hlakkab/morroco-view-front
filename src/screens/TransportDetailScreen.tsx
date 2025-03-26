@@ -342,6 +342,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 16,
+    backgroundColor: '#fff',
   },
   reserveButton: {
     backgroundColor: '#CE1126',

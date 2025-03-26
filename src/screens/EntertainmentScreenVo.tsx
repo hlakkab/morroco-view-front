@@ -1,18 +1,26 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import FilterPopup, { FilterOption } from '../components/FilterPopup';
+import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import EntertainmentListContainerVo from '../containers/EntertainmentListContainerVo';
+import { cities, normalizeString } from '../data/filterData';
 import { EntertainmentState, fetchEntertainments } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Entertainment } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
-import FilterSelector from '../components/FilterSelector';
-import FilterPopup, { FilterOption } from '../components/FilterPopup';
 
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
+
+// Define all available cities to show in the filter popup
+const ALL_CITIES = cities.map(city => ({
+  id: normalizeString(city.id),
+  label: city.label
+}));
 
 const EntertainmentScreenVo: React.FC = () => {
   const navigation = useNavigation<EntertainmentScreenNavigationProp>();
@@ -27,12 +35,63 @@ const EntertainmentScreenVo: React.FC = () => {
     (state): EntertainmentState => state.entertainment
   );
 
-  // City filter options for Marrakech and Casablanca
+  // City filter options for dropdown selector
   const cityFilterOptions = [
     { id: '5408', label: 'Marrakech' },
     { id: '4396', label: 'Casablanca' },
     { id: '4388', label: 'Tangier'},
   ];
+
+  // Map to align API city codes with city names for filtering
+  const cityCodes: Record<string, string> = {
+    '5408': 'marrakech',
+    '4396': 'casablanca',
+    '4388': 'tangier',
+  };
+
+  // Add icons to filter categories
+  const categoriesWithIcons = {
+    entertainment_city: {
+      key: 'entertainment_city',
+      label: 'By City',
+      icon: <Ionicons name="location" size={20} color="#CE1126" />
+    },
+    location: {
+      key: 'location',
+      label: 'By Location',
+      icon: <Ionicons name="navigate" size={20} color="#CE1126" />
+    }
+  };
+
+  // Initialize filter options
+  useEffect(() => {
+    // Create city filter options for all cities
+    const cityOptions = ALL_CITIES.map(city => ({
+      id: city.id,
+      label: city.label,
+      selected: selectedCityId !== 'all' ? normalizeString(cityCodes[selectedCityId]) === city.id : false,
+      category: 'entertainment_city'
+    }));
+
+    if (entertainments.length > 0) {
+      // Create location filter options from the actual data
+      const uniqueLocations = Array.from(new Set(entertainments
+        .filter(ent => ent.location && ent.location.trim() !== '')
+        .map(ent => ent.location)));
+      
+      const locationOptions = uniqueLocations.map(location => ({
+        id: normalizeString(location),
+        label: location,
+        selected: false,
+        category: 'location'
+      }));
+
+      setFilterOptions([...cityOptions, ...locationOptions]);
+    } else {
+      // If no entertainments yet, still show city options
+      setFilterOptions(cityOptions);
+    }
+  }, [entertainments, selectedCityId]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -40,6 +99,34 @@ const EntertainmentScreenVo: React.FC = () => {
 
   const handleSelectCity = (cityId: string) => {
     setSelectedCityId(cityId);
+    
+    // Update filter options to match the selected city in dropdown
+    if (cityId !== 'all') {
+      setFilterOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.category === 'entertainment_city') {
+            return {
+              ...option,
+              selected: normalizeString(cityCodes[cityId]) === option.id
+            };
+          }
+          return option;
+        })
+      );
+    } else {
+      // Reset city filters when "all" is selected
+      setFilterOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.category === 'entertainment_city') {
+            return {
+              ...option,
+              selected: false
+            };
+          }
+          return option;
+        })
+      );
+    }
     
     // Fetch entertainments with the selected city code
     if (cityId === 'all') {
@@ -62,49 +149,65 @@ const EntertainmentScreenVo: React.FC = () => {
     fetchEntertainmentData();
   }, [dispatch]);
 
-  // Initialiser les options de filtre à partir des entertainments (ex : par localisation)
-  useEffect(() => {
-    if (entertainments.length > 0 && filterOptions.length === 0) {
-      const uniqueLocations = Array.from(new Set(entertainments.map(ent => ent.location)));
-      const locationOptions = uniqueLocations.map(location => ({
-        id: location,
-        label: location,
-        selected: false,
-        category: 'location'
-      }));
-// Extraire les villes uniques (supposons qu'il y ait la propriété "city")
-      const uniqueCities = Array.from(new Set(entertainments.map(ent => ent.city)));
-      const cityOptions = uniqueCities.map(city => ({
-        id: city,
-        label: city,
-        selected: false,
-        category: 'city'
-      }));
-
-      // Combine les deux ensembles d'options
-      setFilterOptions([...locationOptions, ...cityOptions]);
-    }
-  }, [entertainments]);
-
   const handleFilterPress = () => {
     setFilterPopupVisible(true);
+  };
+
+  const handleCloseFilter = () => {
+    setFilterPopupVisible(false);
   };
 
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
     setFilterOptions(selectedOptions);
     setFilterPopupVisible(false);
+    
+    // Check if any city is selected in the popup
+    const selectedCity = selectedOptions.find(
+      option => option.category === 'entertainment_city' && option.selected
+    );
+    
+    // Update the dropdown selector to match the popup selection
+    if (selectedCity) {
+      // Find the corresponding city code for the API
+      const cityCode = Object.entries(cityCodes).find(
+        ([code, cityName]) => normalizeString(cityName) === selectedCity.id
+      )?.[0];
+      
+      if (cityCode) {
+        setSelectedCityId(cityCode);
+        fetchEntertainmentData(cityCode);
+      }
+    } else {
+      // If no city is selected in the popup, reset to showing all
+      setSelectedCityId('all');
+      fetchEntertainmentData();
+    }
   };
 
-  // Filtrer les entertainments en fonction de la recherche et des filtres de localisation
+  // Get active filters
   const activeLocationFilters = filterOptions
-      .filter(option => option.category === 'location' && option.selected)
-      .map(option => option.id);
+    .filter(option => option.category === 'location' && option.selected)
+    .map(option => option.id);
 
+  const activeCityFilters = filterOptions
+    .filter(option => option.category === 'entertainment_city' && option.selected)
+    .map(option => option.id);
+
+  // Filter entertainments based on search and location (city filtering is handled by the API)
   const filteredEntertainments = entertainments.filter((ent: Entertainment) => {
-    const searchMatch = ent.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const locationMatch =
-        activeLocationFilters.length === 0 || activeLocationFilters.includes(ent.location);
-    return searchMatch && locationMatch;
+    // Search match
+    const searchMatch = searchQuery.trim() === '' || 
+      normalizeString(ent.title).includes(normalizeString(searchQuery));
+    
+    // Location filter - if no location is selected, show all
+    const locationMatch = activeLocationFilters.length === 0 || 
+      (ent.location && activeLocationFilters.includes(normalizeString(ent.location)));
+    
+    // City filtering is primarily handled by the API, but we can apply additional filtering if needed
+    // This is just for the local UI filtering if we need to narrow down further
+    const cityMatch = true; // We already filtered by city in the API call
+    
+    return searchMatch && locationMatch && cityMatch;
   });
 
   if (loading) {
@@ -140,23 +243,24 @@ const EntertainmentScreenVo: React.FC = () => {
             onFilterPress={handleFilterPress}
         />
         <View style={styles.filterContainer}>
-          <FilterSelector
+          {/* <FilterSelector
             options={cityFilterOptions}
             selectedOptionId={selectedCityId}
             onSelectOption={handleSelectCity}
             title="Filter by City"
-          />
+          /> */}
         </View>
         <EntertainmentListContainerVo entertainments={filteredEntertainments} />
       </View>
 
-      {/* Intégration du FilterPopup */}
+      {/* Filter Popup with both city and location filters */}
       <FilterPopup
           visible={filterPopupVisible}
-          onClose={() => setFilterPopupVisible(false)}
+          onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
-          title="Filtrer les entertainments"
+          title="Filter Entertainments"
+          categories={categoriesWithIcons}
       />
     </SafeAreaView>
   );

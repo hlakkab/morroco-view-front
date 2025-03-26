@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import MonumentCard from '../components/cards/MonumentCard';
 import FilterSelector from '../components/FilterSelector';
-import { RootStackParamList } from '../types/navigation';
-import { Monument, MonumentType } from '../types/Monument';
 import { useAppDispatch } from '../store/hooks';
 import { setSelectedMonument, toggleMonumentBookmark } from '../store/monumentSlice';
-import MonumentCard from '../components/cards/MonumentCard';
+import { Monument, MonumentType } from '../types/Monument';
+import { RootStackParamList } from '../types/navigation';
 
 interface MonumentListContainerProps {
   monuments: Monument[];
@@ -58,6 +58,17 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
     dispatch(toggleMonumentBookmark(monument));
   };
 
+  // Determine the empty state message based on filter conditions
+  const getEmptyStateMessage = () => {
+    if (monuments.length === 0) {
+      return "No monuments available";
+    } else if (filteredMonuments.length === 0 && selectedType !== 'All Types') {
+      return `No monuments found with type: ${selectedType}`;
+    } else {
+      return "No monuments found for the selected filters";
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.filtersContainer}>
@@ -85,7 +96,7 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="search-outline" size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No monuments found in this type</Text>
+          <Text style={styles.emptyText}>{getEmptyStateMessage()}</Text>
         </View>
       )}
     </View>
@@ -114,6 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
+    marginBottom: 150,
   },
   emptyText: {
     fontSize: 16,

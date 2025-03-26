@@ -1,16 +1,19 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Modal, SafeAreaView, StyleSheet, View } from 'react-native';
+import { FlatList, Modal, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import MatchCard from '../components/cards/MatchCard';
+import FilterPopup, { FilterCategory, FilterOption } from "../components/FilterPopup";
 import MatchPopup from '../components/MatchPopup';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
-import HeaderContainer from '../containers/HeaderContainer';
-import SearchFilterContainer from '../containers/SearchFilterContainer';
+import {
+  createFilterOptions,
+  matchFilterCategories,
+  normalizeString
+} from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchMatches, setSelectedMatch, setCurrentMatch, toggleMatchBookmark } from '../store/matchSlice';
-import FilterPopup, {FilterOption} from "../components/FilterPopup";
-import { Match, Team } from '../types/match';
-
+import { fetchMatches, setCurrentMatch, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
+import { Match } from '../types/match';
 
 const ExploreMatchesScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -19,46 +22,42 @@ const ExploreMatchesScreen: React.FC = () => {
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
 
+  // Add icons to filter categories
+  const categoriesWithIcons = {
+    ...matchFilterCategories,
+    city: {
+      ...matchFilterCategories.city,
+      icon: <Ionicons name="location" size={20} color="#CE1126" />
+    },
+    stadium: {
+      ...matchFilterCategories.stadium,
+      icon: <Ionicons name="football" size={20} color="#CE1126" />
+    }
+  };
 
   const dispatch = useAppDispatch();
   const { matches, selectedMatch, loading, error } = 
     useAppSelector(state => state.match);
 
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
         await dispatch(fetchMatches()).unwrap();
       } catch (error) {
         console.error('Failed to fetch matches:', error);
-        setUseSampleData(true); // Fallback to sample data if API fails
+        setUseSampleData(true);
       }
     };
     
     fetchData();
   }, [dispatch]);
 
-  // Initialise les options de filtre dès que les matchs sont chargés
+  // Initialize filter options
   useEffect(() => {
-    if (matches.length > 0 && filterOptions.length === 0) {
-      const uniqueTeams = Array.from(new Set(matches.map(match => match.homeTeam)));
-      const teams = uniqueTeams.map(team => ({
-        id: team,
-        label: team,
-        selected: false,
-        category: 'team'
-      }));
-      const uniqueSpots = Array.from(new Set(matches.map(match => match.spot.name)));
-      const spots = uniqueSpots.map(spot => ({
-        id: spot,
-        label: spot,
-        selected: false,
-        category: 'spot'
-      }));
-      setFilterOptions([...teams, ...spots]);
+    if (filterOptions.length === 0) {
+      setFilterOptions(createFilterOptions());
     }
-  }, [matches]);
-
+  }, []);
 
   const handleCardPress = (match: Match) => {
     dispatch(setSelectedMatch(match));
@@ -72,7 +71,6 @@ const ExploreMatchesScreen: React.FC = () => {
 
   const closeModal = () => {
     setModalVisible(false);
-    // Wait a bit for better animation
     setTimeout(() => {
       dispatch(setSelectedMatch(null));
       dispatch(setCurrentMatch(null));
@@ -92,55 +90,48 @@ const ExploreMatchesScreen: React.FC = () => {
     setFilterPopupVisible(false);
   };
 
-  // Get matches from state or use sample data if API failed
-  const displayMatches = matches;
+  // Get active filters
+  const activeCityFilters = filterOptions
+    .filter(option => option.category === 'city' && option.selected)
+    .map(option => option.id);
 
+  const activeStadiumFilters = filterOptions
+    .filter(option => option.category === 'stadium' && option.selected)
+    .map(option => option.id);
 
-
-  // Récupérer les filtres actifs (par exemple, pour l'équipe à domicile)
-  const activeTeamFilters = filterOptions
-      .filter(option => option.category === 'team' && option.selected)
-      .map(option => option.id);
-
-
-  // Filtrer les matchs en fonction de la recherche et du filtre appliqué
+  // Filter matches based on search and filters
   const filteredMatches = matches.filter(match => {
     const searchMatch =
-        match.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        match.awayTeam.toLowerCase().includes(searchQuery.toLowerCase());
+      normalizeString(match.homeTeam).includes(normalizeString(searchQuery)) ||
+      normalizeString(match.awayTeam).includes(normalizeString(searchQuery));
 
-    // Filtrer par équipe sélectionnée si des filtres sont actifs
-    const teamFilter = activeTeamFilters.length === 0 ||
-        activeTeamFilters.includes(match.homeTeam) ||
-        activeTeamFilters.includes(match.awayTeam);
+    // Filter by city if city filters are active
+    const cityFilter = activeCityFilters.length === 0 ||
+      activeCityFilters.includes(normalizeString(match.spot.city || ''));
 
-    // Filtrer par stade si des filtres de stade sont actifs
-    const activeSpotFilters = filterOptions
-        .filter(option => option.category === 'spot' && option.selected)
-        .map(option => option.id);
+    // Filter by stadium if stadium filters are active
+    const stadiumFilter = activeStadiumFilters.length === 0 ||
+      activeStadiumFilters.includes(normalizeString(match.spot.name));
 
-    const spotFilter = activeSpotFilters.length === 0 ||
-        activeSpotFilters.includes(match.spot.name);
-
-    return searchMatch && teamFilter && spotFilter;
+    return searchMatch && cityFilter && stadiumFilter;
   });
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="Africa Cup of Nations" />
+      </View>
 
-        <View style={styles.headerContainer}>
-          <ScreenHeader title="Africa Cup of Nations" />
-        </View>
+      <View style={styles.searchBarContainer}>
+        <SearchBar
+          placeholder="Search matches..."
+          onChangeText={handleSearch}
+          onFilterPress={handleFilterPress}
+          value={searchQuery}
+        />
+      </View>
 
-        <View style={styles.searchBarContainer}>
-          <SearchBar
-            placeholder="Search matches..."
-            onChangeText={handleSearch}
-            onFilterPress={handleFilterPress}
-            value={searchQuery}
-          />
-        </View>
-
+      {filteredMatches.length > 0 ? (
         <FlatList
           data={filteredMatches}
           keyExtractor={(item) => item.id}
@@ -154,24 +145,30 @@ const ExploreMatchesScreen: React.FC = () => {
           contentContainerStyle={styles.matchesList}
           showsVerticalScrollIndicator={false}
         />
+      ) : (
+        <View style={styles.noMatchesContainer}>
+          <Text style={styles.noMatchesText}>No matches found for the selected filters.</Text>
+        </View>
+      )}
 
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={closeModal}
-        >
-          <View style={styles.modalOverlay}>
-            <MatchPopup onClose={closeModal} />
-          </View>
-        </Modal>
-      {/* Intégration du FilterPopup */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <MatchPopup onClose={closeModal} />
+        </View>
+      </Modal>
+
       <FilterPopup
-          visible={filterPopupVisible}
-          onClose={() => setFilterPopupVisible(false)}
-          filterOptions={filterOptions}
-          onApplyFilters={handleApplyFilters}
-          title="Filtrer les matchs"
+        visible={filterPopupVisible}
+        onClose={() => setFilterPopupVisible(false)}
+        filterOptions={filterOptions}
+        onApplyFilters={handleApplyFilters}
+        title="Filter Matches"
+        categories={categoriesWithIcons}
       />
     </SafeAreaView>
   );
@@ -198,6 +195,16 @@ const styles = StyleSheet.create({
   },
   matchesList: {
     paddingHorizontal: 16,
+  },
+  noMatchesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 150,
+  },
+  noMatchesText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
 

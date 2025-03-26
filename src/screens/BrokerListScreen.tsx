@@ -1,17 +1,38 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, View, ActivityIndicator, Text } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import FilterPopup, { FilterOption } from "../components/FilterPopup";
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import BrokerListContainer from '../containers/BrokerListContainer';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  brokerFilterCategories,
+  createBrokerFilterOptions,
+  normalizeString
+} from '../data/filterData';
 import { fetchBrokers, setSelectedLocation } from '../store/exchangeBrokerSlice';
-import FilterPopup, {FilterOption} from "../components/FilterPopup";
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 const BrokerListScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+  
+  // Add icons to filter categories
+  const categoriesWithIcons = {
+    ...brokerFilterCategories,
+    broker_city: {
+      ...brokerFilterCategories.broker_city,
+      icon: <Ionicons name="location" size={20} color="#CE1126" />
+    },
+    broker_type: {
+      ...brokerFilterCategories.broker_type,
+      icon: <Ionicons name="business" size={20} color="#CE1126" />
+    }
+  };
 
   // Get data from Redux store
   const {
@@ -22,25 +43,55 @@ const BrokerListScreen: React.FC = () => {
     error
   } = useAppSelector(state => state.exchangeBroker);
 
-  // Filtered brokers based on search query
-  const [filteredBrokers, setFilteredBrokers] = useState(brokers);
-  const [filterVisible, setFilterVisible] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
-    // Créez vos options de filtrage ici, par exemple :
-    {
-      id: 'rating_high',
-      label: 'Casablanca',
-      selected: false,
-      category: 'city'
-    },
-    {
-      id: 'rating_low',
-      label: 'Rabat',
-      selected: false,
-      category: 'city'
-    },
-    // Vous pouvez ajouter d'autres filtres selon vos besoins
-  ]);
+  // Initialize filter options
+  useEffect(() => {
+    if (filterOptions.length === 0) {
+      setFilterOptions(createBrokerFilterOptions());
+    }
+  }, []);
+
+  // Fetch brokers on component mount
+  useEffect(() => {
+    // Fetch brokers with default city (Marrakech)
+    dispatch(fetchBrokers('Marrakech')).unwrap();
+  }, [dispatch]);
+
+  // Get active filters
+  const activeCityFilters = filterOptions
+    .filter(option => option.category === 'broker_city' && option.selected)
+    .map(option => option.id);
+
+  const activeTypeFilters = filterOptions
+    .filter(option => option.category === 'broker_type' && option.selected)
+    .map(option => option.id);
+
+  // Filter brokers based on search query and filters
+  const filteredBrokers = brokers.filter(broker => {
+    // Search match
+    const searchMatch = searchQuery.trim() === '' || 
+      normalizeString(broker.name).includes(normalizeString(searchQuery)) ||
+      normalizeString(broker.address).includes(normalizeString(searchQuery));
+    
+    // City filter - if no city is selected, show all
+    const cityFilter = activeCityFilters.length === 0 ||
+      activeCityFilters.includes(normalizeString(broker.city));
+    
+    // Type filter - if no type is selected, show all
+    // For simplicity, we'll assume all brokers match the type filter
+    // You can refine this based on your actual broker data structure
+    const typeFilter = activeTypeFilters.length === 0;
+    
+    return searchMatch && cityFilter && typeFilter;
+  });
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+  };
+
   const handleFilterPress = () => {
     setFilterVisible(true);
   };
@@ -51,42 +102,22 @@ const BrokerListScreen: React.FC = () => {
 
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
     setFilterOptions(selectedOptions);
-
-    // Appliquez la logique de filtrage ici
-    // Par exemple, vous pouvez filtrer les courtiers en fonction des options sélectionnées
-    const selected = selectedOptions.filter(option => option.selected);
-
-    // Logique de filtrage basée sur les options sélectionnées
-    // ...
-  };
-
-  // Fetch brokers on component mount
-  useEffect(() => {
-    // Fetch brokers with default city (Marrakech)
-    dispatch(fetchBrokers('Marrakech')).unwrap();
-  }, [dispatch]);
-
-  // Filter brokers based on search query
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredBrokers(brokers);
-    } else {
-      const lowercaseQuery = searchQuery.toLowerCase();
-      setFilteredBrokers(
-        brokers.filter(broker =>
-          broker.name.toLowerCase().includes(lowercaseQuery) ||
-          broker.address.toLowerCase().includes(lowercaseQuery)
-        )
+    setFilterVisible(false);
+    
+    // If a city is selected in the filter, update the selected location
+    const selectedCity = selectedOptions
+      .find(option => option.category === 'broker_city' && option.selected);
+    
+    if (selectedCity) {
+      // Find the matching location label from locations array
+      const matchingLocation = locations.find(
+        location => normalizeString(location) === selectedCity.id
       );
+      
+      if (matchingLocation) {
+        dispatch(setSelectedLocation(matchingLocation));
+      }
     }
-  }, [searchQuery, brokers]);
-
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
   };
 
   const handleSelectLocation = (location: string) => {
@@ -95,9 +126,32 @@ const BrokerListScreen: React.FC = () => {
     // If a specific city is selected (not "All Locations"), fetch brokers for that city
     if (location !== 'All Locations') {
       dispatch(fetchBrokers(location));
+      
+      // Update filter options to reflect the selected location
+      setFilterOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.category === 'broker_city') {
+            return {
+              ...option,
+              selected: normalizeString(location) === option.id
+            };
+          }
+          return option;
+        })
+      );
     } else {
       // If "All Locations" is selected, fetch all brokers
       dispatch(fetchBrokers());
+      
+      // Clear city selections in filter
+      setFilterOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.category === 'broker_city') {
+            return { ...option, selected: false };
+          }
+          return option;
+        })
+      );
     }
   };
 
@@ -148,15 +202,14 @@ const BrokerListScreen: React.FC = () => {
           onSelectLocation={handleSelectLocation}
         />
 
-        {/* Ajoutez le popup de filtres */}
         <FilterPopup
-            visible={filterVisible}
-            onClose={handleCloseFilter}
-            filterOptions={filterOptions}
-            onApplyFilters={handleApplyFilters}
-            title="Filtrer les courtiers"
+          visible={filterVisible}
+          onClose={handleCloseFilter}
+          filterOptions={filterOptions}
+          onApplyFilters={handleApplyFilters}
+          title="Filter Brokers"
+          categories={categoriesWithIcons}
         />
-
       </View>
     </SafeAreaView>
   );

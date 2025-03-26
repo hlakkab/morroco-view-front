@@ -89,9 +89,6 @@ const MonumentsListScreen: React.FC = () => {
     // Ajoutez d'autres filtres selon vos besoins
   ]);
 
-
-
-
   // Filter monuments based on search query
   useEffect(() => {
     if (searchQuery.trim() === '') {

@@ -1,21 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, ActivityIndicator, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMonuments, setSelectedMonumentType } from '../store/index';
 
 // Import custom components
+import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import SearchBar from '../components/SearchBar';
 import MonumentListContainer from '../containers/MonumentListContainer';
 
 // Import types
-import { RootStackParamList } from '../types/navigation';
-import { MonumentType } from '../types/Monument';
-import ScreenHeader from '../components/ScreenHeader';
 import ButtonFixe from '../components/ButtonFixe';
+import ScreenHeader from '../components/ScreenHeader';
+import {
+  createMonumentFilterOptions,
+  monumentFilterCategories,
+  normalizeString
+} from '../data/filterData';
+import { Monument, MonumentType } from '../types/Monument';
+import { RootStackParamList } from '../types/navigation';
 
 type MonumentsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Monuments'>;
 
@@ -32,6 +39,32 @@ const MonumentsScreen: React.FC = () => {
   } = useAppSelector(state => state.monument);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+
+  // Add icons to filter categories
+  const categoriesWithIcons = {
+    ...monumentFilterCategories,
+    monument_city: {
+      ...monumentFilterCategories.monument_city,
+      icon: <Ionicons name="location" size={20} color="#CE1126" />
+    },
+    // Commenting out the monument type filter for now
+    // monument_type: {
+    //   ...monumentFilterCategories.monument_type,
+    //   icon: <Ionicons name="business" size={20} color="#CE1126" />
+    // }
+  };
+
+  // Initialize filter options (excluding monument type)
+  useEffect(() => {
+    if (filterOptions.length === 0) {
+      // Get all filter options but only use city options
+      const allOptions = createMonumentFilterOptions();
+      const cityOptions = allOptions.filter(option => option.category === 'monument_city');
+      setFilterOptions(cityOptions);
+    }
+  }, []);
 
   // Fetch monuments when component mounts
   useEffect(() => {
@@ -42,19 +75,92 @@ const MonumentsScreen: React.FC = () => {
     setSearchQuery(text);
   };
 
+  const handleFilterPress = () => {
+    setFilterPopupVisible(true);
+  };
+
+  const handleCloseFilter = () => {
+    setFilterPopupVisible(false);
+  };
+
+  const handleApplyFilters = (selectedOptions: FilterOption[]) => {
+    setFilterOptions(selectedOptions);
+    setFilterPopupVisible(false);
+
+    // Comment out the type filter logic
+    // // Find selected monument type filter if any
+    // const selectedMonumentType = selectedOptions.find(
+    //   option => option.category === 'monument_type' && option.selected
+    // );
+
+    // // Update the Redux store with the selected type if a type is selected
+    // if (selectedMonumentType) {
+    //   const typeValue = selectedMonumentType.id.charAt(0).toUpperCase() + selectedMonumentType.id.slice(1);
+    //   dispatch(setSelectedMonumentType(typeValue as MonumentType | 'All'));
+    // } else {
+    //   // Reset to All if no type is selected
+    //   dispatch(setSelectedMonumentType('All'));
+    // }
+  };
+
+  // Get active filters
+  const activeCityFilters = filterOptions
+    .filter(option => option.category === 'monument_city' && option.selected)
+    .map(option => option.id);
+
+  // Comment out the type filters
+  // const activeTypeFilters = filterOptions
+  //   .filter(option => option.category === 'monument_type' && option.selected)
+  //   .map(option => option.id);
+
   const handleTypeSelection = (type: MonumentType | 'All Types') => {
     // Convert 'All Types' to 'All' to match our Redux state type
     const reduxType = type === 'All Types' ? 'All' : type;
     dispatch(setSelectedMonumentType(reduxType));
+
+    // Comment out the filter options update
+    // // Update filter options to reflect the selected type
+    // if (type !== 'All Types') {
+    //   setFilterOptions(prevOptions =>
+    //     prevOptions.map(option => {
+    //       if (option.category === 'monument_type') {
+    //         return {
+    //           ...option,
+    //           selected: normalizeString(type) === option.id
+    //         };
+    //       }
+    //       return option;
+    //     })
+    //   );
+    // } else {
+    //   // Clear type selections in filter
+    //   setFilterOptions(prevOptions =>
+    //     prevOptions.map(option => {
+    //       if (option.category === 'monument_type') {
+    //         return { ...option, selected: false };
+    //       }
+    //       return option;
+    //     })
+    //   );
+    // }
   };
 
-  // Apply search filter on top of type filter
-  const searchFilteredMonuments = searchQuery.trim() === ''
-    ? monuments
-    : monuments.filter(monument =>
-        monument.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        monument.address.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  // Apply search and city filters on top of type filter
+  const filteredMonuments = monuments.filter(monument => {
+    // Search match
+    const searchMatch = searchQuery.trim() === '' || 
+      normalizeString(monument.name).includes(normalizeString(searchQuery)) ||
+      (monument.description && normalizeString(monument.description).includes(normalizeString(searchQuery))) ||
+      normalizeString(monument.address).includes(normalizeString(searchQuery));
+    
+    // City filter - if no city is selected, show all
+    const cityFilter = activeCityFilters.length === 0 ||
+      activeCityFilters.includes(normalizeString(monument.city));
+    
+    // Type filter is already handled by the Redux state and MonumentListContainer
+    
+    return searchMatch && cityFilter;
+  });
 
   // Render loading state
   if (loading) {
@@ -96,13 +202,22 @@ const MonumentsScreen: React.FC = () => {
           placeholder="Search monuments..."
           onChangeText={handleSearch}
           value={searchQuery}
-          onFilterPress={() => {}}
+          onFilterPress={handleFilterPress}
         />
 
         <MonumentListContainer
-          monuments={monuments}
+          monuments={filteredMonuments}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
+        />
+
+        <FilterPopup
+          visible={filterPopupVisible}
+          onClose={handleCloseFilter}
+          filterOptions={filterOptions}
+          onApplyFilters={handleApplyFilters}
+          title="Filter Monuments"
+          categories={categoriesWithIcons}
         />
       </View>
     </SafeAreaView>

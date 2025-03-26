@@ -1,4 +1,5 @@
 export interface Broker {
+    email: any;
     id: string;
     name: string;
     images: string[];

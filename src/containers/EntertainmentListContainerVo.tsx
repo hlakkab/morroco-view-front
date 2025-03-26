@@ -46,6 +46,14 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
     );
   };
 
+  // Get appropriate message for empty state
+  const getEmptyStateMessage = () => {
+    if (!entertainments || entertainments.length === 0) {
+      return "No entertainment activities available for this city. Try selecting a different city.";
+    }
+    return "No entertainment options match your search or filter criteria. Try adjusting your filters.";
+  };
+
   return (
     <View style={styles.container}>
       {entertainments.length > 0 ? (
@@ -134,7 +142,7 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
       ) : (
         <View style={styles.emptyContainer}>
           <FontAwesome name="search" size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No entertainments found.</Text>
+          <Text style={styles.emptyText}>{getEmptyStateMessage()}</Text>
         </View>
       )}
     </View>
@@ -153,6 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
+    marginBottom: 100,
   },
   emptyText: {
     fontSize: 16,

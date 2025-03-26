@@ -380,7 +380,6 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: '#fff',
         padding: 16,
-        marginTop: 10,
         borderTopRightRadius: 32,
         borderTopLeftRadius: 32,
     },

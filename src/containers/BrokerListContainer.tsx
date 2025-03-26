@@ -2,15 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import CardItem from '../components/cards/CardItem';
+import BrokerCard from '../components/cards/BrokerCard';
 import FilterSelector from '../components/FilterSelector';
-import { RootStackParamList } from '../types/navigation';
+import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
 import { useAppDispatch } from '../store/hooks';
 import { Broker } from '../types/exchange-broker';
-import BrokerCard from '../components/cards/BrokerCard';
-import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
-
-
+import { RootStackParamList } from '../types/navigation';
 
 interface BrokerListContainerProps {
   brokers: Broker[];
@@ -26,21 +23,7 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
   onSelectLocation,
 }) => {
   const dispatch = useAppDispatch();
-  const [filteredBrokers, setFilteredBrokers] = useState<Broker[]>(brokers);
   
-  // Filter brokers based on selected location
-  useEffect(() => {
-    if (selectedLocation === 'All Locations') {
-      setFilteredBrokers(brokers);
-    } else {
-      setFilteredBrokers(brokers.filter(broker => {
-        // Extract city from location (before the comma)
-        const brokerCity = broker.city
-        return brokerCity === selectedLocation;
-      }));
-    }
-  }, [selectedLocation, brokers]);
-
   // Convert locations to filter options format
   const locationOptions = locations.map(location => ({
     id: location,
@@ -83,9 +66,9 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
       
       <Text style={styles.sectionTitle}>Available brokers</Text>
 
-      {filteredBrokers.length > 0 ? (
+      {brokers.length > 0 ? (
         <FlatList
-          data={filteredBrokers}
+          data={brokers}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <BrokerCard item={item} handleSaveBroker={handleSaveBroker} handleBrokerPress={handleBrokerPress} />
@@ -96,7 +79,7 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="search-outline" size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No brokers found in this location</Text>
+          <Text style={styles.emptyText}>No brokers found for the selected filters</Text>
         </View>
       )}
     </View>
@@ -137,6 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
+    marginBottom: 100,
   },
   emptyText: {
     fontSize: 16,
@@ -144,7 +128,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
-  
 });
 
 export default BrokerListContainer; 
