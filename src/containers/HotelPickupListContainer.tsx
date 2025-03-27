@@ -41,18 +41,20 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   const fromCities = [selectedAirport, ...cities.filter(city => city !== selectedFromCity)];
   const toCities = [selectedCity, ...cities.filter(city => city !== selectedToCity)];
 
+  const [reverse, setReverse] = useState(false);
+
   // Convert airports to filter options format
   const airportOptions = fromCities.map(city => ({
     id: city,
-    label: city + ' Airport',
-    icon: <Ionicons name="airplane-outline" size={16} color={selectedAirport === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
+    label: city + (!reverse ? ' Airport' : ''),
+    icon: <Ionicons name={!reverse ? "airplane-outline" : "location-outline"} size={16} color={selectedAirport === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
   }));
 
   // Convert cities to filter options format
   const cityOptions = toCities.map(city => ({
     id: city,
-    label: city,
-    icon: <Ionicons name="location-outline" size={16} color={selectedCity === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
+    label: city + (reverse ? ' Airport' : ''),
+    icon: <Ionicons name={!reverse ? "location-outline" : "airplane-outline"} size={16} color={selectedCity === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
   }));
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -89,17 +91,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
         
         <TouchableOpacity 
           style={styles.swapButton}
-          // onPress={() => {
-          //   const tempCity = selectedAirport;
-          //   setSelectedAirport(_ => {
-          //     onSelectCity(selectedCity, 'from');
-          //     return selectedCity;
-          //   });
-          //   setSelectedCity(_ => {
-          //     onSelectCity(tempCity, 'to');
-          //     return tempCity;
-          //   });
-          // }}
+          onPress={() => setReverse(prev => !prev)}
         >
           <View style={styles.swapButtonInner}>
             <Ionicons name="swap-vertical" size={20} color="#CE1126" />
