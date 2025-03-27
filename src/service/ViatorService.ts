@@ -31,8 +31,7 @@ const listEntertainments = async (cityCode: string = "5408") => {
   return response.data.products;
 };
 
-// Fonction pour récupérer le détail d'un produit
-const getProductDetail = async (productCode: string): Promise<any> => {
+const getProductDetail = async (productCode: string) => {
   const url = `${DETAIL_BASE_URL}/${productCode}?campaign-value=exampleCampaign&target-lander=NONE`;
   const response = await axios.get(url, {
     headers: {

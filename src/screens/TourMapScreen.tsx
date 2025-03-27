@@ -238,12 +238,48 @@ const TourMapScreen: React.FC = () => {
           }
         } catch (error) {
           console.error("Error fetching route", error);
+          // Add a direct line if route fetching fails
+          newRoutes.push([
+            getItemCoordinates(currentItem),
+            getItemCoordinates(nextItem)
+          ]);
         }
       }
       setRoutes(newRoutes);
     };
+
+    // Call fetchRoutes immediately
     fetchRoutes();
+
+    // Set up an interval to refresh routes every 5 seconds
+    const intervalId = setInterval(fetchRoutes, 5000);
+
+    // Cleanup interval on unmount or when dependencies change
+    return () => clearInterval(intervalId);
   }, [displayItems, selectedCity]);
+
+  // Add a new useEffect to handle initial route generation
+  useEffect(() => {
+    if (selectedCity && displayItems.length > 0) {
+      const selectedCityItems = displayItems.filter(item => item.city === selectedCity);
+      if (selectedCityItems.length > 0) {
+        const hotel = selectedCityItems.find(item => item.type === 'hotel');
+        if (hotel) {
+          // Generate initial direct lines between points
+          const initialRoutes = [];
+          for (let i = 0; i < selectedCityItems.length; i++) {
+            const currentItem = selectedCityItems[i];
+            const nextItem = selectedCityItems[(i + 1) % selectedCityItems.length];
+            initialRoutes.push([
+              getItemCoordinates(currentItem),
+              getItemCoordinates(nextItem)
+            ]);
+          }
+          setRoutes(initialRoutes);
+        }
+      }
+    }
+  }, [selectedCity, displayItems]);
 
   const decodePolyline = (encoded: string) => {
     let points = [];
@@ -348,7 +384,15 @@ const TourMapScreen: React.FC = () => {
 
           {/* Draw path between spots */}
           {routes.map((route, index) => (
-            <Polyline key={index} coordinates={route} strokeColor="blue" strokeWidth={3} />
+            <Polyline 
+              key={index} 
+              coordinates={route} 
+              strokeColor="#4dabf7" 
+              strokeWidth={3}
+              lineDashPattern={[1]}
+              geodesic={true}
+              zIndex={1}
+            />
           ))}
         </MapView>
 

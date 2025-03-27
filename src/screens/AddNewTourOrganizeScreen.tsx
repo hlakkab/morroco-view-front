@@ -79,7 +79,7 @@ const mapTourItemToSavedItem = (item: TourItem): SavedItem => {
 const AddNewTourOrganizeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'AddNewTourOrganize'>>();
-  const { title, startDate, endDate, selectedItemsByDay, cities, savedItems } = route.params;
+  const { title, startDate, endDate, selectedItemsByDay, cities, savedItems, viewMode } = route.params;
   const dispatch = useAppDispatch();
   
   const [schedule, setSchedule] = useState<DailySchedule[]>([]);
@@ -307,6 +307,10 @@ const AddNewTourOrganizeScreen: React.FC = () => {
 
   // Add coordinates to items based on city
   const addCoordinatesToItems = (items: TourSavedItem[]): TourSavedItem[] => {
+
+    console.log('items', items);
+
+
     return items.map(item => {
       // If item already has coordinates, use them
       if (item.coordinate) {
@@ -356,12 +360,47 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       return dateStr;
     };
 
+    // Transform date from "Tuesday, March 25, 2025" to "yyyy-mm-dd"
+    const transformDateString = (dateStr: string): string => {
+      const months: { [key: string]: number } = {
+        'January': 0, 'February': 1, 'March': 2, 'April': 3,
+        'May': 4, 'June': 5, 'July': 6, 'August': 7,
+        'September': 8, 'October': 9, 'November': 10, 'December': 11
+      };
+
+      // Split the date string into parts
+      const parts = dateStr.split(', ');
+      if (parts.length !== 3) return dateStr;
+
+      const monthDay = parts[1].split(' ');
+      if (monthDay.length !== 2) return dateStr;
+
+      const month = monthDay[0];
+      const day = parseInt(monthDay[1]);
+      const year = parseInt(parts[2]);
+
+      if (isNaN(day) || isNaN(year) || !months[month]) return dateStr;
+
+      // Create date object (months are 0-based in JavaScript Date)
+      const date = new Date(year, months[month], day);
+      
+      // Format as yyyy-mm-dd
+      return `${year}-${String(months[month] + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    };
+
     // Transform items to use coordinates instead of coordinate
     const transformedItems = itemsWithCoordinates.map(item => {
-      const { coordinate, ...rest } = item;
+      const { coordinate, images, ...rest } = item;
+      // Find the day this item belongs to in the schedule
+      const daySchedule = schedule.find(day => 
+        day.items.some(dayItem => dayItem.id === item.id)
+      );
+      
       return {
         ...rest,
-        coordinates: coordinate ? `${coordinate.latitude},${coordinate.longitude}` : undefined
+        coordinates: coordinate ? `${coordinate.latitude},${coordinate.longitude}` : undefined,
+        date: daySchedule?.date ? transformDateString(daySchedule.date) : undefined,
+        image: images?.[0] || undefined
       };
     });
     
@@ -374,9 +413,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     }));
     
     // Navigate to map view with the items
-    navigation.navigate('TourMapScreen', {
-      tourItems: itemsWithCoordinates
-    });
+    navigation.navigate("Tours")
   };
 
   // Create day options for TourDayHeader
@@ -425,17 +462,25 @@ const AddNewTourOrganizeScreen: React.FC = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TourFlowHeader title="Add New Tour" />
-        </View>
+        {!viewMode ? (
+          <View style={styles.headerContainer}>
+            <TourFlowHeader title="Add New Tour" />
+          </View>
+        ) : (
+          <View style={styles.headerContainer}>
+            <ScreenHeader title="Tour Details" />
+          </View>
+        )}
         
-        <View style={styles.stepProgressContainer}>
-          <StepProgress 
-            steps={steps} 
-            currentStep={2}
-            onStepPress={handleStepPress}
-          />
-        </View>
+        {!viewMode && (
+          <View style={styles.stepProgressContainer}>
+            <StepProgress 
+              steps={steps} 
+              currentStep={2}
+              onStepPress={handleStepPress}
+            />
+          </View>
+        )}
         
         {schedule.length > 0 ? (
           <>
@@ -473,10 +518,6 @@ const AddNewTourOrganizeScreen: React.FC = () => {
                 <TrajectoryButton
                   onPress={handleViewTrajectory}
                   itemCount={schedule[selectedDayIndex].items.length}
-                  // items={schedule[selectedDayIndex].items.map(mapTourItemToSavedItem)}
-                  // onSetTime={(itemIndex: number) => handleSetTime(selectedDayIndex, itemIndex)}
-                  // onSetDuration={(itemIndex: number) => handleSetDuration(selectedDayIndex, itemIndex)}
-                  // onReorderItems={(newItems: SavedItem[]) => handleReorderItems(selectedDayIndex, newItems)}
                 />
               </View>
               
@@ -493,12 +534,14 @@ const AddNewTourOrganizeScreen: React.FC = () => {
           </View>
         )}
         
-        <View style={styles.footer}>
-          <Button 
-            title="Save Tour"
-            onPress={handleSaveTour}
-          />
-        </View>
+        {!viewMode && (
+          <View style={styles.footer}>
+            <Button 
+              title="Save Tour"
+              onPress={handleSaveTour}
+            />
+          </View>
+        )}
         
         {/* Duration Modal - now using the component */}
         <DurationModal

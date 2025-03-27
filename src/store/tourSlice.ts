@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { mapBookmarksToTourSavedItems } from '../utils/bookmarkMapper';
 import { api } from '../service';
-import { TourSavedItem } from '../types/tour';
+import { TourSavedItem, Tour } from '../types/tour';
 // Define interfaces for tour items
 export interface TourItem {
   id: string;
@@ -18,17 +18,6 @@ export interface TourItem {
   };
 }
 
-// Define the Tour interface
-export interface Tour {
-  title: string;
-  startDate: string;
-  endDate: string;
-  destinations?: string[];
-  tourItems?: TourItem[];
-  selectedItemsByDay?: Record<number, string[]>;
-  cities?: Record<number, string>;
-}
-
 // Define the state structure
 export interface TourState {
   currentTour: Tour;
@@ -41,13 +30,18 @@ export interface TourState {
 // Initial state
 const initialState: TourState = {
   currentTour: {
+    id: '',
     title: '',
+    imageUrl: '',
+    city: '',
+    duration: 0,
     startDate: '',
     endDate: '',
     destinations: [],
-    tourItems: [],
-    selectedItemsByDay: {},
-    cities: {},
+    isEditable: true,
+    destinationCount: 0,
+    from: '',
+    to: '',
   },
   savedTours: [],
   // availableItems: [
@@ -189,6 +183,19 @@ export const fetchTours = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch tour details by ID
+export const fetchTourDetails = createAsyncThunk(
+  'tour/fetchTourDetails',
+  async (tourId: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/tours/${tourId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue('Failed to fetch tour details');
+    }
+  }
+);
+
 // Create the slice
 const tourSlice = createSlice({
   name: 'tour',
@@ -255,13 +262,18 @@ const tourSlice = createSlice({
         
         // Reset current tour
         state.currentTour = {
+          id: '',
           title: '',
+          imageUrl: '',
+          city: '',
+          duration: 0,
           startDate: '',
           endDate: '',
           destinations: [],
-          tourItems: [],
-          selectedItemsByDay: {},
-          cities: {},
+          isEditable: true,
+          destinationCount: 0,
+          from: '',
+          to: '',
         };
       }
     },
@@ -269,13 +281,18 @@ const tourSlice = createSlice({
     // Reset the current tour
     resetCurrentTour: (state) => {
       state.currentTour = {
+        id: '',
         title: '',
+        imageUrl: '',
+        city: '',
+        duration: 0,
         startDate: '',
         endDate: '',
         destinations: [],
-        tourItems: [],
-        selectedItemsByDay: {},
-        cities: {},
+        isEditable: true,
+        destinationCount: 0,
+        from: '',
+        to: '',
       };
     },
     
@@ -327,6 +344,27 @@ const tourSlice = createSlice({
       .addCase(fetchTours.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch tours';
+      })
+
+      .addCase(fetchTourDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTourDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the current tour with the fetched details
+        state.currentTour = {
+          ...state.currentTour,
+          ...action.payload,
+          destinations: action.payload.destinations || [],
+          tourItems: action.payload.tourItems || [],
+          selectedItemsByDay: action.payload.selectedItemsByDay || {},
+          cities: action.payload.cities || {},
+        };
+      })
+      .addCase(fetchTourDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch tour details';
       });
   },
 });

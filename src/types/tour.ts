@@ -1,10 +1,14 @@
-export interface Destination {
+import { TourItem } from '../store/tourSlice';
+
+export interface Destination extends TourSavedItem {
   id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
   title: string;
   subtitle?: string;
-  imageUrl?: string;
+  image?: string;
   city: string;
+  date?: string;
+
+
 }
 
 export interface Tour {
@@ -18,12 +22,14 @@ export interface Tour {
   endDate: string;
   totalDestinations?: number;
   destinations: Destination[] | string[];
-  // destinations: TourSavedItem[];
   isEditable: boolean;
   destinationCount: number;
   from: string;
   to: string;
-} 
+  tourItems?: TourItem[];
+  selectedItemsByDay?: Record<number, string[]>;
+  cities?: Record<number, string>;
+}
 
 export interface TourSavedItem {
   id: string;

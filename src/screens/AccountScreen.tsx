@@ -3,6 +3,10 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User } from '../types/user';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigation';
+import { clearTokens } from '../service/KeycloakService';
 
 // Temporary mock user data - replace with actual user data from your auth service
 const mockUser: User = {
@@ -16,14 +20,21 @@ const mockUser: User = {
 };
 
 const AccountScreen: React.FC = () => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
   const handleEditProfile = () => {
     // Implement edit profile functionality
     console.log('Edit profile pressed');
   };
 
-  const handleLogout = () => {
-    // Implement logout functionality
+  const handleLogout = async () => {
     console.log('Logout pressed');
+    try {
+      await clearTokens();
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   return (

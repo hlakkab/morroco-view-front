@@ -79,6 +79,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
   const handleBuyTicket = () => {
     if (currentMatch && currentMatch.id) {
       dispatch(buyTicket(currentMatch.id));
+      onClose();
     } else {
       Alert.alert('Error', 'Cannot purchase ticket for this match');
     }

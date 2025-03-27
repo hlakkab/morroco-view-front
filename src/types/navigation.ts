@@ -3,7 +3,7 @@ import { Event } from "./Event";
 import { Monument } from "./Monument";
 import { Restaurant } from "./Restaurant";
 
-interface SavedItem {
+export interface SavedItem {
     id: string;
     type: 'hotel' | 'restaurant' | 'match' | 'entertainment' | 'monument' | 'money-exchange';
     title: string;
@@ -92,6 +92,7 @@ export type RootStackParamList = {
         selectedItemsByDay: Record<number, string[]>;
         cities: Record<number, string>;
         savedItems: SavedItem[];
+        viewMode?: boolean;
     };
 };
 

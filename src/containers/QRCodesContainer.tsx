@@ -14,10 +14,10 @@ const QRCodesContainer: React.FC<QRCodesContainerProps> = ({ searchQuery = '' })
   const [selectedQrCode, setSelectedQrCode] = useState<QRCode | null>(null);
   
   // Get QR codes from Redux store
-  const { items: qrCodes } = useAppSelector(state => state.qrCodes);
+  const { items } = useAppSelector(state => state.qrCodes);
 
   // Filter QR codes based on search query
-  const filteredQrCodes = qrCodes.filter(qrCode => 
+  const filteredQrCodes = items.filter(qrCode => 
     qrCode.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     qrCode.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -34,7 +34,7 @@ const QRCodesContainer: React.FC<QRCodesContainerProps> = ({ searchQuery = '' })
   return (
     <>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {filteredQrCodes.map(qrCode => (
+        {filteredQrCodes.map((qrCode: QRCode) => (
           <QRCodeCard
             key={qrCode.id}
             title={qrCode.title}

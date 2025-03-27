@@ -14,42 +14,27 @@ import {
     View
 } from 'react-native';
 import { RootStackParamList } from '../types/navigation';
-
-interface Destination {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  imageUrl?: string;
-  city: string;
-}
+import { RootState } from '../store/store';
+import { useSelector } from 'react-redux';
+import { Destination, Tour } from '../types/tour';
+import { SavedItem } from '../types/navigation';
 
 interface TourDetailsModalProps {
   visible: boolean;
-  title: string;
   onClose: () => void;
-  destinations: Destination[];
-  totalDestinations: number;
-  duration: number;
-  startDate: string;
-  endDate: string;
-  
 }
 
 const { width, height } = Dimensions.get('window');
 
 const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   visible,
-  title,
   onClose,
-  destinations = [],
-  totalDestinations = 0,
-  duration = 0,
-  startDate,
-  endDate
 }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [selectedDay, setSelectedDay] = useState(1);
   const [showDayPicker, setShowDayPicker] = useState(false);
+  const { currentTour } = useSelector((state: RootState) => state.tour);
+
   
   // Create animated value for drag gesture
   const pan = React.useRef(new Animated.ValueXY()).current;
@@ -87,7 +72,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   }, [visible, pan]);
 
   // Generate an array of day numbers based on duration
-  const days = Array.from({ length: duration || 1 }, (_, i) => i + 1);
+  
 
   // Get type icon based on destination type
   const getTypeIcon = (type: string) => {
@@ -123,15 +108,52 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
 
   // Handle navigating to timeline preview
   const handleViewTimeline = () => {
+    if (!currentTour) return;
+    
+    const destinations = currentTour.destinations as Destination[];
+    
+    // Group destinations by date
+    const destinationsByDate = destinations.reduce((acc, dest) => {
+      const date = dest.date || 'unknown';
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(dest);
+      return acc;
+    }, {} as Record<string, Destination[]>);
+
+    // Convert to the format expected by AddNewTourOrganizeScreen
+    const selectedItemsByDay: Record<number, string[]> = {};
+    const cities: Record<number, string> = {};
+    const allSavedItems: SavedItem[] = [];
+
+    Object.entries(destinationsByDate).forEach(([date, dayDestinations], index) => {
+      const dayNumber = index + 1;
+      selectedItemsByDay[dayNumber] = dayDestinations.map(d => d.id);
+      cities[dayNumber] = dayDestinations[0]?.city || 'Unknown';
+      
+      // Add items to savedItems with coordinates
+      dayDestinations.forEach(dest => {
+        allSavedItems.push({
+          ...dest,
+          coordinate: {
+            latitude: Number(dest.coordinates?.split(',')[0]) || 0,
+            longitude: Number(dest.coordinates?.split(',')[1]) || 0
+          }
+        });
+      });
+    });
+
     onClose();
-    // Navigate to the organize screen
+    // Navigate to the organize screen with properly organized data
     navigation.navigate('AddNewTourOrganize', {
-      title,
-      startDate,
-      endDate,
-      selectedItemsByDay: { [selectedDay]: destinations.map(d => d.id) },
-      cities: { [selectedDay]: destinations[0]?.city || 'Unknown' },
-      savedItems: destinations
+      title: currentTour.title,
+      startDate: currentTour.from,
+      endDate: currentTour.to,
+      selectedItemsByDay,
+      cities,
+      savedItems: allSavedItems,
+      viewMode: true,
     });
   };
 
@@ -142,15 +164,23 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   };
 
   // Filter destinations based on the selected day (in a real app, this would use day-specific data)
-  const filteredDestinations = destinations.slice(0, selectedDay + 1);
+  const destinations = currentTour?.destinations as Destination[] || [];
+  
+
+  const dates = [...new Set(destinations.map(d => d.date))];
+  const days = Array.from({ length: dates.length || 1 }, (_, i) => i + 1);
+
+  const filteredDestinations = destinations.filter(d => d.date === dates[selectedDay - 1]);
+
+  console.log('dates', dates);
 
   // Render destination item in list
   const renderDestinationItem = ({ item }: { item: Destination }) => (
     <View style={styles.destinationItem}>
       <View style={styles.destinationImageContainer}>
-        {(item.imageUrl || getDefaultImageForType(item.type)) ? (
+        {(item.image || getDefaultImageForType(item.type)) ? (
           <Image 
-            source={{ uri: item.imageUrl || getDefaultImageForType(item.type) }} 
+            source={{ uri: item.image || getDefaultImageForType(item.type) }} 
             style={styles.destinationImage} 
           />
         ) : (
@@ -205,7 +235,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
             <View style={styles.modalHeader}>
               <View style={styles.titleContainer}>
                 <Text style={styles.modalTitle} numberOfLines={1} ellipsizeMode="tail">
-                  {title}
+                  {currentTour?.title || ''}
                 </Text>
               </View>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -219,17 +249,17 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
             <View style={styles.tourInfoContainer}>
               <View style={styles.tourInfoItem}>
                 <Feather name="map-pin" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{totalDestinations} destinations</Text>
+                <Text style={styles.infoText}>{destinations.length} destinations</Text>
               </View>
               <View style={styles.tourInfoDivider} />
               <View style={styles.tourInfoItem}>
                 <Feather name="calendar" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{duration} {duration === 1 ? 'day' : 'days'}</Text>
+                <Text style={styles.infoText}>{days.length} {days.length === 1 ? 'day' : 'days'}</Text>
               </View>
               <View style={styles.tourInfoDivider} />
               <View style={styles.tourInfoItem}>
                 <Feather name="clock" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{startDate} - {endDate}</Text>
+                <Text style={styles.infoText}>{currentTour?.startDate || ''} - {currentTour?.endDate || ''}</Text>
               </View>
             </View>
 
@@ -458,7 +488,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    padding: 12,
+    
     borderRadius: 12,
     marginBottom: 12,
     elevation: 2,
@@ -468,8 +498,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   destinationImageContainer: {
-    width: 56,
-    height: 56,
+    width: 100,
+    height: 75,
     borderRadius: 8,
     overflow: 'hidden',
     marginRight: 12,

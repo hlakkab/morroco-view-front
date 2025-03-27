@@ -2,19 +2,19 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchTours} from '../store/tourSlice';
+import { fetchTours, fetchTourDetails } from '../store/tourSlice';
 import TourDetailsModal from '../components/TourDetailsModal';
 import TourCard from '../components/cards/TourCard';
 import { Destination, Tour } from '../types/tour';
-
 
 const TourListContainer: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
 
-  const { savedTours, loading, error } = useAppSelector((state) => state.tour);
+  const { savedTours, loading, error, currentTour } = useAppSelector((state) => state.tour);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   // Sample destinations data with real online images
   const destinations: Destination[] = [
@@ -78,13 +78,23 @@ const TourListContainer: React.FC = () => {
     dispatch(fetchTours());
   }, [dispatch]);
 
-  const handleTourPress = (tour: Tour) => {
-    setSelectedTour(tour);
-    setModalVisible(true);
+  const handleTourPress = async (tour: Tour) => {
+    try {
+      setIsLoadingDetails(true);
+      await dispatch(fetchTourDetails(tour.id)).unwrap();
+      setSelectedTour(currentTour);
+      setModalVisible(true);
+    } catch (error) {
+      console.error('Error fetching tour details:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoadingDetails(false);
+    }
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
+    setSelectedTour(null);
   };
 
   const renderTourCard = ({ item }: { item: Tour }) => (
@@ -130,16 +140,16 @@ const TourListContainer: React.FC = () => {
         showsVerticalScrollIndicator={false}
       />
 
+      {isLoadingDetails && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#AE1913" />
+        </View>
+      )}
+
       {selectedTour && (
         <TourDetailsModal
           visible={modalVisible}
-          title={selectedTour.title}
           onClose={handleCloseModal}
-          destinations={selectedTour.destinations as Destination[]}
-          totalDestinations={selectedTour.totalDestinations || 0}
-          duration={selectedTour.duration}
-          startDate={selectedTour.startDate}
-          endDate={selectedTour.endDate}
         />
       )}
     </View>
@@ -149,6 +159,16 @@ const TourListContainer: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
+  },
+  listContent: {
+    paddingBottom: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -160,34 +180,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  errorText: {
+    color: '#E53935',
+    fontSize: 16,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  errorText: {
-    color: '#AE1913',
-    fontSize: 16,
-  },
   emptyText: {
-    color: '#666',
     fontSize: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 16,
     color: '#666',
   },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#666',
-    marginBottom: 16,
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  listContent: {
-    paddingBottom: 16,
-  }
 });
 
 export default TourListContainer; 
