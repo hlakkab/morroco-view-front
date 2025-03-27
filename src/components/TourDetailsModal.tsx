@@ -174,6 +174,35 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
 
   console.log('dates', dates);
 
+  // Function to format date as "DD MMM"
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  // Function to format date range
+  const formatDateRange = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return '';
+    try {
+      const start = new Date(startDate.replace(/\//g, '-'));
+      const end = new Date(endDate.replace(/\//g, '-'));
+      return `${formatDate(start)} - ${formatDate(end)}`;
+    } catch (e) {
+      console.error("Error formatting date range:", e);
+      return `${startDate} - ${endDate}`;
+    }
+  };
+
+  // Function to get date for a specific day
+  const getDateForDay = (day: number) => {
+    if (!currentTour?.from) return '';
+    const date = new Date(currentTour.from.replace(/\//g, '-'));
+    date.setDate(date.getDate() + (day - 1));
+    return formatDate(date);
+  };
+
   // Render destination item in list
   const renderDestinationItem = ({ item }: { item: Destination }) => (
     <View style={styles.destinationItem}>
@@ -208,7 +237,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
       style={styles.dayOption}
       onPress={() => handleDaySelect(item)}
     >
-      <Text style={styles.dayOptionText}>Day {item}</Text>
+      <Text style={styles.dayOptionText}>{getDateForDay(item)}</Text>
     </TouchableOpacity>
   );
 
@@ -259,7 +288,9 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
               <View style={styles.tourInfoDivider} />
               <View style={styles.tourInfoItem}>
                 <Feather name="clock" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{currentTour?.startDate || ''} - {currentTour?.endDate || ''}</Text>
+                <Text style={styles.infoText}>
+                  {formatDateRange(currentTour?.from || '', currentTour?.to || '')}
+                </Text>
               </View>
             </View>
 
@@ -273,7 +304,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
                   style={styles.dayDropdown}
                   onPress={() => setShowDayPicker(!showDayPicker)}
                 >
-                  <Text style={styles.dayDropdownText}>Day {selectedDay}</Text>
+                  <Text style={styles.dayDropdownText}>{getDateForDay(selectedDay)}</Text>
                   <Feather 
                     name={showDayPicker ? "chevron-up" : "chevron-down"} 
                     size={16} 

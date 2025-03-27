@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Entertainment } from '../types/Entertainment';
 import ViatorService from '../service/ViatorService';
+import { addBookmark, removeBookmark } from './bookmarkSlice';
 
 // Structure de l'état
 export interface EntertainmentState {
@@ -24,13 +25,14 @@ const initialState: EntertainmentState = {
 const adaptApiData = (apiData: any): Entertainment => {
   // S'assurer que tous les champs nécessaires existent
   return {
+    saved: apiData.saved,
     id: apiData.productCode,
     productCode: apiData.productCode,
     title: apiData.title || 'Unknown Title',
     description: apiData.description || '',
     location: apiData.location?.name || 'Morocco', // Si non fourni, valeur par défaut
     images: apiData.images || [],
-    city: apiData.city ,
+    city: apiData.city,
     pricing: apiData.pricing || { 
       summary: { 
         fromPrice: 0, 
@@ -51,7 +53,7 @@ export const fetchEntertainments = createAsyncThunk(
   'entertainment/fetchEntertainments',
   async (cityCode: string, { rejectWithValue }) => {
     try {
-      const response = await ViatorService.listEntertainments(cityCode);
+      const response = await ViatorService.listEntertainments();
       return response.map(adaptApiData);
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch entertainments');
@@ -68,6 +70,23 @@ export const fetchEntertainmentDetail = createAsyncThunk(
       return adaptApiData(response);
     } catch (error: any) {
       return rejectWithValue(error.message || `Failed to fetch entertainment detail for ${productCode}`);
+    }
+  }
+);
+
+// Async thunk for toggling an entertainment bookmark
+export const toggleEntertainmentBookmark = createAsyncThunk(
+  'entertainment/toggleBookmark',
+  async (entertainment: Entertainment, { dispatch }) => {
+    try {
+      if (entertainment.saved) {
+        await dispatch(removeBookmark(entertainment.productCode)).unwrap();
+      } else {
+        await dispatch(addBookmark({ elementId: entertainment.productCode, type: 'ACTIVITY' })).unwrap();
+      }
+      return entertainment.productCode;
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to toggle bookmark');
     }
   }
 );
@@ -112,6 +131,39 @@ const entertainmentSlice = createSlice({
       .addCase(fetchEntertainmentDetail.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string || 'Failed to fetch entertainment detail';
+      })
+      
+      // Toggle entertainment bookmark
+      .addCase(toggleEntertainmentBookmark.pending, (state, action) => {
+        state.error = null;
+        // Optimistic update - toggle the saved flag immediately
+        const entertainmentId = action.meta.arg.productCode;
+        const entertainment = state.entertainments.find(e => e.productCode === entertainmentId);
+        if (entertainment) {
+          entertainment.saved = !entertainment.saved;
+        }
+        
+        // Also update selected entertainment if it exists
+        if (state.selectedEntertainment?.productCode === entertainmentId) {
+          state.selectedEntertainment.saved = !state.selectedEntertainment.saved;
+        }
+      })
+      .addCase(toggleEntertainmentBookmark.fulfilled, (state) => {
+        // No need to toggle again since we already did it in pending
+      })
+      .addCase(toggleEntertainmentBookmark.rejected, (state, action) => {
+        // Revert the optimistic update if the action fails
+        const entertainmentId = action.meta.arg.productCode;
+        const entertainment = state.entertainments.find(e => e.productCode === entertainmentId);
+        if (entertainment) {
+          entertainment.saved = !entertainment.saved;
+        }
+        
+        // Also revert selected entertainment if it exists
+        if (state.selectedEntertainment?.productCode === entertainmentId) {
+          state.selectedEntertainment.saved = !state.selectedEntertainment.saved;
+        }
+        state.error = action.error.message || 'Failed to toggle bookmark';
       });
   },
 });

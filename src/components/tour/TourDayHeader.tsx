@@ -16,6 +16,7 @@ interface TourDayHeaderProps {
   onSelectDay: (day: number) => void;
   onPrevDay: () => void;
   onNextDay: () => void;
+  startDate: string;
 }
 
 const TourDayHeader: React.FC<TourDayHeaderProps> = ({
@@ -24,12 +25,28 @@ const TourDayHeader: React.FC<TourDayHeaderProps> = ({
   selectedDay,
   onSelectDay,
   onPrevDay,
-  onNextDay
+  onNextDay,
+  startDate,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   
   // Find the currently selected day
   const currentDay = days.find(day => day.id === selectedDay) || days[0];
+  
+  // Function to format date as "DD MMM"
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  // Function to get date for a specific day
+  const getDateForDay = (day: number) => {
+    const date = new Date(startDate.replace(/\//g, '-'));
+    date.setDate(date.getDate() + (day - 1));
+    return formatDate(date);
+  };
   
   const handleSelectDay = (dayId: number) => {
     onSelectDay(dayId);
@@ -59,7 +76,7 @@ const TourDayHeader: React.FC<TourDayHeaderProps> = ({
         >
           <View style={styles.daySelectorContent}>
             <View style={styles.dayBadge}>
-              <Text style={styles.dayBadgeText}>Day {currentDay?.id}</Text>
+              <Text style={styles.dayBadgeText}>{getDateForDay(currentDay?.id || 1)}</Text>
             </View>
             <Text style={styles.cityText} numberOfLines={1}>{currentDay?.city}</Text>
             <Feather name="chevron-down" size={16} color="#666" style={styles.dropdownIcon} />
@@ -118,7 +135,7 @@ const TourDayHeader: React.FC<TourDayHeaderProps> = ({
                         styles.dayOptionBadgeText,
                         item.id === selectedDay && styles.selectedDayOptionBadgeText
                       ]}>
-                        Day {item.id}
+                        {getDateForDay(item.id)}
                       </Text>
                     </View>
                     <View style={styles.dayOptionTextContainer}>
@@ -127,9 +144,6 @@ const TourDayHeader: React.FC<TourDayHeaderProps> = ({
                         item.id === selectedDay && styles.selectedDayOptionCity
                       ]}>
                         {item.city}
-                      </Text>
-                      <Text style={styles.dayOptionDate}>
-                        {item.date.split(',')[0]}
                       </Text>
                     </View>
                   </View>
@@ -294,11 +308,6 @@ const styles = StyleSheet.create({
   },
   selectedDayOptionCity: {
     fontWeight: '600',
-  },
-  dayOptionDate: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
   },
 });
 

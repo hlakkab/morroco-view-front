@@ -18,6 +18,36 @@ const CITY_COORDINATES = {
   'Agadir': { latitude: 30.427755, longitude: -9.598107 },
 };
 
+// Predefined colors for routes
+const ROUTE_COLORS = [
+  '#FF6B6B', // Coral Red
+  '#4ECDC4', // Turquoise
+  '#45B7D1', // Sky Blue
+  '#96CEB4', // Sage Green
+  '#FFEEAD', // Cream Yellow
+  '#D4A5A5', // Dusty Rose
+  '#9B59B6', // Purple
+  '#3498DB', // Blue
+  '#E67E22', // Orange
+  '#2ECC71', // Green
+];
+
+// Function to shuffle array
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Function to get a color for a route
+const getRouteColor = (index: number): string => {
+  const shuffledColors = shuffleArray(ROUTE_COLORS);
+  return shuffledColors[index % shuffledColors.length];
+};
+
 // Hotels coordinates for each city
 const HOTELS_BY_CITY = {
   'Marrakech': {
@@ -40,9 +70,17 @@ const HOTELS_BY_CITY = {
 
 // Function to get precise coordinates based on title or use city coordinates as fallback
 const getItemCoordinates = (item: any): {latitude: number, longitude: number} => {
-  // If item already has coordinates, use them
-  if (item.coordinate) {
+  // If item already has coordinates in the correct format, use them
+  if (item.coordinate && typeof item.coordinate.latitude === 'number' && typeof item.coordinate.longitude === 'number') {
     return item.coordinate;
+  }
+  
+  // If coordinates are in string format, parse them
+  if (item.coordinates) {
+    const [latitude, longitude] = item.coordinates.split(',').map(Number);
+    if (!isNaN(latitude) && !isNaN(longitude)) {
+      return { latitude, longitude };
+    }
   }
   
   // Check for hotel coordinates
@@ -130,7 +168,7 @@ const TourMapScreen: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TourMapScreen'>>();
   const { tourItems } = route.params || { tourItems: [] };
   
-  const [routes, setRoutes] = useState<any[]>([]);
+  const [routes, setRoutes] = useState<Array<{points: any[], color: string}>>([]);
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [displayItems, setDisplayItems] = useState<Array<any>>(tourItems);
   const [filteredCities, setFilteredCities] = useState<string[]>([]);
@@ -234,15 +272,21 @@ const TourMapScreen: React.FC = () => {
           const response = await axios.get(url);
           if (response.data.routes.length > 0) {
             const points = response.data.routes[0].overview_polyline.points;
-            newRoutes.push(decodePolyline(points));
+            newRoutes.push({
+              points: decodePolyline(points),
+              color: getRouteColor(i)
+            });
           }
         } catch (error) {
           console.error("Error fetching route", error);
           // Add a direct line if route fetching fails
-          newRoutes.push([
-            getItemCoordinates(currentItem),
-            getItemCoordinates(nextItem)
-          ]);
+          newRoutes.push({
+            points: [
+              getItemCoordinates(currentItem),
+              getItemCoordinates(nextItem)
+            ],
+            color: getRouteColor(i)
+          });
         }
       }
       setRoutes(newRoutes);
@@ -258,7 +302,7 @@ const TourMapScreen: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [displayItems, selectedCity]);
 
-  // Add a new useEffect to handle initial route generation
+  // Update the initial route generation useEffect
   useEffect(() => {
     if (selectedCity && displayItems.length > 0) {
       const selectedCityItems = displayItems.filter(item => item.city === selectedCity);
@@ -270,10 +314,13 @@ const TourMapScreen: React.FC = () => {
           for (let i = 0; i < selectedCityItems.length; i++) {
             const currentItem = selectedCityItems[i];
             const nextItem = selectedCityItems[(i + 1) % selectedCityItems.length];
-            initialRoutes.push([
-              getItemCoordinates(currentItem),
-              getItemCoordinates(nextItem)
-            ]);
+            initialRoutes.push({
+              points: [
+                getItemCoordinates(currentItem),
+                getItemCoordinates(nextItem)
+              ],
+              color: getRouteColor(i)
+            });
           }
           setRoutes(initialRoutes);
         }
@@ -382,14 +429,14 @@ const TourMapScreen: React.FC = () => {
             </Marker>
           ))}
 
-          {/* Draw path between spots */}
+          {/* Draw path between spots with different colors */}
           {routes.map((route, index) => (
             <Polyline 
               key={index} 
-              coordinates={route} 
-              strokeColor="#4dabf7" 
-              strokeWidth={3}
-              lineDashPattern={[1]}
+              coordinates={route.points} 
+              strokeColor={route.color}
+              strokeWidth={5}
+              
               geodesic={true}
               zIndex={1}
             />

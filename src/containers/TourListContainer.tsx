@@ -23,35 +23,35 @@ const TourListContainer: React.FC = () => {
       type: 'hotel',
       title: 'Four Seasons Hotel',
       city: 'Casablanca',
-      imageUrl: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/223648290.jpg?k=d7042c5905373d5f217992f67cfb1a1a5a5559a0a2ad4b3ce7536e2848a1bc37&o=&hp=1'
+      image: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/223648290.jpg?k=d7042c5905373d5f217992f67cfb1a1a5a5559a0a2ad4b3ce7536e2848a1bc37&o=&hp=1'
     },
     {
       id: '2',
       type: 'restaurant',
       title: 'Köyă Restaurant',
       city: 'Marrakech',
-      imageUrl: 'https://media-cdn.tripadvisor.com/media/photo-p/1c/cc/51/db/koya.jpg'
+      image: 'https://media-cdn.tripadvisor.com/media/photo-p/1c/cc/51/db/koya.jpg'
     },
     {
       id: '3',
       type: 'match',
       title: 'Morocco Vs Comores',
       city: 'Rabat',
-      imageUrl: 'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg'
+      image: 'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg'
     },
     {
       id: '4',
       type: 'entertainment',
       title: 'Desert Safari',
       city: 'Marrakech',
-      imageUrl: 'https://images.pexels.com/photos/4062561/pexels-photo-4062561.jpeg'
+      image: 'https://images.pexels.com/photos/4062561/pexels-photo-4062561.jpeg'
     },
     {
       id: '5',
       type: 'hotel',
       title: 'Mamounia Palace',
       city: 'Marrakech',
-      imageUrl: 'https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg'
+      image: 'https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg'
     }
   ];
 

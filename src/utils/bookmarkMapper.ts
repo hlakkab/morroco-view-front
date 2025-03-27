@@ -4,6 +4,7 @@ import { Restaurant } from '../types/Restaurant';
 import { Match } from '../types/match';
 import { Broker } from '../types/exchange-broker';
 import { TourSavedItem } from '../types/tour';
+import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 // Define the SavedItem type for tours
 
 
@@ -97,6 +98,30 @@ const mapMatchToSavedItem = (match: Match, images?: string[]): TourSavedItem => 
 };
 
 /**
+ * Maps an Entertainment object to a TourSavedItem
+ */
+const mapEntertainmentToSavedItem = (entertainment: any): TourSavedItem => {
+  // Parse coordinates if they exist in string format
+  let coordinate;
+  if (entertainment.coordinates) {
+    const [latitude, longitude] = entertainment.coordinates.split(',').map(Number);
+    if (!isNaN(latitude) && !isNaN(longitude)) {
+      coordinate = { latitude, longitude };
+    }
+  }
+
+  return {
+    id: entertainment.id || entertainment.productCode,
+    type: 'entertainment',
+    title: entertainment.name,
+    subtitle: entertainment.location,
+    images: entertainment.images, 
+    city: capitalizeCity(entertainment.city),
+    coordinate
+  };
+};
+
+/**
  * Maps a Bookmark to a TourSavedItem based on its type
  * @param bookmark The bookmark to map
  * @returns A TourSavedItem or undefined if the type is not supported
@@ -116,6 +141,8 @@ export const mapBookmarkToTourSavedItem = (bookmark: Bookmark): TourSavedItem | 
       return mapBrokerToSavedItem(bookmark.object as Broker, bookmark.images);
     case 'match':
       return mapMatchToSavedItem(bookmark.object as Match, bookmark.images);
+    case 'entertainment':
+      return mapEntertainmentToSavedItem(bookmark.object as Entertainment);
     default:
       console.warn(`Unsupported bookmark type: ${bookmark.type}`);
       return undefined;

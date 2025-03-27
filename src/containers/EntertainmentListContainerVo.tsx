@@ -1,35 +1,34 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import CardItem from '../components/cards/CardItem';
 import SaveButton from '../components/SaveButton';
 import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
+import { useAppDispatch } from '../store/hooks';
+import { toggleEntertainmentBookmark, setSelectedEntertainment } from '../store/entertainmentSlice';
 
 interface EntertainmentListContainerProps {
   entertainments: Entertainment[];
 }
 
 const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = ({ entertainments }) => {
-  const [savedEntertainments, setSavedEntertainments] = useState<Record<string, boolean>>({});
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useAppDispatch();
 
-  // Modification : On passe productCode et title à l'écran de détail pour permettre la récupération du détail complet
   const handleEntertainmentPress = (ent: Entertainment) => {
+    dispatch(setSelectedEntertainment(ent));
     navigation.navigate('EntertainmentDetail', {
       productCode: ent.productCode,
       title: ent.title,
     });
   };
 
-  const handleSaveEntertainment = (id: string) => {
-    setSavedEntertainments(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const handleSaveEntertainment = (ent: Entertainment) => {
+    dispatch(toggleEntertainmentBookmark(ent));
   };
 
   const renderStars = (entertainment: Entertainment) => {
@@ -131,8 +130,8 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
                 containerStyle={{ marginBottom: 16 }}
               />
               <SaveButton
-                onPress={() => handleSaveEntertainment(item.productCode)}
-                isSaved={savedEntertainments[item.productCode]}
+                onPress={() => handleSaveEntertainment(item)}
+                isSaved={item.saved}
               />
             </View>
           )}

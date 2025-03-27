@@ -17,6 +17,7 @@ import { Bookmark } from '../types/bookmark';
 import { Match } from '../types/match';
 import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
+import EntertainmentSmallCard from '../components/cards/EntertainmentSmallCard';
 
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
@@ -154,6 +155,17 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
                   item={{...item.object, images: item.images, saved: true}}
                   handleSaveMonument={handleSaveBookmark}
                   handleMonumentPress={handleCardPress}
+                />
+              )
+            }
+
+            if (item.type === 'ENTERTAINMENT') {
+              console.log('item', item);
+              return (
+                <EntertainmentSmallCard
+                  entertainment={{...item.object, saved: true}}
+                  handleSaveEntertainment={handleSaveBookmark}
+                  handleEntertainmentPress={handleCardPress}
                 />
               )
             }

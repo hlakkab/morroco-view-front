@@ -124,7 +124,6 @@ export const fetchBookmarksAsItems = createAsyncThunk(
       
       // Map bookmarks to saved items format
       const savedItems = mapBookmarksToTourSavedItems(bookmarks);
-
       
       // Transform the saved items to match TourItem type if needed
       const tourItems: TourItem[] = savedItems.map(item => ({

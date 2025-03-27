@@ -219,7 +219,6 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       // Use the extracted utility function
       const days = calculateDaysInclusive(startDate, endDate);
       setTotalDays(days);
-      console.log('days', days);
       
       // Initialize selected cities and items for all days
       const initialCities: Record<number, string> = {};
@@ -391,6 +390,8 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     );
   }, [selectedItemsByDay]);
 
+  
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -419,6 +420,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
           selectedDay={selectedDay}
           getDayStatus={getDayStatus}
           onSelectDay={setSelectedDay}
+          startDate={startDate}
         />
 
         {/* City Selector Component */}
@@ -428,6 +430,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
           selectedDay={selectedDay}
           isLocked={isCityLockedForCurrentDay}
           onCityChange={handleCityChange}
+          startDate={startDate}
         />
 
         {/* Loading State */}

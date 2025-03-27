@@ -492,6 +492,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
                 onSelectDay={handleSelectDay}
                 onPrevDay={handlePrevDay}
                 onNextDay={handleNextDay}
+                startDate={startDate}
               />
             </View>
             

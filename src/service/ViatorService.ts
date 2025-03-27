@@ -1,13 +1,14 @@
 // service/ViatorService.ts
 import axios from "axios";
 import { Entertainment } from "../types/Entertainment";
+import api from "./ApiProxy";
 
 const BASE_URL = "https://api.viator.com/partner/products/search";
 const DETAIL_BASE_URL = "https://api.viator.com/partner/products";
 const API_KEY = "964e58e6-cc92-459a-9b48-d8136be1c08d";
 
 
-const listEntertainments = async (cityCode: string = "5408") => {
+const listEntertainments0 = async (cityCode: string = "5408") => {
   const response = await axios.post<{ products: Entertainment[] }>(
     BASE_URL, {
       filtering: {
@@ -29,6 +30,12 @@ const listEntertainments = async (cityCode: string = "5408") => {
     }
   );
   return response.data.products;
+};
+
+const listEntertainments = async () => {
+  const response = await api.get<Entertainment[]>("/activities");
+  console.log('response', response.data[0].saved);
+  return response.data;
 };
 
 const getProductDetail = async (productCode: string) => {
