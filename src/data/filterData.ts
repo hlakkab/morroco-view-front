@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FilterCategory, FilterOption } from '../components/FilterPopup';
+import { ArtisanType } from '../types/Artisan';
 import { MonumentType } from '../types/Monument';
 
 // Cities data
@@ -53,6 +54,16 @@ export const monumentTypes = [
     { id: MonumentType.Architectural, label: 'Architectural' },
     { id: MonumentType.Modern, label: 'Modern' },
     { id: MonumentType.Archaeological, label: 'Archaeological' }
+];
+
+// Artisan types data
+export const artisanTypes = [
+    { id: ArtisanType.Leather, label: 'Leather' },
+    { id: ArtisanType.Pottery, label: 'Pottery' },
+    { id: ArtisanType.Carpets, label: 'Carpets' },
+    { id: ArtisanType.Metalwork, label: 'Metalwork' },
+    { id: ArtisanType.Woodwork, label: 'Woodwork' },
+    { id: ArtisanType.Textiles, label: 'Textiles' }
 ];
 
 /**
@@ -141,6 +152,27 @@ export const createMonumentFilterOptions = (): FilterOption[] => {
 };
 
 /**
+ * Creates filter options for artisans
+ */
+export const createArtisanFilterOptions = (): FilterOption[] => {
+    const cityOptions = cities.map(city => ({
+        id: normalizeString(city.id),
+        label: city.label,
+        selected: false,
+        category: 'artisan_city'
+    }));
+
+    const typeOptions = artisanTypes.map(type => ({
+        id: normalizeString(type.id as string),
+        label: type.label,
+        selected: false,
+        category: 'artisan_type'
+    }));
+
+    return [...cityOptions, ...typeOptions];
+};
+
+/**
  * Filter categories for matches
  * Icons should be added in the component
  */
@@ -192,6 +224,21 @@ export const monumentFilterCategories: Record<string, FilterCategory> = {
     },
     monument_type: {
         key: 'monument_type',
+        label: 'By Type'
+    }
+};
+
+/**
+ * Filter categories for artisans
+ * Icons should be added in the component
+ */
+export const artisanFilterCategories: Record<string, FilterCategory> = {
+    artisan_city: {
+        key: 'artisan_city',
+        label: 'By City'
+    },
+    artisan_type: {
+        key: 'artisan_type',
         label: 'By Type'
     }
 }; 

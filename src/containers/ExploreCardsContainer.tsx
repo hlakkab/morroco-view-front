@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, StyleProp, ViewStyle, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { Dimensions, ImageBackground, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 // Example JPG imports - replace these with your actual paths
 const monumentsImage = require('../assets/exploreBgImgs/monuments.jpg');
