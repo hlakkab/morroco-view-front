@@ -159,6 +159,51 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
     });
   };
 
+  // Handle navigating to map view
+  const handleViewMap = () => {
+    if (!currentTour) return;
+    
+    const destinations = currentTour.destinations as Destination[];
+    
+    // Group destinations by date
+    const destinationsByDate = destinations.reduce((acc, dest) => {
+      const date = dest.date || 'unknown';
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(dest);
+      return acc;
+    }, {} as Record<string, Destination[]>);
+
+    // Convert destinations to SavedItems with coordinates and day information
+    const allSavedItems: SavedItem[] = destinations.map(dest => {
+      const date = dest.date || 'unknown';
+      const dayNumber = Object.keys(destinationsByDate).indexOf(date) + 1;
+      
+      return {
+        ...dest,
+        day: dayNumber,
+        coordinate: {
+          latitude: Number(dest.coordinates?.split(',')[0]) || 0,
+          longitude: Number(dest.coordinates?.split(',')[1]) || 0
+        }
+      };
+    });
+
+    // Sort items by day to ensure proper order
+    allSavedItems.sort((a, b) => (a.day || 1) - (b.day || 1));
+
+    onClose();
+    navigation.navigate('TourMapScreen', {
+      tourItems: allSavedItems,
+      title: currentTour.title,
+      singleDayView: true,
+      selectedDay: 1,
+      totalDays: Object.keys(destinationsByDate).length,
+      destinationsByDate
+    });
+  };
+
   // Select a day and close the picker
   const handleDaySelect = (day: number) => {
     setSelectedDay(day);
@@ -344,6 +389,14 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
             />
 
             {/* Preview timeline button */}
+            <TouchableOpacity
+              style={styles.mapButton}
+              onPress={handleViewMap}
+            >
+              <Feather name="map" size={20} color="#FFF" style={styles.buttonIcon} />
+              <Text style={styles.mapButtonText}>View on Map</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.previewButton}
               onPress={handleViewTimeline}
@@ -591,6 +644,23 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  mapButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 14,
+    borderRadius: 50,
+    alignItems: 'center',
+    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  mapButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
 });
 

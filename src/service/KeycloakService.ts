@@ -221,7 +221,7 @@ const getUserInfo = async () => {
       lastName: decodedToken.family_name || '',
       email: decodedToken.email || '',
       phoneNumber: decodedToken.phone_number || '',
-      profilePicture: decodedToken.picture || '',
+      profilePicture: decodedToken.profile_pic || '',
       createdAt: decodedToken.created_at || new Date().toISOString(),
       updatedAt: decodedToken.updated_at || new Date().toISOString(),
     };

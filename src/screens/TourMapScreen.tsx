@@ -20,16 +20,16 @@ const CITY_COORDINATES = {
 
 // Predefined colors for routes
 const ROUTE_COLORS = [
-  '#8B0000', // Dark Red
-  '#FF8C00', // Dark Orange
-  '#DAA520', // Dark Goldenrod (Dark Yellow)
-  '#B8860B', // Dark Goldenrod (Darker Yellow)
-  '#8B4513', // Saddle Brown
-  '#CD853F', // Peru (Dark Orange-Brown)
-  '#D2691E', // Chocolate (Dark Orange)
-  '#8B008B', // Dark Magenta
-  '#BDB76B', // Dark Khaki (Dark Yellow)
-  '#8B0000', // Dark Red
+  '#1E90FF', // Dodger Blue (Bright)
+  '#4169E1', // Royal Blue
+  '#0000CD', // Medium Blue
+  '#00008B', // Dark Blue
+  '#000080', // Navy Blue
+  '#191970', // Midnight Blue
+  '#1E3D59', // Deep Blue
+  '#2C3E50', // Dark Blue-Gray
+  '#34495E', // Steel Blue
+  '#2B6CB0', // Ocean Blue
 ];
 
 // Function to shuffle array
@@ -169,8 +169,9 @@ const TourMapScreen: React.FC = () => {
   
   const [routes, setRoutes] = useState<Array<{points: any[], color: string}>>([]);
   const [selectedDay, setSelectedDay] = useState<number>(1);
-  const [displayItems, setDisplayItems] = useState<Array<any>>(tourItems);
+  const [displayItems, setDisplayItems] = useState<Array<any>>([]);
   const [availableDays, setAvailableDays] = useState<number[]>([]);
+  const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
   
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
@@ -181,40 +182,85 @@ const TourMapScreen: React.FC = () => {
   const getDateForDay = (day: number): string => {
     const dayItems = tourItems.filter(item => (item.day || 1) === day);
     if (dayItems.length > 0 && dayItems[0].date) {
-      // Parse the date string and format it
       const date = new Date(dayItems[0].date);
       const dayOfMonth = date.getDate();
       const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
       return `${dayOfMonth} ${month}`;
     }
-    return `Day ${day}`; // Fallback to "Day X" if no date is available
+    return `Day ${day}`;
   };
 
+  // Function to fetch routes for a given day
+  const fetchRoutesForDay = async (dayItems: Array<any>) => {
+    if (dayItems.length < 1) {
+      setRoutes([]);
+      return;
+    }
+
+    setIsLoadingRoutes(true);
+    const newRoutes = [];
+    
+    // Create circular route: hotel -> destinations -> hotel
+    const hotel = dayItems.find(item => item.type === 'hotel');
+    if (!hotel) {
+      setIsLoadingRoutes(false);
+      return;
+    }
+
+    // Generate routes from hotel to each destination and back
+    for (let i = 0; i < dayItems.length; i++) {
+      const currentItem = dayItems[i];
+      const nextItem = dayItems[(i + 1) % dayItems.length];
+      
+      const origin = `${getItemCoordinates(currentItem).latitude},${getItemCoordinates(currentItem).longitude}`;
+      const destination = `${getItemCoordinates(nextItem).latitude},${getItemCoordinates(nextItem).longitude}`;
+      const url = `https://maps.googleapis.com/maps/api/directions/json`
+        + `?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_API_KEY}`;
+
+      try {
+        const response = await axios.get(url);
+        if (response.data.routes.length > 0) {
+          const points = response.data.routes[0].overview_polyline.points;
+          newRoutes.push({
+            points: decodePolyline(points),
+            color: getRouteColor(i)
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching route", error);
+        // Add a direct line if route fetching fails
+        newRoutes.push({
+          points: [
+            getItemCoordinates(currentItem),
+            getItemCoordinates(nextItem)
+          ],
+          color: getRouteColor(i)
+        });
+      }
+    }
+    setRoutes(newRoutes);
+    setIsLoadingRoutes(false);
+  };
+
+  // Initialize available days and selected day
   useEffect(() => {
     if (!tourItems || tourItems.length === 0) {
-      // Show alert when there are no tours
       alert('No tour items available');
       navigation.goBack();
       return;
     }
     
-    // Extract unique days from tour items
     const days = [...new Set(tourItems.map(item => item.day || 1))].sort((a, b) => a - b);
     setAvailableDays(days);
     
-    // Set initial day if available
     if (days.length > 0) {
       setSelectedDay(days[0]);
     }
-
-    // Set initial display items
-    setDisplayItems(tourItems);
   }, [tourItems, navigation]);
-  
-  // Update displayItems whenever selectedDay changes
+
+  // Update display items and fetch routes when selected day changes
   useEffect(() => {
     if (selectedDay && tourItems.length > 0) {
-      // Get the hotel for the selected day's city
       const dayItems = tourItems.filter(item => (item.day || 1) === selectedDay);
       if (dayItems.length > 0) {
         const city = dayItems[0].city;
@@ -228,16 +274,17 @@ const TourMapScreen: React.FC = () => {
           subtitle: 'Your Hotel'
         };
 
-        // Set display items for selected day, including the hotel
         const itemsWithHotel = [hotelItem, ...dayItems];
         setDisplayItems(itemsWithHotel);
         
-        // Calculate appropriate zoom level for day's items
+        // Fetch routes for the new day
+        fetchRoutesForDay(itemsWithHotel);
+        
+        // Calculate and animate to the new region
         const validCoordinates = itemsWithHotel
           .filter(item => item.coordinate !== undefined)
           .map(item => getItemCoordinates(item));
         
-        // If map reference is already available, animate to the day's items
         if (mapRef.current && validCoordinates.length > 0) {
           const dayCenter = calculateCenter(itemsWithHotel);
           const zoomLevel = calculateZoomLevel(validCoordinates);
@@ -253,67 +300,19 @@ const TourMapScreen: React.FC = () => {
     }
   }, [selectedDay, tourItems]);
 
-  useEffect(() => {
-    if (displayItems.length < 1) return; // Need at least 1 point for a route
-
-    const fetchRoutes = async () => {
-      const newRoutes = [];
-      // Only get items for the selected day
-      const selectedDayItems = displayItems.filter(item => (item.day || 1) === selectedDay);
-      
-      // If we have less than 1 item for this day, we can't create routes
-      if (selectedDayItems.length < 1) {
-        setRoutes([]);
-        return;
-      }
-      
-      // Create circular route: hotel -> destinations -> hotel
-      const hotel = selectedDayItems.find(item => item.type === 'hotel');
-      if (!hotel) return;
-
-      // Generate routes from hotel to each destination and back
-      for (let i = 0; i < selectedDayItems.length; i++) {
-        const currentItem = selectedDayItems[i];
-        const nextItem = selectedDayItems[(i + 1) % selectedDayItems.length];
-        
-        const origin = `${getItemCoordinates(currentItem).latitude},${getItemCoordinates(currentItem).longitude}`;
-        const destination = `${getItemCoordinates(nextItem).latitude},${getItemCoordinates(nextItem).longitude}`;
-        const url = `https://maps.googleapis.com/maps/api/directions/json`
-          + `?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_API_KEY}`;
-
-        try {
-          const response = await axios.get(url);
-          if (response.data.routes.length > 0) {
-            const points = response.data.routes[0].overview_polyline.points;
-            newRoutes.push({
-              points: decodePolyline(points),
-              color: getRouteColor(i)
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching route", error);
-          // Add a direct line if route fetching fails
-          newRoutes.push({
-            points: [
-              getItemCoordinates(currentItem),
-              getItemCoordinates(nextItem)
-            ],
-            color: getRouteColor(i)
-          });
-        }
-      }
-      setRoutes(newRoutes);
-    };
-
-    // Call fetchRoutes immediately
-    fetchRoutes();
-
-    // Set up an interval to refresh routes every 5 seconds
-    const intervalId = setInterval(fetchRoutes, 5000);
-
-    // Cleanup interval on unmount or when dependencies change
-    return () => clearInterval(intervalId);
-  }, [displayItems, selectedDay]);
+  const handleChangeDay = (direction: 'next' | 'prev') => {
+    const days = [...availableDays];
+    const currentIndex = days.indexOf(selectedDay);
+    let newIndex;
+    
+    if (direction === 'next') {
+      newIndex = (currentIndex + 1) % days.length;
+    } else {
+      newIndex = (currentIndex - 1 + days.length) % days.length;
+    }
+    
+    setSelectedDay(days[newIndex]);
+  };
 
   const decodePolyline = (encoded: string) => {
     let points = [];
@@ -341,22 +340,6 @@ const TourMapScreen: React.FC = () => {
       points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
     }
     return points;
-  };
-
-  const handleChangeDay = (direction: 'next' | 'prev') => {
-    // Get the list of available days
-    const days = [...availableDays];
-    const currentIndex = days.indexOf(selectedDay);
-    let newIndex;
-    
-    if (direction === 'next') {
-      newIndex = (currentIndex + 1) % days.length;
-    } else {
-      newIndex = (currentIndex - 1 + days.length) % days.length;
-    }
-    
-    const newDay = days[newIndex];
-    setSelectedDay(newDay);
   };
 
   const center = calculateCenter(displayItems);

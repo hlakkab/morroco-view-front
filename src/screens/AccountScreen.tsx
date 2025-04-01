@@ -132,6 +132,8 @@ const AccountScreen: React.FC = () => {
     );
   }
 
+  const defaultProfileImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF02Jj8T2t7PdkytAw42HDuuSz7yXguKn8Lg&s";
+
   return (
     <View style={styles.mainContainer}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -139,7 +141,7 @@ const AccountScreen: React.FC = () => {
         <View style={styles.profileCard}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF02Jj8T2t7PdkytAw42HDuuSz7yXguKn8Lg&s" }}
+              source={{ uri: user.profilePicture || defaultProfileImage }}
               style={styles.profileImage}
             />
             <TouchableOpacity style={styles.editImageButton}>
