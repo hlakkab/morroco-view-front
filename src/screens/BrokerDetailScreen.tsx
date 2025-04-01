@@ -7,6 +7,8 @@ import Button from '../components/Button';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
 import { Broker } from '../types/exchange-broker';
+import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 // Enhanced interface to align with transport card data structure
 interface RouteParams {
@@ -27,38 +29,31 @@ interface RouteParams {
   about?: string;
 }
 
-// Sample broker office images for testing
-const BROKER_IMAGES = [
-  'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2940&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1556745753-b2904692b3cd?q=80&w=2866&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1556745757-8d76bdb6984b?q=80&w=2866&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2940&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=2940&auto=format&fit=crop',
-];
-
-// Enhanced sample broker details
-
-
 const { width } = Dimensions.get('window');
 
 const BrokerDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useAppDispatch();
   
-  const [isSaved, setIsSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactModal, setShowContactModal] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Get broker details from sample data or route params
   const brokerDetails = route.params as Broker;
+  
+  // Get the current save state from Redux
+  const { brokers } = useAppSelector(state => state.exchangeBroker);
+  const currentBroker = brokers.find(b => b.id === brokerDetails.id);
+  const isSaved = currentBroker?.saved || brokerDetails.saved;
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleSave = () => {
-    setIsSaved(!isSaved);
+    dispatch(toggleBrokerBookmark(brokerDetails));
   };
 
   const handleScroll = (event: any) => {
@@ -107,7 +102,7 @@ const BrokerDetailScreen: React.FC = () => {
         <View style={styles.imageSection}>
           <FlatList
             ref={flatListRef}
-            data={BROKER_IMAGES}
+            data={brokerDetails.images}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
@@ -135,7 +130,7 @@ const BrokerDetailScreen: React.FC = () => {
           
           <View style={styles.paginationContainer}>
             <View style={styles.pagination}>
-              {BROKER_IMAGES.map((_, index) => (
+              {brokerDetails.images.map((_, index) => (
                 <View 
                   key={index} 
                   style={[
@@ -158,7 +153,12 @@ const BrokerDetailScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Services</Text>
           
           <View style={styles.servicesContainer}>
-            {brokerDetails.services?.map((service: string, index: number) => (
+            {(brokerDetails.services && brokerDetails.services.length > 0 ? brokerDetails.services : [
+              'Currency Exchange (USD, EUR, GBP)',
+              'Wire Transfer Services',
+              'Travel Insurance',
+              '24/7 Customer Support'
+            ]).map((service: string, index: number) => (
               <View key={index} style={styles.serviceItem}>
                 <Ionicons name="checkmark-circle-outline" size={20} color="#008060" />
                 <Text style={styles.serviceText}>{service}</Text>
@@ -169,7 +169,11 @@ const BrokerDetailScreen: React.FC = () => {
           <View style={styles.infoContainer}>
             <View style={styles.infoItem}>
               <Ionicons name="time-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{brokerDetails.operatingHours}</Text>
+              <Text style={styles.infoText}>
+                {brokerDetails.startTime && brokerDetails.endTime 
+                  ? `${brokerDetails.startTime} - ${brokerDetails.endTime}`
+                  : "09:00 - 21:00"}
+              </Text>
             </View>
             
             <View style={styles.infoItem}>
@@ -188,7 +192,7 @@ const BrokerDetailScreen: React.FC = () => {
             text={brokerDetails.description || 'No information available for this broker.'} 
           />
 
-          <LocationSection address={brokerDetails.address} />
+          <LocationSection address={brokerDetails.address} mapUrl={brokerDetails.mapId} />
         </View>
       </ScrollView>
 

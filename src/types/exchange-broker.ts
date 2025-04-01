@@ -8,12 +8,14 @@ export interface Broker {
     coordinates: string; // Format: "x,y" from backend
     rating?: number;
     isFeatured?: boolean;
-    isSaved?: boolean;
+    saved?: boolean;
     services?: string[];
-    operatingHours?: string;
+    startTime?: string;
+    endTime?: string;
     phoneNumber?: string;
     website?: string;
     description?: string;
+    mapId?: string;
   }
 
 export interface ExchangeBrokerState {
