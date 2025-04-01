@@ -155,7 +155,6 @@ const matchSlice = createSlice({
         const match = state.matches.find(m => m.id === matchId)!;
 
         match.saved = !match.saved;
-        console.log('match', match.saved);
       })
       .addCase(toggleMatchBookmark.fulfilled, (state) => {
         // No need to toggle again since we already did it in pending

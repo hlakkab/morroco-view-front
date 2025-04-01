@@ -41,7 +41,6 @@ export const fetchArtisans = createAsyncThunk(
 export const toggleArtisanBookmark = createAsyncThunk(
   'artisan/toggleBookmark',
   async (artisan: Artisan, { dispatch }) => {
-    console.log('toggleArtisanBookmark', artisan.id);
     try {
   
       

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View, Image } from 'react-native';
 import CardItem from '../../components/cards/CardItem';
 import { TourSavedItem } from '../../types/tour';
+import { getFlagUrl } from '../../utils/flagResolver';
 
 
 
@@ -45,10 +46,23 @@ const ItemList: React.FC<ItemListProps> = ({
     const isSelected = selectedItems.includes(item.id);
     const isDisabled = selectedCity && item.city !== selectedCity;
 
+    const renderMatchContent = () => {
+      const teams = item.title.split(' vs ');
+      if (teams.length !== 2) return null;
+      
+      return (
+        <View style={styles.matchContainer}>
+          <Image source={{ uri: getFlagUrl(teams[0]) }} style={styles.teamFlag} />
+          <Text style={styles.vsText}>VS</Text>
+          <Image source={{ uri: getFlagUrl(teams[1]) }} style={styles.teamFlag} />
+        </View>
+      );
+    };
+
     return (
       <View style={styles.cardContainer}>
         <CardItem
-          images={item.images}
+          images={item.type === 'match' ? [] : item.images}
           title={item.title}
           subtitle={item.subtitle}
           tags={[
@@ -81,6 +95,7 @@ const ItemList: React.FC<ItemListProps> = ({
           ]}
           imageStyle={styles.cardImage}
           contentStyle={isDisabled ? styles.disabledCardContent : {}}
+          svgImage={item.type === 'match' ? renderMatchContent() : undefined}
         />
       </View>
     );
@@ -164,6 +179,27 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#999',
+  },
+  matchContainer: {
+    width: 120,
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: "#F6FAFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    marginRight: 10,
+    paddingHorizontal: 6,
+  },
+  teamFlag: {
+    width: 36,
+    height: 26,
+    borderRadius: 5,
+  },
+  vsText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#555",
   },
 });
 

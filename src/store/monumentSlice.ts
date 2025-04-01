@@ -64,7 +64,6 @@ export const toggleMonumentBookmark = createAsyncThunk(
   'monument/toggleBookmark',
   
   async (monument: Monument, { dispatch }) => {
-    console.log('toggleMonumentBookmark', monument.id);
     try {
       if (monument.saved) {
         dispatch(removeBookmark(monument.id));

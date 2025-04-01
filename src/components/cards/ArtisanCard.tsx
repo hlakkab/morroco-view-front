@@ -12,7 +12,7 @@ interface ArtisanCardProps {
 }
 
 const ArtisanCard: FC<ArtisanCardProps> = ({ item, handleSaveArtisan, handleArtisanPress }) => {
-  console.log(item);
+
   return (
     <CardItem
       imageUrl={item.images?.[0]}

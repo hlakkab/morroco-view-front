@@ -179,7 +179,7 @@ export const fetchTourDetails = createAsyncThunk(
   async (tourId: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/tours/${tourId}`);
-      console.log('response', response.data);
+      
       return response.data;
     } catch (error) {
       return rejectWithValue('Failed to fetch tour details');

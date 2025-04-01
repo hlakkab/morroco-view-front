@@ -18,6 +18,7 @@ import { RootState } from '../store/store';
 import { useSelector } from 'react-redux';
 import { Destination, Tour } from '../types/tour';
 import { SavedItem } from '../types/navigation';
+import { getFlagUrl } from '../utils/flagResolver';
 
 interface TourDetailsModalProps {
   visible: boolean;
@@ -251,32 +252,49 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   };
 
   // Render destination item in list
-  const renderDestinationItem = ({ item }: { item: Destination }) => (
-    <View style={styles.destinationItem}>
-      <View style={styles.destinationImageContainer}>
-        {(item.image || getDefaultImageForType(item.type)) ? (
-          <Image 
-            source={{ uri: item.image || getDefaultImageForType(item.type) }} 
-            style={styles.destinationImage} 
-          />
-        ) : (
-          <View style={[styles.destinationImagePlaceholder, { backgroundColor: '#F5F5F5' }]}>
-            {getTypeIcon(item.type)}
-          </View>
-        )}
-      </View>
-      <View style={styles.destinationInfo}>
-        <View style={styles.destinationTypeContainer}>
-          {getTypeIcon(item.type)}
-          <Text style={styles.destinationType}>
-            {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-          </Text>
+  const renderDestinationItem = ({ item }: { item: Destination }) => {
+    const renderMatchContent = () => {
+      const teams = item.title.split(' vs ');
+      if (teams.length !== 2) return null;
+      
+      return (
+        <View style={styles.matchContainer}>
+          <Image source={{ uri: getFlagUrl(teams[0]) }} style={styles.teamFlag} />
+          <Text style={styles.vsText}>VS</Text>
+          <Image source={{ uri: getFlagUrl(teams[1]) }} style={styles.teamFlag} />
         </View>
-        <Text style={styles.destinationTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.destinationCity}>{item.city}</Text>
+      );
+    };
+
+    return (
+      <View style={styles.destinationItem}>
+        <View style={styles.destinationImageContainer}>
+          {item.type === 'match' ? (
+            renderMatchContent()
+          ) : (item.image || getDefaultImageForType(item.type)) ? (
+            <Image 
+              source={{ uri: item.image || getDefaultImageForType(item.type) }} 
+              style={styles.destinationImage} 
+            />
+          ) : (
+            <View style={[styles.destinationImagePlaceholder, { backgroundColor: '#F5F5F5' }]}>
+              {getTypeIcon(item.type)}
+            </View>
+          )}
+        </View>
+        <View style={styles.destinationInfo}>
+          <View style={styles.destinationTypeContainer}>
+            {getTypeIcon(item.type)}
+            <Text style={styles.destinationType}>
+              {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+            </Text>
+          </View>
+          <Text style={styles.destinationTitle} numberOfLines={1}>{item.title}</Text>
+          <Text style={styles.destinationCity}>{item.city}</Text>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // Render each day option in the dropdown
   const renderDayOption = ({ item }: { item: number }) => (
@@ -661,6 +679,27 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     marginRight: 8,
+  },
+  matchContainer: {
+    width: 100,
+    height: 75,
+    borderRadius: 8,
+    backgroundColor: "#F6FAFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    marginRight: 10,
+
+  },
+  teamFlag: {
+    width: 32,
+    height: 24,
+    borderRadius: 5,
+  },
+  vsText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#555",
   },
 });
 

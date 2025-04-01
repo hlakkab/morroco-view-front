@@ -34,7 +34,6 @@ const listEntertainments0 = async (cityCode: string = "5408") => {
 
 const listEntertainments = async () => {
   const response = await api.get<Entertainment[]>("/activities");
-  console.log('response', response.data[0].saved);
   return response.data;
 };
 
