@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Button from '../components/Button';
 import LocationPickerModal from '../components/LocationPickerModal';
+import DatePickerModal from '../components/DatePickerModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
 import "react-native-get-random-values"
@@ -28,6 +29,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [hotelLocation, setHotelLocation] = useState('');
   const [destination, setDestination] = useState<[number, number] | null>(null);
+  const [showModernDatePicker, setShowModernDatePicker] = useState(false);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -372,6 +374,36 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
     );
   };
 
+  // Format date for display
+  const formatDisplayDate = (dateString: string) => {
+    if (!dateString) return '';
+    
+    try {
+      const [year, month, day] = dateString.split('/');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      const dayName = days[date.getDay()];
+      const dayNum = date.getDate().toString().padStart(2, '0');
+      const monthName = months[date.getMonth()];
+      const yearNum = date.getFullYear();
+      
+      return `${dayName} ${dayNum} ${monthName}`;
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // Handle date selection from modern date picker
+  const handleDateSelect = (date: string) => {
+    const [year, month, day] = date.split('/');
+    const newDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    setSelectedDate(newDate);
+    setShowModernDatePicker(false);
+  };
+
   const handleSubmit = async () => {
     if (!selectedDate || !selectedTime || !destination) {
       return;
@@ -450,7 +482,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                   <Text style={styles.inputLabel}>Date</Text>
                   <TouchableOpacity
                     style={styles.dateInput}
-                    onPress={() => setShowDatePicker(true)}
+                    onPress={() => setShowModernDatePicker(true)}
                   >
                     <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
                     <Text style={styles.dateTimeText}>
@@ -502,6 +534,21 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         </ScrollView>
       </View>
 
+      {/* Modern Date Picker */}
+      <DatePickerModal
+        visible={showModernDatePicker}
+        onClose={() => setShowModernDatePicker(false)}
+        pickerMode="start"
+        setPickerMode={() => {}}
+        startDate={format(selectedDate, 'yyyy/MM/dd')}
+        endDate=""
+        onDateSelect={handleDateSelect}
+        formatDisplayDate={formatDisplayDate}
+        color="#008060"
+        type="specific"
+      />
+
+      {/* Original Date Picker */}
       {showDatePicker && renderCustomDatePicker()}
       {showTimePicker && renderCustomTimePicker()}
 

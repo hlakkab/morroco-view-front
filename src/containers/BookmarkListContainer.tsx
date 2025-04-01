@@ -3,6 +3,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, View } from 'react-native';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
+import ArtisanCard from '../components/cards/ArtisanCard';
 import BrokerCard from '../components/cards/BrokerCard';
 import CardItem from '../components/cards/CardItem';
 import MatchCard from '../components/cards/MatchCard';
@@ -18,6 +19,7 @@ import { Match } from '../types/match';
 import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
 import EntertainmentSmallCard from '../components/cards/EntertainmentSmallCard';
+import { Artisan } from '../types/Artisan';
 
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
@@ -44,6 +46,10 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
 
   const handleCardPress = (item: object) => {
     // Add specific handling based on item type if needed
+  };
+
+  const handleArtisanPress = (artisan: Artisan) => {
+    navigation.navigate('ArtisanDetail', artisan);
   };
 
   const handleMatchPress = (match: Match) => {
@@ -137,7 +143,6 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               )
             }
 
-
             if (item.type === 'RESTAURANT') {
               return (
                 <RestaurantCard
@@ -147,7 +152,6 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
                 />
               )
             }
-
 
             if (item.type === 'MONUMENT') {
               return (
@@ -160,12 +164,21 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
             }
 
             if (item.type === 'ENTERTAINMENT') {
-              console.log('item', item);
               return (
                 <EntertainmentSmallCard
                   entertainment={{...item.object, saved: true}}
                   handleSaveEntertainment={handleSaveBookmark}
                   handleEntertainmentPress={handleCardPress}
+                />
+              )
+            }
+
+            if (item.type === 'ARTISAN') {
+              return (
+                <ArtisanCard
+                  item={{...item.object, images: item.images, saved: true}}
+                  handleSaveArtisan={handleSaveBookmark}
+                  handleArtisanPress={handleArtisanPress}
                 />
               )
             }

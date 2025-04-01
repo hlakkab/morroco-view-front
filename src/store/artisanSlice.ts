@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import mockArtisanService from '../service/mockArtisanService';
+import { api } from '../service';
 import { Artisan, ArtisanType } from '../types/Artisan';
 import { addBookmark, removeBookmark } from './bookmarkSlice';
 
@@ -28,9 +28,8 @@ export const fetchArtisans = createAsyncThunk(
   'artisan/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      // Use the mock service instead of real API
-      const data = await mockArtisanService.getAllArtisans();
-      return data;
+      const response = await api.get('/spots/artisans');
+      return response.data;
     } catch (error: any) {
       console.error('Thunk Error:', error);
       return rejectWithValue(error.message || 'An unknown error occurred');
@@ -41,12 +40,10 @@ export const fetchArtisans = createAsyncThunk(
 // Async thunk for toggling an artisan bookmark
 export const toggleArtisanBookmark = createAsyncThunk(
   'artisan/toggleBookmark',
-  
   async (artisan: Artisan, { dispatch }) => {
     console.log('toggleArtisanBookmark', artisan.id);
     try {
-      // Use the mock service to toggle the saved status
-      await mockArtisanService.toggleSavedStatus(artisan.id);
+  
       
       if (artisan.saved) {
         dispatch(removeBookmark(artisan.id));

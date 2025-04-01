@@ -4,6 +4,7 @@ import { Match } from "../../types/match";
 import { Ticket } from "../../types/ticket";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import QRCodeModal from "../QRCodeModal";
+import { getFlagUrl } from "../../utils/flagResolver";
 
 type MatchTicketCardProps = {
   ticket: Ticket
@@ -16,11 +17,6 @@ const MatchTicketCard: FC<MatchTicketCardProps> = ({ ticket }) => {
   const month = format(date, 'MMM').toUpperCase();
   const day = format(date, 'dd');
   const time = format(date, 'h:mma');
-
-  const flag = (team: string) => {
-    team = team.toLowerCase().replace(/ /g, '-');
-    return `https://www.countryflags.com/wp-content/uploads/${team}-flag-png-large.png`;
-  };
 
   const handleShowQRCode = () => {
     setQrModalVisible(true);
@@ -40,12 +36,11 @@ const MatchTicketCard: FC<MatchTicketCardProps> = ({ ticket }) => {
         </View>
 
         <View style={styles.matchContainer}>
-
           <View style={styles.matchInfo}>
             <View style={styles.teamsContainer}>
               <View style={styles.flagContainer}>
                 <Image
-                  source={{ uri: flag(match.homeTeam) }}
+                  source={{ uri: getFlagUrl(match.homeTeam) }}
                   style={styles.flag} />
               </View>
 
@@ -53,11 +48,10 @@ const MatchTicketCard: FC<MatchTicketCardProps> = ({ ticket }) => {
 
               <View style={styles.flagContainer}>
                 <Image
-                  source={{ uri: flag(match.awayTeam) }}
+                  source={{ uri: getFlagUrl(match.awayTeam) }}
                   style={styles.flag} />
               </View>
             </View>
-
           </View>
 
           <Text style={styles.matchText}>{match.homeTeam} Vs. {match.awayTeam}</Text>

@@ -125,19 +125,10 @@ export const fetchBookmarksAsItems = createAsyncThunk(
       // Map bookmarks to saved items format
       const savedItems = mapBookmarksToTourSavedItems(bookmarks);
       
-      // Transform the saved items to match TourItem type if needed
-      const tourItems: TourItem[] = savedItems.map(item => ({
-        ...item,
-        // Map 'monument' type to 'entertainment' for compatibility
-        type: item.type === 'monument' ? 'entertainment' : 
-              item.type === 'money-exchange' ? 'entertainment' : 
-              item.type as any
-      }));
+      // Set these items as available items without type transformation
+      dispatch(setAvailableItems(savedItems));
       
-      // Set these items as available items
-      dispatch(setAvailableItems(tourItems));
-      
-      return tourItems;
+      return savedItems;
     } catch (error) {
       console.error('Error fetching bookmarks:', error);
       throw error;
@@ -188,6 +179,7 @@ export const fetchTourDetails = createAsyncThunk(
   async (tourId: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/tours/${tourId}`);
+      console.log('response', response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue('Failed to fetch tour details');
@@ -301,7 +293,7 @@ const tourSlice = createSlice({
     },
     
     // Set all available items (replacing existing ones)
-    setAvailableItems: (state, action: PayloadAction<TourItem[]>) => {
+    setAvailableItems: (state, action: PayloadAction<TourSavedItem[]>) => {
       state.availableItems = action.payload;
     },
   },

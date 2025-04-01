@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { Match } from "../../types/match";
+import { getFlagUrl } from "../../utils/flagResolver";
 
 interface MatchCardProps {
   match: Match;
@@ -17,15 +18,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
 }) => {
   const isSaved = match.saved
 
-
-  const flag = (country: string) => {
-    country = country
-      .toLowerCase()
-      .replace(/\s+/g, '-');
-
-    return `https://www.countryflags.com/wp-content/uploads/${country}-flag-png-large.png`	
-  }
-
   const date = new Date(match.date);
   // convert date to MMM DD, YYYY,  HH:MM
   const formattedDate = date.toLocaleDateString('en-US', 
@@ -39,16 +31,16 @@ const MatchCard: React.FC<MatchCardProps> = ({
       activeOpacity={0.8}
       disabled={!handleCardPress}
     >
-      {/* Images des équipes avec VS au milieu */}
+      
       <View style={styles.teamsImageContainer}>
         
-        <Image source={{ uri: flag(match.homeTeam) }} style={styles.teamFlag} />
+        <Image source={{ uri: getFlagUrl(match.homeTeam) }} style={styles.teamFlag} />
         <Text style={styles.vsText}>VS</Text>
-        <Image source={{ uri: flag(match.awayTeam) }} style={styles.teamFlag} />
+        <Image source={{ uri: getFlagUrl(match.awayTeam) }} style={styles.teamFlag} />
           
       </View>
 
-      {/* Détails du match */}
+
       <View style={styles.cardContent}>
         <View style={styles.tagsRow}>
           <View style={styles.mainTagContainer}>

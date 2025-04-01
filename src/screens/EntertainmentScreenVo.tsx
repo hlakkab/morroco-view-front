@@ -28,20 +28,6 @@ const EntertainmentScreenVo: React.FC = () => {
     (state): EntertainmentState => state.entertainment
   );
 
-  // Map to align API city codes with city names for filtering
-  const cityCodes: Record<string, string> = {
-    '5408': 'marrakech',
-    '4396': 'casablanca',
-    '4388': 'tangier',
-  };
-
-  // Reverse map for going from city name to code
-  const cityNameToCodes: Record<string, string> = {
-    'marrakech': '5408',
-    'casablanca': '4396',
-    'tangier': '4388',
-  };
-
   // Add icons to filter categories - only for location
   const categoriesWithIcons = {
     location: {
@@ -59,9 +45,8 @@ const EntertainmentScreenVo: React.FC = () => {
       icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
     ...cities
-      .filter(city => ['casablanca', 'marrakech', 'tangier'].includes(normalizeString(city.id)))
       .map(city => ({
-        id: normalizeString(city.id),
+        id: normalizeString(city.id), 
         label: city.label,
         icon: <Ionicons name="location-outline" size={16} color="#888" style={{ marginRight: 4 }} />
       }))
@@ -92,29 +77,11 @@ const EntertainmentScreenVo: React.FC = () => {
 
   const handleCitySelect = (cityId: string) => {
     setSelectedCityId(cityId);
-    
-    // Fetch entertainments with the selected city code
-    if (cityId === 'all') {
-      // Default to Marrakech when "All Cities" is selected
-      fetchEntertainmentData('5408');
-    } else {
-      // Get the corresponding city code for the API
-      const cityCode = cityNameToCodes[cityId] || '5408';
-      fetchEntertainmentData(cityCode);
-    }
-  };
-
-  const fetchEntertainmentData = async (cityCode?: string) => {
-    try {
-      await dispatch(fetchEntertainments(cityCode || '5408')).unwrap();
-    } catch (error) {
-      console.error('Failed to fetch entertainments:', error);
-    }
   };
 
   useEffect(() => {
-    // Initial data fetch with default city
-    fetchEntertainmentData('5408');
+    // Initial data fetch
+    dispatch(fetchEntertainments('5408')); // Default to Marrakech for initial load
   }, [dispatch]);
 
   const handleFilterPress = () => {
@@ -135,17 +102,21 @@ const EntertainmentScreenVo: React.FC = () => {
     .filter(option => option.category === 'location' && option.selected)
     .map(option => option.id);
 
-  // Filter entertainments based on search and location (city filtering is handled by the API)
+  // Filter entertainments based on search, city, and location
   const filteredEntertainments = entertainments.filter((ent: Entertainment) => {
     // Search match
     const searchMatch = searchQuery.trim() === '' || 
       normalizeString(ent.title).includes(normalizeString(searchQuery));
     
+    // City filter
+    const cityMatch = selectedCityId === 'all' || 
+      normalizeString(ent.city || '').includes(selectedCityId);
+    
     // Location filter - if no location is selected, show all
     const locationMatch = activeLocationFilters.length === 0 || 
       (ent.location && activeLocationFilters.includes(normalizeString(ent.location)));
     
-    return searchMatch && locationMatch;
+    return searchMatch && cityMatch && locationMatch;
   });
 
   if (loading) {

@@ -9,6 +9,7 @@ export interface Stadium {
   city: string;
   address: string;
   coordinates: string;
+  mapId: string;
 }
 
 export interface Match {

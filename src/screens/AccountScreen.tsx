@@ -1,6 +1,6 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Linking,
@@ -11,48 +11,60 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator
 } from 'react-native';
 import Button from '../components/Button';
 import BottomNavBar from '../containers/BottomNavBar';
-import { clearTokens } from '../service/KeycloakService';
+import { clearTokens, getUserInfo } from '../service/KeycloakService';
 import { RootStackParamList } from '../types/navigation';
 import { User } from '../types/user';
 
-// Temporary mock user data - replace with actual user data from your auth service
-const mockUser: User = {
-  id: '1',
-  firstName: 'Mohcine',
-  lastName: 'Sahtani',
-  email: 'mohcine.sahtani@gmail.com',
-  phoneNumber: '',
-  profilePicture: 'https://pbs.twimg.com/profile_images/1850665885268078592/JLdj-dGb_400x400.jpg',
-  createdAt: '2024-01-01',
-  updatedAt: '2024-01-01',
-};
-
 const AccountScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [user, setUser] = useState<User>(mockUser);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   
   // Temporary editable values
-  const [editFirstName, setEditFirstName] = useState(user.firstName);
-  const [editLastName, setEditLastName] = useState(user.lastName);
-  const [editEmail, setEditEmail] = useState(user.email);
-  const [editPhoneNumber, setEditPhoneNumber] = useState(user.phoneNumber || '');
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhoneNumber, setEditPhoneNumber] = useState('');
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const userData = await getUserInfo();
+      setUser(userData);
+      // Initialize editable values with user data
+      setEditFirstName(userData.firstName);
+      setEditLastName(userData.lastName);
+      setEditEmail(userData.email);
+      setEditPhoneNumber(userData.phoneNumber || '');
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEditProfile = () => {
     if (editing) {
       // Save changes
-      setUser({
-        ...user,
-        firstName: editFirstName,
-        lastName: editLastName,
-        email: editEmail,
-        phoneNumber: editPhoneNumber,
-      });
+      if (user) {
+        setUser({
+          ...user,
+          firstName: editFirstName,
+          lastName: editLastName,
+          email: editEmail,
+          phoneNumber: editPhoneNumber,
+        });
+      }
     }
     setEditing(!editing);
   };
@@ -98,6 +110,28 @@ const AccountScreen: React.FC = () => {
     navigation.navigate(routeName);
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#CE1126" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Failed to load user data</Text>
+        <Button 
+          title="Retry" 
+          onPress={fetchUserData}
+          style={styles.retryButton}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.mainContainer}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -105,7 +139,7 @@ const AccountScreen: React.FC = () => {
         <View style={styles.profileCard}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: user.profilePicture }}
+              source={{ uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF02Jj8T2t7PdkytAw42HDuuSz7yXguKn8Lg&s" }}
               style={styles.profileImage}
             />
             <TouchableOpacity style={styles.editImageButton}>
@@ -554,6 +588,31 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: 8,
+    backgroundColor: '#CE1126',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF7F7',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF7F7',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 16,
+  },
+  retryButton: {
     backgroundColor: '#CE1126',
   },
 });

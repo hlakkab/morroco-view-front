@@ -83,6 +83,8 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
         return <Ionicons name="restaurant" size={16} color="#4CAF50" />;
       case 'match':
         return <Ionicons name="football" size={16} color="#2196F3" />;
+      case 'monument':
+        return <Ionicons name="business" size={16} color="#FFA726" />;
       case 'entertainment':
         return <Ionicons name="musical-notes" size={16} color="#FF9800" />;
       default:

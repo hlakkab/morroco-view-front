@@ -13,6 +13,8 @@ export interface SavedItem {
     city: string;
     duration?: string;
     timeSlot?: string;
+    day?: number;
+    date?: string;
     coordinate?: {
         latitude: number;
         longitude: number;

@@ -21,20 +21,11 @@ import Animated, {
   withSpring,
   withTiming
 } from 'react-native-reanimated';
+import { SavedItem } from '../../types/navigation';
 
 const ITEM_HEIGHT = 120; // Approximate height of each item
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MAX_DRAG_RANGE = SCREEN_HEIGHT * 0.6; // Limit drag to 60% of screen height
-
-interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  city: string;
-  duration?: string;
-  timeSlot?: string;
-}
 
 interface TimelineItemProps {
   item: SavedItem;
@@ -196,6 +187,8 @@ const TimelineItem = memo(({
         return <Ionicons name="football" size={size} color="#FFF" />;
       case 'entertainment':
         return <Ionicons name="musical-notes" size={size} color="#FFF" />;
+      case 'monument':
+        return <Ionicons name="business" size={size} color="#FFF" />;
       default:
         return <Ionicons name="location" size={size} color="#FFF" />;
     }
@@ -207,6 +200,7 @@ const TimelineItem = memo(({
       case 'restaurant': return '#4CAF50';
       case 'match': return '#2196F3';
       case 'entertainment': return '#FF9800';
+      case 'monument': return '#00BCD4';
       default: return '#9E9E9E';
     }
   };
@@ -243,7 +237,7 @@ const TimelineItem = memo(({
             <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
           )}
           
-          <View style={styles.itemFooter}>
+          {/* <View style={styles.itemFooter}>
             {item.timeSlot ? (
               <View style={styles.itemTimeSlot}>
                 <Feather name="clock" size={14} color="#666" style={{ marginRight: 4 }} />
@@ -279,7 +273,8 @@ const TimelineItem = memo(({
             <TouchableOpacity style={styles.viewDetailsButton}>
               <Text style={styles.viewDetailsText}>View Details</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
+
         </View>
       </Animated.View>
     </PanGestureHandler>

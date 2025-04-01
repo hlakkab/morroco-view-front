@@ -3,16 +3,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import TimelineItem from '../../components/tour/TimelineItem';
-
-interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  city: string;
-  duration?: string;
-  timeSlot?: string;
-}
+import { SavedItem } from '../../types/navigation';
 
 interface TimelineProps {
   items: SavedItem[];

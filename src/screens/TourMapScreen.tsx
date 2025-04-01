@@ -20,16 +20,16 @@ const CITY_COORDINATES = {
 
 // Predefined colors for routes
 const ROUTE_COLORS = [
-  '#FF6B6B', // Coral Red
-  '#4ECDC4', // Turquoise
-  '#45B7D1', // Sky Blue
-  '#96CEB4', // Sage Green
-  '#FFEEAD', // Cream Yellow
-  '#D4A5A5', // Dusty Rose
-  '#9B59B6', // Purple
-  '#3498DB', // Blue
-  '#E67E22', // Orange
-  '#2ECC71', // Green
+  '#8B0000', // Dark Red
+  '#FF8C00', // Dark Orange
+  '#DAA520', // Dark Goldenrod (Dark Yellow)
+  '#B8860B', // Dark Goldenrod (Darker Yellow)
+  '#8B4513', // Saddle Brown
+  '#CD853F', // Peru (Dark Orange-Brown)
+  '#D2691E', // Chocolate (Dark Orange)
+  '#8B008B', // Dark Magenta
+  '#BDB76B', // Dark Khaki (Dark Yellow)
+  '#8B0000', // Dark Red
 ];
 
 // Function to shuffle array
@@ -44,8 +44,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 
 // Function to get a color for a route
 const getRouteColor = (index: number): string => {
-  const shuffledColors = shuffleArray(ROUTE_COLORS);
-  return shuffledColors[index % shuffledColors.length];
+  return ROUTE_COLORS[index % ROUTE_COLORS.length];
 };
 
 // Hotels coordinates for each city
@@ -169,14 +168,27 @@ const TourMapScreen: React.FC = () => {
   const { tourItems } = route.params || { tourItems: [] };
   
   const [routes, setRoutes] = useState<Array<{points: any[], color: string}>>([]);
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedDay, setSelectedDay] = useState<number>(1);
   const [displayItems, setDisplayItems] = useState<Array<any>>(tourItems);
-  const [filteredCities, setFilteredCities] = useState<string[]>([]);
+  const [availableDays, setAvailableDays] = useState<number[]>([]);
   
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
 
   const GOOGLE_MAPS_API_KEY = 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY';
+
+  // Function to get date for a day
+  const getDateForDay = (day: number): string => {
+    const dayItems = tourItems.filter(item => (item.day || 1) === day);
+    if (dayItems.length > 0 && dayItems[0].date) {
+      // Parse the date string and format it
+      const date = new Date(dayItems[0].date);
+      const dayOfMonth = date.getDate();
+      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      return `${dayOfMonth} ${month}`;
+    }
+    return `Day ${day}`; // Fallback to "Day X" if no date is available
+  };
 
   useEffect(() => {
     if (!tourItems || tourItems.length === 0) {
@@ -186,82 +198,83 @@ const TourMapScreen: React.FC = () => {
       return;
     }
     
-    // Extract unique cities from tour items
-    const cities = [...new Set(tourItems.map(item => item.city))];
-    setFilteredCities(cities);
+    // Extract unique days from tour items
+    const days = [...new Set(tourItems.map(item => item.day || 1))].sort((a, b) => a - b);
+    setAvailableDays(days);
     
-    // Set initial city if available
-    if (cities.length > 0) {
-      const firstCity = cities[0];
-      setSelectedCity(firstCity);
+    // Set initial day if available
+    if (days.length > 0) {
+      setSelectedDay(days[0]);
     }
 
-    // Set initial display items (hotels will be added by the selectedCity useEffect)
+    // Set initial display items
     setDisplayItems(tourItems);
   }, [tourItems, navigation]);
   
-  // Update displayItems whenever selectedCity changes
+  // Update displayItems whenever selectedDay changes
   useEffect(() => {
-    if (selectedCity && tourItems.length > 0) {
-      // Get the hotel for the selected city
-      const cityHotel = HOTELS_BY_CITY[selectedCity as keyof typeof HOTELS_BY_CITY];
-      const hotelItem = {
-        id: `hotel-${selectedCity.toLowerCase()}`,
-        title: cityHotel.title,
-        city: selectedCity,
-        type: 'hotel',
-        coordinate: cityHotel.coordinate,
-        subtitle: 'Your Hotel'
-      };
+    if (selectedDay && tourItems.length > 0) {
+      // Get the hotel for the selected day's city
+      const dayItems = tourItems.filter(item => (item.day || 1) === selectedDay);
+      if (dayItems.length > 0) {
+        const city = dayItems[0].city;
+        const cityHotel = HOTELS_BY_CITY[city as keyof typeof HOTELS_BY_CITY];
+        const hotelItem = {
+          id: `hotel-${city.toLowerCase()}`,
+          title: cityHotel.title,
+          city: city,
+          type: 'hotel',
+          coordinate: cityHotel.coordinate,
+          subtitle: 'Your Hotel'
+        };
 
-      // Set display items for selected city, including the hotel
-      const cityItems = tourItems.filter(item => item.city === selectedCity);
-      // Always put hotel as first item
-      const itemsWithHotel = [hotelItem, ...cityItems];
-      setDisplayItems(itemsWithHotel);
-      
-      // Calculate appropriate zoom level for city
-      const validCoordinates = itemsWithHotel
-        .filter(item => item.coordinate !== undefined)
-        .map(item => getItemCoordinates(item));
-      
-      // If map reference is already available, animate to the city
-      if (mapRef.current && validCoordinates.length > 0) {
-        const cityCenter = calculateCenter(itemsWithHotel);
-        const zoomLevel = calculateZoomLevel(validCoordinates);
+        // Set display items for selected day, including the hotel
+        const itemsWithHotel = [hotelItem, ...dayItems];
+        setDisplayItems(itemsWithHotel);
         
-        mapRef.current.animateToRegion({
-          latitude: cityCenter.latitude,
-          longitude: cityCenter.longitude,
-          latitudeDelta: zoomLevel.latitudeDelta,
-          longitudeDelta: zoomLevel.longitudeDelta,
-        }, 500);
+        // Calculate appropriate zoom level for day's items
+        const validCoordinates = itemsWithHotel
+          .filter(item => item.coordinate !== undefined)
+          .map(item => getItemCoordinates(item));
+        
+        // If map reference is already available, animate to the day's items
+        if (mapRef.current && validCoordinates.length > 0) {
+          const dayCenter = calculateCenter(itemsWithHotel);
+          const zoomLevel = calculateZoomLevel(validCoordinates);
+          
+          mapRef.current.animateToRegion({
+            latitude: dayCenter.latitude,
+            longitude: dayCenter.longitude,
+            latitudeDelta: zoomLevel.latitudeDelta,
+            longitudeDelta: zoomLevel.longitudeDelta,
+          }, 500);
+        }
       }
     }
-  }, [selectedCity, tourItems]);
+  }, [selectedDay, tourItems]);
 
   useEffect(() => {
     if (displayItems.length < 1) return; // Need at least 1 point for a route
 
     const fetchRoutes = async () => {
       const newRoutes = [];
-      // Only get items for the selected city
-      const selectedCityItems = displayItems.filter(item => item.city === selectedCity);
+      // Only get items for the selected day
+      const selectedDayItems = displayItems.filter(item => (item.day || 1) === selectedDay);
       
-      // If we have less than 1 item for this city, we can't create routes
-      if (selectedCityItems.length < 1) {
+      // If we have less than 1 item for this day, we can't create routes
+      if (selectedDayItems.length < 1) {
         setRoutes([]);
         return;
       }
       
       // Create circular route: hotel -> destinations -> hotel
-      const hotel = selectedCityItems.find(item => item.type === 'hotel');
+      const hotel = selectedDayItems.find(item => item.type === 'hotel');
       if (!hotel) return;
 
       // Generate routes from hotel to each destination and back
-      for (let i = 0; i < selectedCityItems.length; i++) {
-        const currentItem = selectedCityItems[i];
-        const nextItem = selectedCityItems[(i + 1) % selectedCityItems.length];
+      for (let i = 0; i < selectedDayItems.length; i++) {
+        const currentItem = selectedDayItems[i];
+        const nextItem = selectedDayItems[(i + 1) % selectedDayItems.length];
         
         const origin = `${getItemCoordinates(currentItem).latitude},${getItemCoordinates(currentItem).longitude}`;
         const destination = `${getItemCoordinates(nextItem).latitude},${getItemCoordinates(nextItem).longitude}`;
@@ -300,33 +313,7 @@ const TourMapScreen: React.FC = () => {
 
     // Cleanup interval on unmount or when dependencies change
     return () => clearInterval(intervalId);
-  }, [displayItems, selectedCity]);
-
-  // Update the initial route generation useEffect
-  useEffect(() => {
-    if (selectedCity && displayItems.length > 0) {
-      const selectedCityItems = displayItems.filter(item => item.city === selectedCity);
-      if (selectedCityItems.length > 0) {
-        const hotel = selectedCityItems.find(item => item.type === 'hotel');
-        if (hotel) {
-          // Generate initial direct lines between points
-          const initialRoutes = [];
-          for (let i = 0; i < selectedCityItems.length; i++) {
-            const currentItem = selectedCityItems[i];
-            const nextItem = selectedCityItems[(i + 1) % selectedCityItems.length];
-            initialRoutes.push({
-              points: [
-                getItemCoordinates(currentItem),
-                getItemCoordinates(nextItem)
-              ],
-              color: getRouteColor(i)
-            });
-          }
-          setRoutes(initialRoutes);
-        }
-      }
-    }
-  }, [selectedCity, displayItems]);
+  }, [displayItems, selectedDay]);
 
   const decodePolyline = (encoded: string) => {
     let points = [];
@@ -356,21 +343,20 @@ const TourMapScreen: React.FC = () => {
     return points;
   };
 
-  const handleChangeCity = (direction: 'next' | 'prev') => {
-    // Get the list of available cities
-    const cities = [...filteredCities];
-    const currentIndex = cities.indexOf(selectedCity);
+  const handleChangeDay = (direction: 'next' | 'prev') => {
+    // Get the list of available days
+    const days = [...availableDays];
+    const currentIndex = days.indexOf(selectedDay);
     let newIndex;
     
     if (direction === 'next') {
-      newIndex = (currentIndex + 1) % cities.length;
+      newIndex = (currentIndex + 1) % days.length;
     } else {
-      newIndex = (currentIndex - 1 + cities.length) % cities.length;
+      newIndex = (currentIndex - 1 + days.length) % days.length;
     }
     
-    const newCity = cities[newIndex];
-    setSelectedCity(newCity);
-    // The map will update automatically through the useEffect hook that watches selectedCity
+    const newDay = days[newIndex];
+    setSelectedDay(newDay);
   };
 
   const center = calculateCenter(displayItems);
@@ -385,7 +371,7 @@ const TourMapScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ScreenHeader title={selectedCity ? `${selectedCity} Tour Map` : "Tour Map"} />
+        <ScreenHeader title={selectedDay ? getDateForDay(selectedDay) : "Tour Map"} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -418,8 +404,10 @@ const TourMapScreen: React.FC = () => {
                         item.type === 'hotel' ? 'bed' : 
                         item.type === 'restaurant' ? 'restaurant' : 
                         item.type === 'match' ? 'football' : 
-                        item.type === 'entertainment' ? 'musical-notes' : 'location'
-                      } 
+                        item.type === 'entertainment' ? 'musical-notes' : 
+                        item.type === 'monument' ? 'business' : 
+                        item.type === 'money-exchange' ? 'cash' : 'location'
+                      }   
                       size={20} 
                       color="#fff" 
                     />
@@ -436,7 +424,6 @@ const TourMapScreen: React.FC = () => {
               coordinates={route.points} 
               strokeColor={route.color}
               strokeWidth={5}
-              
               geodesic={true}
               zIndex={1}
             />
@@ -453,24 +440,31 @@ const TourMapScreen: React.FC = () => {
         )}
 
         <View style={styles.controlsContainer}>
-          <TouchableOpacity 
-            style={styles.controlButton}
-            onPress={() => handleChangeCity('prev')}
-          >
-            <Ionicons name="arrow-back" size={24} color="#333" />
-          </TouchableOpacity>
-          <View style={styles.cityInfoContainer}>
-            <Text style={styles.controlText}>{selectedCity}</Text>
+          {availableDays.length > 1 && (
+            <TouchableOpacity 
+              style={styles.controlButton}
+              onPress={() => handleChangeDay('prev')}
+            >
+              <Ionicons name="arrow-back" size={24} color="#333" />
+            </TouchableOpacity>
+          )}
+          <View style={[
+            styles.cityInfoContainer,
+            availableDays.length === 1 && styles.singleDayInfo
+          ]}>
+            <Text style={styles.controlText}>{getDateForDay(selectedDay)}</Text>
             <Text style={styles.destinationCount}>
               {displayItems.length} destination{displayItems.length !== 1 ? 's' : ''}
             </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.controlButton}
-            onPress={() => handleChangeCity('next')}
-          >
-            <Ionicons name="arrow-forward" size={24} color="#333" />
-          </TouchableOpacity>
+          {availableDays.length > 1 && (
+            <TouchableOpacity 
+              style={styles.controlButton}
+              onPress={() => handleChangeDay('next')}
+            >
+              <Ionicons name="arrow-forward" size={24} color="#333" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -598,6 +592,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '500',
+  },
+  singleDayInfo: {
+    marginHorizontal: 'auto',
   },
 });
 

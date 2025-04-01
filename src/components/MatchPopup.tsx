@@ -14,6 +14,7 @@ import { RootState } from '../store';
 import { useAppDispatch } from '../store/hooks';
 import TicketPurchaseStatus from './TicketPurchaseStatus';
 import ButtonFixe from "./ButtonFixe";
+import { getFlagUrl } from '../utils/flagResolver';
 
 export interface MatchPopupProps {
   onClose: () => void;
@@ -85,24 +86,6 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
     }
   };
 
-
-  // Utiliser une fonction pour récupérer les drapeaux depuis une source plus fiable
-  const flag = (country: string) => {
-    try {
-      country = country
-        .toLowerCase()
-        .replace(/\s+/g, '-');
-
-      // Approche plus robuste : utiliser une source locale si disponible
-      // ou une API plus fiable si nécessaire
-      return `https://www.countryflags.com/wp-content/uploads/${country}-flag-png-large.png`;
-    } catch (error) {
-      console.error('Erreur lors du chargement du drapeau:', error);
-      // Retourner une URL de secours (placeholder)
-      return 'https://via.placeholder.com/150';
-    }
-  };
-
   // If no current match is available, return null or a loading state
   if (!currentMatch) {
     return (
@@ -113,6 +96,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
       </View>
     );
   }
+
 
   return (
     <Animated.View
@@ -128,7 +112,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
           {/* Label de status */}
           <View style={styles.statusLabel}>
             <Ionicons name="football" size={15} color="#0000FF" />
-            <Text style={styles.statusLabelText}>À venir</Text>
+            <Text style={styles.statusLabelText}> TBD</Text>
           </View>
 
           {/* Titre du match */}
@@ -148,10 +132,10 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
           bounces={true}
           nestedScrollEnabled={true}
         >
-          {/* Grand conteneur regroupant l'image et les détails */}
+          
           <View style={styles.content}>
 
-            {/* conntainer */}
+          
             <View style={styles.grandContainer}>
               <TouchableOpacity
                 style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
@@ -165,15 +149,27 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
               </TouchableOpacity>
 
 
-
-              {/* Affichage des images d'équipes avec VS au milieu */}
+              
               <View style={styles.teamsContainer}>
-                <>
-                  <Image source={{ uri: flag(currentMatch.homeTeam) }} style={styles.teamFlag} />
-                  <Text style={styles.vsText}>VS</Text>
-                  <Image source={{ uri: flag(currentMatch.awayTeam) }} style={styles.teamFlag} />
-                </>
+                <View style={styles.teamContainer}>
+                  <View style={styles.flagContainer}>
+                    <Image
+                      source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
+                      style={styles.flag}
+                    />
+                  </View>
+                </View>
 
+                <Text style={styles.vsText}>VS</Text>
+
+                <View style={styles.teamContainer}>
+                  <View style={styles.flagContainer}>
+                    <Image
+                      source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
+                      style={styles.flag}
+                    />
+                  </View>
+                </View>
               </View>
 
               <View style={styles.detailRow}>
@@ -183,7 +179,9 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
                     <Fontisto name="date" size={16} color="#656565" />
                     <Text style={styles.detailTitle}>Date</Text>
                   </View>
-                  <Text style={styles.detailValue}>{currentMatch.date.split(" ")[0]}</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
                 </View>
 
                 {/* Séparateur 1 */}
@@ -196,9 +194,9 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
                     <Text style={styles.detailTitle}>Time</Text>
                   </View>
                   <Text style={styles.detailValue}>
-                    {currentMatch.date.includes(" ")
-                      ? currentMatch.date.split(" ")[1]
-                      : "9:00 PM"}
+                    {currentMatch.date.includes("T")
+                      ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                      : "21:00"}
                   </Text>
                 </View>
 
@@ -224,7 +222,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
             {/* Location Section */}
             <LocationSection
               address={currentMatch.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-              mapUrl={currentMatch.spot?.coordinates}
+              mapUrl={currentMatch.spot?.mapId}
             />
 
             {/* Ticket Purchase Status */}
@@ -326,12 +324,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 6,
   },
-  teamFlag: {
+  teamContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  flagContainer: {
     width: 72,
     height: 52,
     borderRadius: 10,
+    overflow: 'hidden',
+  },
+  flag: {
+    width: '100%',
+    height: '100%',
     resizeMode: 'cover',
-    alignItems: 'center',
+  },
+  teamName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 10,
   },
   vsText: {
     fontSize: 24,

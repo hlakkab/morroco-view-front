@@ -8,7 +8,6 @@ export interface Destination extends TourSavedItem {
   city: string;
   date?: string;
 
-
 }
 
 export interface Tour {

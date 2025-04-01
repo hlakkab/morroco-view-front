@@ -26,7 +26,7 @@ import TrajectoryButton from '../components/tour/TrajectoryButton';
 import Timeline from '../containers/tour/Timeline';
 import { setTourItems, saveTour, saveTourThunk } from '../store/tourSlice';
 import { TourSavedItem } from '../types/tour';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList, SavedItem } from '../types/navigation';
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -52,27 +52,17 @@ interface DailySchedule {
   items: TourItem[];
 }
 
-// Define SavedItem interface for Timeline compatibility
-interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  city: string;
-  duration?: string;
-  timeSlot?: string;
-}
-
 // Map TourItem to SavedItem for Timeline compatibility
 const mapTourItemToSavedItem = (item: TourItem): SavedItem => {
   return {
     id: item.id,
-    type: item.type === 'monument' || item.type === 'money-exchange' ? 'entertainment' : item.type,
+    type: item.type,
     title: item.title,
     subtitle: item.subtitle,
     city: item.city,
     duration: item.duration,
-    timeSlot: item.timeSlot
+    timeSlot: item.timeSlot,
+    images: item.images
   };
 };
 
@@ -148,65 +138,10 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         }
       });
       
-      // If no schedule was created, provide fallback data
-      if (scheduleDays.length === 0) {
-        const fallbackItems: DailySchedule[] = [
-          {
-            date: "Monday, October 03, 2023",
-            city: "Casablanca",
-            items: [
-              {
-                id: '1',
-                type: 'match',
-                title: 'Senegal Vs Egypt',
-                subtitle: 'Stade Mohamed V',
-                city: 'Casablanca',
-                timeSlot: 'Evening'
-              },
-              {
-                id: '2',
-                type: 'match',
-                title: 'Morocco Vs Comores',
-                subtitle: 'Stade Moulay Abdallah',
-                city: 'Casablanca',
-                duration: '2 hours'
-              }
-            ]
-          }
-        ];
-        
-        setSchedule(fallbackItems);
-      } else {
-        setSchedule(scheduleDays);
-      }
+      setSchedule(scheduleDays);
     } catch (e) {
       console.error("Error preparing schedule:", e);
-      // Provide fallback data in case of error
-      const fallbackSchedule: DailySchedule[] = [
-        {
-          date: "Monday, October 03, 2023",
-          city: "Casablanca",
-          items: [
-            {
-              id: '1',
-              type: 'match',
-              title: 'Senegal Vs Egypt',
-              subtitle: 'Stade Mohamed V',
-              city: 'Casablanca',
-              timeSlot: 'Evening'
-            },
-            {
-              id: '2',
-              type: 'match',
-              title: 'Morocco Vs Comores',
-              subtitle: 'Stade Moulay Abdallah',
-              city: 'Casablanca',
-              duration: '2 hours'
-            }
-          ]
-        }
-      ];
-      setSchedule(fallbackSchedule);
+      setSchedule([]);
     }
   }, [startDate, endDate, selectedItemsByDay, cities, savedItems]);
 
@@ -216,6 +151,8 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       case 'restaurant': return 2; 
       case 'match': return 1;
       case 'entertainment': return 3;
+      case 'monument': return 5;
+      case 'money-exchange': return 6;
       default: return 5;
     }
   };
