@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
+    marginBottom: 60,
   },
   addButton: {
     flexDirection: 'row',

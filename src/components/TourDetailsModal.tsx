@@ -411,7 +411,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
               style={styles.mapButton}
               onPress={handleViewMap}
             >
-              <Feather name="map" size={20} color="#FFF" style={styles.buttonIcon} />
+              <Feather name="map" size={20} style={styles.buttonIcon} />
               <Text style={styles.mapButtonText}>View on Map</Text>
             </TouchableOpacity>
 
@@ -664,21 +664,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   mapButton: {
-    backgroundColor: '#2196F3',
-    paddingVertical: 14,
     borderRadius: 50,
     alignItems: 'center',
-    marginTop: 8,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   mapButtonText: {
-    color: '#FFF',
-    fontSize: 16,
+    color: '#AE1913',
+    fontSize: 14,
     fontWeight: '600',
   },
   buttonIcon: {
     marginRight: 8,
+    color: '#AE1913',
   },
   matchContainer: {
     width: 100,
