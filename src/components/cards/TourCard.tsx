@@ -1,8 +1,11 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import React, { FC } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Tour } from '../../types/tour';
 import CardItem from './CardItem';
+
+// Define the default image using require
+const defaultTourImage = require('../../assets/img/tour_image_card.png');
 
 interface TourCardProps {
   item: Tour;
@@ -48,11 +51,10 @@ const TourCard: FC<TourCardProps> = ({
     return item.from || 'No dates';
   };
 
-  const defaultImage = "https://orioly.com/wp-content/uploads/2016/12/qualities-of-a-good-tour-guide-cover-illustration.png";
 
   return (
       <CardItem
-        imageUrl={defaultImage}
+        imageUrl={item.imageUrl || defaultTourImage}
         title={item.title}
         subtitle={`${item.destinationCount} Destination`}
         tags={[

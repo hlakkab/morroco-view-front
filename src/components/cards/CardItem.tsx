@@ -1,8 +1,9 @@
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import React from 'react';
+import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 interface CardItemProps {
-  imageUrl?: string;
+  imageUrl?: string | number;  // Updated to accept both string and number for require()
   images?: string[];
   title: string;
   subtitle?: string;
@@ -65,8 +66,8 @@ const CardItem: React.FC<CardItemProps> = ({
 }) => {
   // Determine image source - prioritize images array if available
   const imageSource = images && images.length > 0 
-    ? images[0] 
-    : imageUrl;
+    ? { uri: images[0] } 
+    : typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl;
 
   return (
     <TouchableOpacity 
@@ -76,7 +77,7 @@ const CardItem: React.FC<CardItemProps> = ({
     >
       {(imageSource && (
         <Image 
-          source={{ uri: imageSource }} 
+          source={imageSource} 
           style={[styles.cardImage, customStyles.image]} 
         />
       )) || svgImage}
@@ -126,26 +127,9 @@ const CardItem: React.FC<CardItemProps> = ({
             styles.actionIconContainer, 
             isSaved && styles.savedIconContainer,
           ]}>
-            
             {actionIcon}
           </View>
         </TouchableOpacity>
-    //   <TouchableOpacity
-    //   style={styles.actionButton}
-    //   onPress={onActionPress}
-    //   disabled={!onActionPress}
-    // >
-    //   <View style={[
-    //     styles.actionIconContainer,
-    //     isSaved && styles.savedIconContainer
-    //   ]}>
-    //     <FontAwesome
-    //       name={isSaved ? "bookmark" : "bookmark-o"}
-    //       size={18}
-    //       color={isSaved ? "#888888" : "#000"}
-    //     />
-    //   </View>
-    // </TouchableOpacity>
       )}
     </TouchableOpacity>
   );
@@ -164,7 +148,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     paddingRight: 6,
-    
   },
   cardImage: {
     width: 120,
@@ -177,7 +160,6 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
     justifyContent: 'center',
-    
   },
   tagsRow: {
     flexDirection: 'row',
