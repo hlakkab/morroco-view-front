@@ -124,13 +124,13 @@ const mapEntertainmentToSavedItem = (entertainment: any): TourSavedItem => {
 /**
  * Maps an Artisan object to a TourSavedItem
  */
-const mapArtisanToSavedItem = (artisan: any): TourSavedItem => {
+const mapArtisanToSavedItem = (artisan: any, images?: string[]): TourSavedItem => {
   return {
     id: artisan.id,
     type: 'artisan',
     title: artisan.name,
     subtitle: artisan.address,
-    images: artisan.images,
+    images: images || artisan.images,
     city: capitalizeCity(artisan.city),
     coordinate: parseCoordinates(artisan.coordinates)
   };
@@ -159,7 +159,7 @@ export const mapBookmarkToTourSavedItem = (bookmark: Bookmark): TourSavedItem | 
     case 'entertainment':
       return mapEntertainmentToSavedItem(bookmark.object as Entertainment);
     case 'artisan':
-      return mapArtisanToSavedItem(bookmark.object);
+      return mapArtisanToSavedItem(bookmark.object, bookmark.images);
     default:
       console.warn(`Unsupported bookmark type: ${bookmark.type}`);
       return undefined;

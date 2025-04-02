@@ -258,7 +258,7 @@ const AccountScreen: React.FC = () => {
             <Ionicons name="chevron-forward" size={24} color="#666" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.supportItem}>
+          {/* <TouchableOpacity style={styles.supportItem}>
             <View style={styles.supportItemLeft}>
               <Ionicons name="help-circle-outline" size={24} color="#CE1126" />
               <Text style={styles.supportItemText}>FAQ & Help Center</Text>
@@ -272,7 +272,7 @@ const AccountScreen: React.FC = () => {
               <Text style={styles.supportItemText}>Terms & Privacy Policy</Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Logout Button */}

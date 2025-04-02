@@ -11,7 +11,8 @@ import {
   cities,
   createFilterOptions,
   matchFilterCategories,
-  normalizeString
+  normalizeString,
+  matchCities
 } from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMatches, setCurrentMatch, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
@@ -36,7 +37,7 @@ const ExploreMatchesScreen: React.FC = () => {
   // Create city options for the FilterSelector component
   const cityOptions = [
     { id: 'all', label: 'All Cities', icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> },
-    ...cities.map(city => ({
+    ...matchCities.map(city => ({
       id: normalizeString(city.id),
       label: city.label,
       icon: <Ionicons name="location" size={16} color="#888" style={{ marginRight: 4 }} />

@@ -9,13 +9,23 @@ export const cities = [
     { id: 'casablanca', label: 'Casablanca' },
     { id: 'rabat', label: 'Rabat' },
     { id: 'marrakech', label: 'Marrakech' },
-    { id: 'fes', label: 'Fez' },
+    { id: 'fez', label: 'Fez' },
     { id: 'tangier', label: 'Tangier' },
     { id: 'agadir', label: 'Agadir' },
     { id: 'oujda', label: 'Oujda' },
     { id: 'kenitra', label: 'Kenitra' },
     { id: 'tetouan', label: 'Tetouan' },
     { id: 'safi', label: 'Safi' },
+];
+
+// Match cities data (only for matches)
+export const matchCities = [
+    { id: 'casablanca', label: 'Casablanca' },
+    { id: 'marrakech', label: 'Marrakech' },
+    { id: 'fez', label: 'Fez' },
+    { id: 'tangier', label: 'Tangier' },
+    { id: 'agadir', label: 'Agadir' },
+    { id: 'rabat', label: 'Rabat' }
 ];
 
 // Stadiums data
@@ -80,7 +90,7 @@ export const normalizeString = (str: string = ''): string => {
  * Creates filter options for match filtering (cities and stadiums)
  */
 export const createFilterOptions = () => {
-    const cityOptions = cities.map(city => ({
+    const cityOptions = matchCities.map(city => ({
         id: normalizeString(city.id),
         label: city.label,
         selected: false,
