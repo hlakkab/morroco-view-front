@@ -16,6 +16,7 @@ const CITY_COORDINATES = {
   'Casablanca': { latitude: 33.589886, longitude: -7.603869 },
   'Rabat': { latitude: 34.020882, longitude: -6.841650 },
   'Agadir': { latitude: 30.427755, longitude: -9.598107 },
+  'Fez': { latitude: 34.0181, longitude: -5.0078 },
 };
 
 // Predefined colors for routes
@@ -64,6 +65,10 @@ const HOTELS_BY_CITY = {
   'Agadir': {
     title: 'Sofitel Agadir Royal Bay Resort',
     coordinate: { latitude: 30.413723, longitude: -9.600754 }
+  },
+  'Fez': {
+    title: 'Palais Amani',
+    coordinate: { latitude: 34.0633, longitude: -4.9822 }
   }
 };
 
@@ -389,7 +394,8 @@ const TourMapScreen: React.FC = () => {
                         item.type === 'match' ? 'football' : 
                         item.type === 'entertainment' ? 'musical-notes' : 
                         item.type === 'monument' ? 'business' : 
-                        item.type === 'money-exchange' ? 'cash' : 'location'
+                        item.type === 'money-exchange' ? 'cash' :
+                        item.type === 'artisan' ? 'construct' : 'location'
                       }   
                       size={20} 
                       color="#fff" 

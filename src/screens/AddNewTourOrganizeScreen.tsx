@@ -386,6 +386,9 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     if (schedule[selectedDayIndex]) {
       const dayItems = schedule[selectedDayIndex].items;
       const itemsWithCoordinates = addCoordinatesToItems(dayItems);
+
+
+      console.log('itemsWithCoordinates', itemsWithCoordinates.map(item => item.title));
       
       // Navigate to map view with the items for this day
       navigation.navigate('TourMapScreen', {
