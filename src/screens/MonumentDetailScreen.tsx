@@ -124,7 +124,7 @@ const MonumentDetailScreen: React.FC = () => {
           <View style={styles.monumentTypeContainer}>
             <Text style={styles.monumentType}>
               {/* {monumentDetails.isFeatured ? 'Featured Monument' : 'Historical Monument'} */}
-              Historical Monument
+              {monumentDetails.type}
             </Text>
           </View>
 
@@ -152,7 +152,7 @@ const MonumentDetailScreen: React.FC = () => {
 
           <LocationSection 
             address={monumentDetails.address} 
-            mapUrl='https://maps.google.com/?q=Majorelle+Garden,+Marrakech,+Morocco'
+            mapUrl={monumentDetails.mapId}
           />
         </View>
       </ScrollView>

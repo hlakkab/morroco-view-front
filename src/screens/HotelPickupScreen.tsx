@@ -125,7 +125,7 @@ const HotelPickupScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Hotel Pickup" onBack={handleBack} />
+        <ScreenHeader title="Pickup" onBack={handleBack} />
       </View>
 
       <View style={styles.content}>
