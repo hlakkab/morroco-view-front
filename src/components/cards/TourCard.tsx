@@ -5,7 +5,7 @@ import { Tour } from '../../types/tour';
 import CardItem from './CardItem';
 
 // Define the default image using require
-const defaultTourImage = require('../../assets/img/tour_image_card.png');
+const defaultTourImage = require('../../assets/img/nTour_gen.png');
 
 interface TourCardProps {
   item: Tour;
