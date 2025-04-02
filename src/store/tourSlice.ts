@@ -5,7 +5,7 @@ import { TourSavedItem, Tour } from '../types/tour';
 // Define interfaces for tour items
 export interface TourItem {
   id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment' | 'monument' | 'money-exchange';
+  type: 'hotel' | 'restaurant' | 'match' | 'entertainment' | 'monument' | 'money-exchange' | 'artisan';
   title: string;
   subtitle?: string;
   images?: string[];

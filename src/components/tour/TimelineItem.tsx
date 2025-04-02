@@ -189,6 +189,8 @@ const TimelineItem = memo(({
         return <Ionicons name="musical-notes" size={size} color="#FFF" />;
       case 'monument':
         return <Ionicons name="business" size={size} color="#FFF" />;
+      case 'money-exchange':
+        return <Ionicons name="cash-outline" size={size} color="#FFF" />;
       default:
         return <Ionicons name="location" size={size} color="#FFF" />;
     }
@@ -201,6 +203,7 @@ const TimelineItem = memo(({
       case 'match': return '#2196F3';
       case 'entertainment': return '#FF9800';
       case 'monument': return '#00BCD4';
+      case 'money-exchange': return '#9C27B0';
       default: return '#9E9E9E';
     }
   };

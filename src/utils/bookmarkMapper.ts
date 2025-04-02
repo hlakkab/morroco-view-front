@@ -75,7 +75,7 @@ const mapBrokerToSavedItem = (broker: Broker, images?: string[]): TourSavedItem 
     id: broker.id,
     type: 'money-exchange',
     title: broker.name,
-    subtitle: broker.description,
+    subtitle: broker.address,
     images: images || broker.images,
     city: capitalizeCity(broker.city),
     coordinate: parseCoordinates(broker.coordinates)
@@ -122,6 +122,21 @@ const mapEntertainmentToSavedItem = (entertainment: any): TourSavedItem => {
 };
 
 /**
+ * Maps an Artisan object to a TourSavedItem
+ */
+const mapArtisanToSavedItem = (artisan: any): TourSavedItem => {
+  return {
+    id: artisan.id,
+    type: 'artisan',
+    title: artisan.name,
+    subtitle: artisan.address,
+    images: artisan.images,
+    city: capitalizeCity(artisan.city),
+    coordinate: parseCoordinates(artisan.coordinates)
+  };
+};
+
+/**
  * Maps a Bookmark to a TourSavedItem based on its type
  * @param bookmark The bookmark to map
  * @returns A TourSavedItem or undefined if the type is not supported
@@ -136,13 +151,15 @@ export const mapBookmarkToTourSavedItem = (bookmark: Bookmark): TourSavedItem | 
       return mapRestaurantToSavedItem(bookmark.object as Restaurant, bookmark.images);
     case 'monument':
       return mapMonumentToSavedItem(bookmark.object as Monument, bookmark.images);
-    case 'money-exchange':
+    case 'money_exchange':
     case 'broker':
       return mapBrokerToSavedItem(bookmark.object as Broker, bookmark.images);
     case 'match':
       return mapMatchToSavedItem(bookmark.object as Match, bookmark.images);
     case 'entertainment':
       return mapEntertainmentToSavedItem(bookmark.object as Entertainment);
+    case 'artisan':
+      return mapArtisanToSavedItem(bookmark.object);
     default:
       console.warn(`Unsupported bookmark type: ${bookmark.type}`);
       return undefined;
@@ -155,6 +172,7 @@ export const mapBookmarkToTourSavedItem = (bookmark: Bookmark): TourSavedItem | 
  * @returns Array of TourSavedItems (filtered to remove any undefined values)
  */
 export const mapBookmarksToTourSavedItems = (bookmarks: Bookmark[]): TourSavedItem[] => {
+
   return bookmarks
     .map(bookmark => mapBookmarkToTourSavedItem(bookmark))
     .filter((item): item is TourSavedItem => item !== undefined);

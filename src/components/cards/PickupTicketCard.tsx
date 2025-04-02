@@ -1,17 +1,16 @@
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { format } from "date-fns";
 import { Ticket } from "../../types/ticket";
 import { HotelPickup } from "../../types/transport";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-
-
+import QRCodeModal from "../QRCodeModal";
 
 type PickupTicketCardProps = {
     ticket: Ticket 
 }
 
 const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
-
+    const [qrModalVisible, setQrModalVisible] = useState(false);
     const pickup = ticket.object as HotelPickup & {date: string};
     // For demonstration purposes, using a placeholder date
 
@@ -19,31 +18,49 @@ const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
     const month = format(date, 'MMM').toUpperCase();
     const day = format(date, 'dd');
 
-    return (
-      <View style={styles.ticketCard} key={ticket.id}>
-        <View style={[styles.dateContainer, styles.pickupDateContainer]}>
-          <Text style={styles.monthText}>{month}</Text>
-          <Text style={styles.dayText}>{day}</Text>
-          <Text style={styles.timeText}>Hotel{'\n'}Pickup</Text>
-        </View>
+    const handleShowQRCode = () => {
+        setQrModalVisible(true);
+    };
 
-        <View style={styles.matchContainer}>
-          
-          <View style={styles.pickupInfo}>
-            <Text style={styles.pickupTitle}>{pickup.title}</Text>
-            <Text style={styles.pickupCity}>{pickup.city}</Text>
-            
-            <View style={styles.pickupDetails}>
-              <Text style={styles.pickupPrice}>${pickup.price}</Text>
-              <Text style={styles.pickupType}>{pickup.private ? 'Private' : 'Shared'}</Text>
-            </View>
+    const handleCloseQRModal = () => {
+        setQrModalVisible(false);
+    };
+
+    return (
+      <>
+        <View style={styles.ticketCard} key={ticket.id}>
+          <View style={[styles.dateContainer, styles.pickupDateContainer]}>
+            <Text style={styles.monthText}>{month}</Text>
+            <Text style={styles.dayText}>{day}</Text>
+            <Text style={styles.timeText}>Hotel{'\n'}Pickup</Text>
           </View>
 
-          <TouchableOpacity style={styles.qrButton}>
-            <Text style={styles.qrButtonText}>Show QR Code</Text>
-          </TouchableOpacity>
+          <View style={styles.matchContainer}>
+            
+            <View style={styles.pickupInfo}>
+              <Text style={styles.pickupTitle}>{pickup.title}</Text>
+              <Text style={styles.pickupCity}>{pickup.city}</Text>
+              
+              <View style={styles.pickupDetails}>
+                <Text style={styles.pickupPrice}>${pickup.price}</Text>
+                <Text style={styles.pickupType}>{pickup.private ? 'Private' : 'Shared'}</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.qrButton} onPress={handleShowQRCode}>
+              <Text style={styles.qrButtonText}>Show QR Code</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+
+        {/* QR Code Modal */}
+        <QRCodeModal
+          visible={qrModalVisible}
+          title={pickup.title}
+          onClose={handleCloseQRModal}
+          data={ticket.id}
+        />
+      </>
     );
 };
 

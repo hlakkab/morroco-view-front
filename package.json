@@ -52,7 +52,8 @@
     "react-native-worklets-core": "^1.5.0",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
-    "twrnc": "^4.6.1"
+    "twrnc": "^4.6.1",
+    "expo-brightness": "~13.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -31,8 +31,8 @@ export interface Tour {
 }
 
 export interface TourSavedItem {
-  id: string;
-  type: 'restaurant' | 'monument' | 'money-exchange' | 'match' | 'hotel' | 'entertainment';
+  id: string; 
+  type: 'restaurant' | 'monument' | 'money-exchange' | 'match' | 'hotel' | 'entertainment' | 'artisan';
   title: string;
   subtitle?: string;
   images?: string[];
