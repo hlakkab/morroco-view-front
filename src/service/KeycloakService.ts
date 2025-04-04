@@ -1,4 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
+import { api } from '.';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const KEYCLOAK_URL = `http://34.175.18.109:8080/realms/morocco-view/protocol/openid-connect/token`;
 const ACCESS_TOKEN_KEY = 'access_token';
@@ -129,6 +131,7 @@ const login = async (email: string, password: string) => {
   formData.append('grant_type', 'password');
   formData.append('client_id', 'marv-backend');
 
+
   try {
     const response = await fetch(KEYCLOAK_URL, {
       method: 'POST',
@@ -142,9 +145,15 @@ const login = async (email: string, password: string) => {
       throw new Error(`Login failed: ${response.status}`);
     }
 
+    
+
     const data = await response.json();
     const { access_token, refresh_token, expires_in } = data;
     await saveTokens(access_token, refresh_token, expires_in);
+
+    api.put("/verify")
+
+
     return data;
   } catch (error) {
     console.error('Error logging in:', error);
