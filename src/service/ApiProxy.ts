@@ -6,10 +6,8 @@ import axios, {
 } from 'axios';
 import { getAccessToken, refreshToken, clearTokens } from './KeycloakService';
 
-
-const API_URL = 'http://34.175.18.109';
-// const API_URL = 'http://192.168.0.115:9090';
-
+//const API_URL = "http://192.168.0.205:9090";
+const API_URL = 'http://49.13.89.74:9090';
 // Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -56,7 +54,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-
 
 export default api;

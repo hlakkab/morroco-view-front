@@ -1,8 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
-import { api } from '.';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import api from './ApiProxy';
 
-const KEYCLOAK_URL = `http://34.175.18.109:8080/realms/morocco-view/protocol/openid-connect/token`;
+const KEYCLOAK_URL = `http://49.13.89.74:8080/realms/morocco-view/protocol/openid-connect/token`;
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const TOKEN_EXPIRY_KEY = 'token_expiry';
