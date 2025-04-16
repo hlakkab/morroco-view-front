@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Image, Linking, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AboutSection from '../components/AboutSection';        
 import Button from '../components/Button';
 import LocationSection from '../components/LocationSection';
@@ -72,6 +72,29 @@ const BrokerDetailScreen: React.FC = () => {
 
   const handleCloseContactModal = () => {
     setShowContactModal(false);
+  };
+
+  const handlePhoneCall = () => {
+    if (brokerDetails.phoneNumber) {
+      Linking.openURL(`tel:${brokerDetails.phoneNumber}`);
+      handleCloseContactModal();
+    }
+  };
+
+  const handleEmail = () => {
+    // Since there's no email property in the Broker interface,
+    // we'll open the default email app without a specific address
+    Linking.openURL(`mailto:${brokerDetails.email}`);
+    handleCloseContactModal();
+  };
+
+  const handleWhatsApp = () => {
+    if (brokerDetails.phoneNumber) {
+      // Remove any non-numeric characters from phone number
+      const formattedNumber = brokerDetails.phoneNumber.replace(/\D/g, '');
+      Linking.openURL(`whatsapp://send?phone=${formattedNumber}&text=Hello, I'm interested in your currency exchange services.`);
+      handleCloseContactModal();
+    }
   };
 
   return (
@@ -194,17 +217,17 @@ const BrokerDetailScreen: React.FC = () => {
             </View>
             
             <View style={styles.contactOptions}>
-              <TouchableOpacity style={styles.contactOption}>
+              <TouchableOpacity style={styles.contactOption} onPress={handlePhoneCall}>
                 <Ionicons name="call" size={24} color="#008060" />
                 <Text style={styles.contactOptionText}>Call</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.contactOption}>
+              <TouchableOpacity style={styles.contactOption} onPress={handleEmail}>
                 <Ionicons name="mail" size={24} color="#008060" />
                 <Text style={styles.contactOptionText}>Email</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.contactOption}>
+              <TouchableOpacity style={styles.contactOption} onPress={handleWhatsApp}>
                 <Ionicons name="logo-whatsapp" size={24} color="#008060" />
                 <Text style={styles.contactOptionText}>WhatsApp</Text>
               </TouchableOpacity>

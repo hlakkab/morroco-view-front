@@ -58,7 +58,9 @@ const TicketsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
       <ScreenHeader title="Tickets" onBack={() => navigation.goBack()} />
+      </View>
 
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
@@ -107,12 +109,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF7F7',
   },
+  headerContainer: {
+    paddingHorizontal: 15,
+    paddingTop: 15,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    margin: 15,
-    paddingHorizontal: 15,
+    marginHorizontal: 15,
+    marginBottom: 15,
     backgroundColor: '#fff',
+    paddingHorizontal: 15,
     borderRadius: 25,
     height: 50,
     borderWidth: 1,

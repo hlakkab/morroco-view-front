@@ -2,21 +2,21 @@
 import axios from "axios";
 import { Entertainment } from "../types/Entertainment";
 
-const SEARCH_BASE_URL = "https://api.viator.com/partner/products/search";
+const BASE_URL = "https://api.viator.com/partner/products/search";
 const DETAIL_BASE_URL = "https://api.viator.com/partner/products";
 const API_KEY = "964e58e6-cc92-459a-9b48-d8136be1c08d";
 
-// Fonction pour récupérer une liste d'entertainments (pour l'écran de liste)
-const listEntertainments = async (): Promise<any[]> => {
-  const response = await axios.post<{ products: any[] }>(
-    SEARCH_BASE_URL,
-    {
+
+const listEntertainments = async (cityCode: string = "5408") => {
+  const response = await axios.post<{ products: Entertainment[] }>(
+    BASE_URL, {
       filtering: {
-        destination: "5408",
+        destination: cityCode,
+        tags: [20217, ]
       },
       pagination: {
         page: 1,
-        count: 5,
+        count: 20,
       },
       currency: "USD"
     },
