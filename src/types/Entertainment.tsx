@@ -77,7 +77,8 @@ export interface Entertainment {
   images: EntertainmentImage[];
   reviews: Reviews;
   pricing: Pricing;
-  city:string;
+  city: string;
+  saved: boolean;
 
   // Champs calculés pour l'UI
   fullStars?: number;

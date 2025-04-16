@@ -1,40 +1,48 @@
-import { RootState, AppDispatch } from './store'
-import { useAppDispatch, useAppSelector } from './hooks'
-import { 
-  MatchState, 
-  fetchMatches, 
-  fetchMatchById, 
-  setSelectedMatch, 
-  toggleMatchBookmark,
-  saveMatchBookmark
-} from './matchSlice'
-import { TicketState, fetchTickets, fetchTicketById, clearError } from './ticketSlice'
-import { fetchRestaurants, setSelectedType as setSelectedRestaurantType, setSelectedRestaurant } from './restaurantSlice'
-import { fetchMonuments, setSelectedType as setSelectedMonumentType, setSelectedMonument } from './monumentSlice'
+import { configureStore } from '@reduxjs/toolkit';
+import { useAppDispatch, useAppSelector } from './hooks';
+import { AppDispatch, RootState } from './store';
+
+import MatchState, {
+  fetchMatches,
+  saveMatchBookmark,
+  toggleMatchBookmark
+} from './matchSlice';
+
+import TicketState, {
+  clearError,
+  fetchTicketById,
+  fetchTickets
+} from './ticketSlice';
+
+import {
+  fetchRestaurants,
+  setSelectedRestaurant,
+  setSelectedType as setSelectedRestaurantType
+} from './restaurantSlice';
+
+import {
+  fetchMonuments,
+  setSelectedMonument,
+  setSelectedType as setSelectedMonumentType
+} from './monumentSlice';
+
+import {
+  fetchArtisans,
+  setSelectedType as setSelectedArtisanType
+} from './artisanSlice';
 
 export {
-  RootState, 
-  AppDispatch, 
-  useAppDispatch, 
-  useAppSelector,
-  // Match exports
-  MatchState,
-  fetchMatches,
-  fetchMatchById,
-  setSelectedMatch,
-  toggleMatchBookmark,
-  saveMatchBookmark,
-  // Ticket exports
-  TicketState,
-  fetchTickets,
-  fetchTicketById,
-  clearError,
-  // Restaurant exports
-  fetchRestaurants,
-  setSelectedRestaurantType,
-  setSelectedRestaurant,
+  AppDispatch, clearError,
+  // Artisan exports
+  fetchArtisans, fetchMatches,
   // Monument exports
   fetchMonuments,
-  setSelectedMonumentType,
-  setSelectedMonument
-}
+  // Restaurant exports
+  fetchRestaurants, fetchTicketById, fetchTickets,
+  // Match exports
+  MatchState, RootState, saveMatchBookmark, setSelectedArtisanType, setSelectedMonument, setSelectedMonumentType, setSelectedRestaurant, setSelectedRestaurantType,
+  // Ticket exports
+  TicketState, toggleMatchBookmark, useAppDispatch,
+  useAppSelector
+};
+

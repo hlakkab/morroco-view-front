@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
-import ScreenHeader from '../components/ScreenHeader';
 import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSelector } from 'react-redux';
+import ScreenHeader from '../components/ScreenHeader';
 import { RootState } from '../store/store';
 import { RootStackParamList } from '../types/navigation';
 
@@ -16,13 +16,81 @@ const CITY_COORDINATES = {
   'Casablanca': { latitude: 33.589886, longitude: -7.603869 },
   'Rabat': { latitude: 34.020882, longitude: -6.841650 },
   'Agadir': { latitude: 30.427755, longitude: -9.598107 },
+  'Fez': { latitude: 34.0181, longitude: -5.0078 },
+};
+
+// Predefined colors for routes
+const ROUTE_COLORS = [
+  '#1E90FF', // Dodger Blue (Bright)
+  '#4169E1', // Royal Blue
+  '#0000CD', // Medium Blue
+  '#00008B', // Dark Blue
+  '#000080', // Navy Blue
+  '#191970', // Midnight Blue
+  '#1E3D59', // Deep Blue
+  '#2C3E50', // Dark Blue-Gray
+  '#34495E', // Steel Blue
+  '#2B6CB0', // Ocean Blue
+];
+
+// Function to shuffle array
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Function to get a color for a route
+const getRouteColor = (index: number): string => {
+  return ROUTE_COLORS[index % ROUTE_COLORS.length];
+};
+
+// Hotels coordinates for each city
+const HOTELS_BY_CITY = {
+  'Marrakech': {
+    title: 'Riad Kbour & Chou',
+    coordinate: { latitude: 31.629722, longitude: -7.988889 }
+  },
+  'Casablanca': {
+    title: 'Four Seasons Casablanca',
+    coordinate: { latitude: 33.604437, longitude: -7.670120 }
+  },
+  'Rabat': {
+    title: 'Sofitel Rabat Jardin des Roses',
+    coordinate: { latitude: 34.015731, longitude: -6.841783 }
+  },
+  'Agadir': {
+    title: 'Sofitel Agadir Royal Bay Resort',
+    coordinate: { latitude: 30.413723, longitude: -9.600754 }
+  },
+  'Fez': {
+    title: 'Palais Amani',
+    coordinate: { latitude: 34.0633, longitude: -4.9822 }
+  }
 };
 
 // Function to get precise coordinates based on title or use city coordinates as fallback
 const getItemCoordinates = (item: any): {latitude: number, longitude: number} => {
-  // If item already has coordinates, use them
-  if (item.coordinate) {
+  // If item already has coordinates in the correct format, use them
+  if (item.coordinate && typeof item.coordinate.latitude === 'number' && typeof item.coordinate.longitude === 'number') {
     return item.coordinate;
+  }
+  
+  // If coordinates are in string format, parse them
+  if (item.coordinates) {
+    const [latitude, longitude] = item.coordinates.split(',').map(Number);
+    if (!isNaN(latitude) && !isNaN(longitude)) {
+      return { latitude, longitude };
+    }
+  }
+  
+  // Check for hotel coordinates
+  const cityHotel = Object.values(HOTELS_BY_CITY).find(hotel => hotel.title === item.title);
+  if (cityHotel) {
+    return cityHotel.coordinate;
   }
   
   // Fallback to city coordinates
@@ -104,90 +172,152 @@ const TourMapScreen: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TourMapScreen'>>();
   const { tourItems } = route.params || { tourItems: [] };
   
-  const [routes, setRoutes] = useState<any[]>([]);
-  const [selectedCity, setSelectedCity] = useState<string>('');
-  const [displayItems, setDisplayItems] = useState<Array<any>>(tourItems);
-  const [filteredCities, setFilteredCities] = useState<string[]>([]);
+  const [routes, setRoutes] = useState<Array<{points: any[], color: string}>>([]);
+  const [selectedDay, setSelectedDay] = useState<number>(1);
+  const [displayItems, setDisplayItems] = useState<Array<any>>([]);
+  const [availableDays, setAvailableDays] = useState<number[]>([]);
+  const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
   
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
 
   const GOOGLE_MAPS_API_KEY = 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY';
 
+  // Function to get date for a day
+  const getDateForDay = (day: number): string => {
+    const dayItems = tourItems.filter(item => (item.day || 1) === day);
+    if (dayItems.length > 0 && dayItems[0].date) {
+      const date = new Date(dayItems[0].date);
+      const dayOfMonth = date.getDate();
+      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      return `${dayOfMonth} ${month}`;
+    }
+    return `Day ${day}`;
+  };
+
+  // Function to fetch routes for a given day
+  const fetchRoutesForDay = async (dayItems: Array<any>) => {
+    if (dayItems.length < 1) {
+      setRoutes([]);
+      return;
+    }
+
+    setIsLoadingRoutes(true);
+    const newRoutes = [];
+    
+    // Create circular route: hotel -> destinations -> hotel
+    const hotel = dayItems.find(item => item.type === 'hotel');
+    if (!hotel) {
+      setIsLoadingRoutes(false);
+      return;
+    }
+
+    // Generate routes from hotel to each destination and back
+    for (let i = 0; i < dayItems.length; i++) {
+      const currentItem = dayItems[i];
+      const nextItem = dayItems[(i + 1) % dayItems.length];
+      
+      const origin = `${getItemCoordinates(currentItem).latitude},${getItemCoordinates(currentItem).longitude}`;
+      const destination = `${getItemCoordinates(nextItem).latitude},${getItemCoordinates(nextItem).longitude}`;
+      const url = `https://maps.googleapis.com/maps/api/directions/json`
+        + `?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_API_KEY}`;
+
+      try {
+        const response = await axios.get(url);
+        if (response.data.routes.length > 0) {
+          const points = response.data.routes[0].overview_polyline.points;
+          newRoutes.push({
+            points: decodePolyline(points),
+            color: getRouteColor(i)
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching route", error);
+        // Add a direct line if route fetching fails
+        newRoutes.push({
+          points: [
+            getItemCoordinates(currentItem),
+            getItemCoordinates(nextItem)
+          ],
+          color: getRouteColor(i)
+        });
+      }
+    }
+    setRoutes(newRoutes);
+    setIsLoadingRoutes(false);
+  };
+
+  // Initialize available days and selected day
   useEffect(() => {
     if (!tourItems || tourItems.length === 0) {
-      // Show alert when there are no tours
       alert('No tour items available');
       navigation.goBack();
       return;
     }
     
-    // Extract unique cities from tour items
-    const cities = [...new Set(tourItems.map(item => item.city))];
-    setFilteredCities(cities);
+    const days = [...new Set(tourItems.map(item => item.day || 1))].sort((a, b) => a - b);
+    setAvailableDays(days);
     
-    // Set initial city if available
-    if (cities.length > 0) {
-      const firstCity = cities[0];
-      setSelectedCity(firstCity);
-      
-      // Set display items for first city
-      const cityItems = tourItems.filter(item => item.city === firstCity);
-      setDisplayItems(cityItems);
-      
-      // Calculate appropriate zoom level for first city
-      const validCoordinates = cityItems
-        .filter(item => item.coordinate !== undefined)
-        .map(item => getItemCoordinates(item));
-      
-      // If map reference is already available, animate to the city
-      if (mapRef.current && validCoordinates.length > 0) {
-        const cityCenter = calculateCenter(cityItems);
-        const zoomLevel = calculateZoomLevel(validCoordinates);
-        
-        mapRef.current.animateToRegion({
-          latitude: cityCenter.latitude,
-          longitude: cityCenter.longitude,
-          latitudeDelta: zoomLevel.latitudeDelta,
-          longitudeDelta: zoomLevel.longitudeDelta,
-        }, 500);
-      }
+    if (days.length > 0) {
+      setSelectedDay(days[0]);
     }
   }, [tourItems, navigation]);
 
+  // Update display items and fetch routes when selected day changes
   useEffect(() => {
-    // Update displayed items based on selected city
-    if (selectedCity) {
-      const cityItems = tourItems.filter(item => item.city === selectedCity);
-      setDisplayItems(cityItems);
-    }
-  }, [selectedCity, tourItems]);
+    if (selectedDay && tourItems.length > 0) {
+      const dayItems = tourItems.filter(item => (item.day || 1) === selectedDay);
+      if (dayItems.length > 0) {
+        const city = dayItems[0].city;
+        const cityHotel = HOTELS_BY_CITY[city as keyof typeof HOTELS_BY_CITY];
+        const hotelItem = {
+          id: `hotel-${city.toLowerCase()}`,
+          title: cityHotel.title,
+          city: city,
+          type: 'hotel',
+          coordinate: cityHotel.coordinate,
+          subtitle: 'Your Hotel'
+        };
 
-  useEffect(() => {
-    if (displayItems.length < 2) return; // Need at least 2 points for a route
-
-    const fetchRoutes = async () => {
-      const newRoutes = [];
-      for (let i = 0; i < displayItems.length - 1; i++) {
-        const origin = `${getItemCoordinates(displayItems[i]).latitude},${getItemCoordinates(displayItems[i]).longitude}`;
-        const destination = `${getItemCoordinates(displayItems[i + 1]).latitude},${getItemCoordinates(displayItems[i + 1]).longitude}`;
-        const url = `https://maps.googleapis.com/maps/api/directions/json`
-          + `?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_API_KEY}`;
-
-        try {
-          const response = await axios.get(url);
-          if (response.data.routes.length > 0) {
-            const points = response.data.routes[0].overview_polyline.points;
-            newRoutes.push(decodePolyline(points));
-          }
-        } catch (error) {
-          console.error("Error fetching route", error);
+        const itemsWithHotel = [hotelItem, ...dayItems];
+        setDisplayItems(itemsWithHotel);
+        
+        // Fetch routes for the new day
+        fetchRoutesForDay(itemsWithHotel);
+        
+        // Calculate and animate to the new region
+        const validCoordinates = itemsWithHotel
+          .filter(item => item.coordinate !== undefined)
+          .map(item => getItemCoordinates(item));
+        
+        if (mapRef.current && validCoordinates.length > 0) {
+          const dayCenter = calculateCenter(itemsWithHotel);
+          const zoomLevel = calculateZoomLevel(validCoordinates);
+          
+          mapRef.current.animateToRegion({
+            latitude: dayCenter.latitude,
+            longitude: dayCenter.longitude,
+            latitudeDelta: zoomLevel.latitudeDelta,
+            longitudeDelta: zoomLevel.longitudeDelta,
+          }, 500);
         }
       }
-      setRoutes(newRoutes);
-    };
-    fetchRoutes();
-  }, [displayItems]);
+    }
+  }, [selectedDay, tourItems]);
+
+  const handleChangeDay = (direction: 'next' | 'prev') => {
+    const days = [...availableDays];
+    const currentIndex = days.indexOf(selectedDay);
+    let newIndex;
+    
+    if (direction === 'next') {
+      newIndex = (currentIndex + 1) % days.length;
+    } else {
+      newIndex = (currentIndex - 1 + days.length) % days.length;
+    }
+    
+    setSelectedDay(days[newIndex]);
+  };
 
   const decodePolyline = (encoded: string) => {
     let points = [];
@@ -217,45 +347,6 @@ const TourMapScreen: React.FC = () => {
     return points;
   };
 
-  const handleChangeCity = (direction: 'next' | 'prev') => {
-    // Get the list of available cities
-    const cities = [...filteredCities];
-    const currentIndex = cities.indexOf(selectedCity);
-    let newIndex;
-    
-    if (direction === 'next') {
-      newIndex = (currentIndex + 1) % cities.length;
-    } else {
-      newIndex = (currentIndex - 1 + cities.length) % cities.length;
-    }
-    
-    const newCity = cities[newIndex];
-    setSelectedCity(newCity);
-    
-    // Center map on the new city
-    if (mapRef.current) {
-      const cityItems = tourItems.filter(item => item.city === newCity);
-      
-      // Calculate center of all items in this city
-      const cityCenter = calculateCenter(cityItems);
-      
-      // Calculate appropriate zoom level
-      const validCoordinates = cityItems
-        .filter(item => item.coordinate !== undefined)
-        .map(item => getItemCoordinates(item));
-      
-      const zoomLevel = calculateZoomLevel(validCoordinates);
-      
-      // Animate map to new center with appropriate zoom
-      mapRef.current.animateToRegion({
-        latitude: cityCenter.latitude,
-        longitude: cityCenter.longitude,
-        latitudeDelta: zoomLevel.latitudeDelta,
-        longitudeDelta: zoomLevel.longitudeDelta,
-      }, 800);
-    }
-  };
-
   const center = calculateCenter(displayItems);
   
   // Calculate initial zoom level based on the spread of items
@@ -268,7 +359,7 @@ const TourMapScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ScreenHeader title={selectedCity ? `${selectedCity} Map` : "Tour Map"} />
+        <ScreenHeader title={selectedDay ? getDateForDay(selectedDay) : "Tour Map"} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -283,7 +374,7 @@ const TourMapScreen: React.FC = () => {
             longitudeDelta: zoomLevel.longitudeDelta,
           }}
         >
-          {displayItems.map((item) => (
+          {displayItems.map((item, index) => (
             <Marker
               key={item.id}
               coordinate={getItemCoordinates(item)}
@@ -292,14 +383,20 @@ const TourMapScreen: React.FC = () => {
             >
               {item.type && (
                 <View style={styles.markerContainer}>
+                  <View style={styles.indexBadge}>
+                    <Text style={styles.indexText}>{index + 1}</Text>
+                  </View>
                   <View style={styles.markerIconContainer}>
                     <Ionicons 
                       name={
                         item.type === 'hotel' ? 'bed' : 
                         item.type === 'restaurant' ? 'restaurant' : 
                         item.type === 'match' ? 'football' : 
-                        item.type === 'entertainment' ? 'musical-notes' : 'location'
-                      } 
+                        item.type === 'entertainment' ? 'musical-notes' : 
+                        item.type === 'monument' ? 'business' : 
+                        item.type === 'money-exchange' ? 'cash' :
+                        item.type === 'artisan' ? 'construct' : 'location'
+                      }   
                       size={20} 
                       color="#fff" 
                     />
@@ -309,26 +406,54 @@ const TourMapScreen: React.FC = () => {
             </Marker>
           ))}
 
-          {/* Draw path between spots */}
+          {/* Draw path between spots with different colors */}
           {routes.map((route, index) => (
-            <Polyline key={index} coordinates={route} strokeColor="blue" strokeWidth={3} />
+            <Polyline 
+              key={index} 
+              coordinates={route.points} 
+              strokeColor={route.color}
+              strokeWidth={5}
+              geodesic={true}
+              zIndex={1}
+            />
           ))}
         </MapView>
 
+        {displayItems.length < 2 && (
+          <View style={styles.noticeContainer}>
+            <View style={styles.noticeBox}>
+              <Ionicons name="information-circle-outline" size={24} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.noticeText}>Need at least 2 destinations to show routes.</Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.controlsContainer}>
-          <TouchableOpacity 
-            style={styles.controlButton}
-            onPress={() => handleChangeCity('prev')}
-          >
-            <Ionicons name="arrow-back" size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.controlText}>{selectedCity}</Text>
-          <TouchableOpacity 
-            style={styles.controlButton}
-            onPress={() => handleChangeCity('next')}
-          >
-            <Ionicons name="arrow-forward" size={24} color="#333" />
-          </TouchableOpacity>
+          {availableDays.length > 1 && (
+            <TouchableOpacity 
+              style={styles.controlButton}
+              onPress={() => handleChangeDay('prev')}
+            >
+              <Ionicons name="arrow-back" size={24} color="#333" />
+            </TouchableOpacity>
+          )}
+          <View style={[
+            styles.cityInfoContainer,
+            availableDays.length === 1 && styles.singleDayInfo
+          ]}>
+            <Text style={styles.controlText}>{getDateForDay(selectedDay)}</Text>
+            <Text style={styles.destinationCount}>
+              {displayItems.length} destination{displayItems.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
+          {availableDays.length > 1 && (
+            <TouchableOpacity 
+              style={styles.controlButton}
+              onPress={() => handleChangeDay('next')}
+            >
+              <Ionicons name="arrow-forward" size={24} color="#333" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -373,7 +498,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#000',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderRadius: 50,
     padding: 10,
   },
@@ -391,10 +516,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFF',
+    textAlign: 'center',
+  },
+  cityInfoContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  destinationCount: {
+    fontSize: 12,
+    color: '#DDD',
+    marginTop: 2,
   },
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    // position: 'relative',
   },
   markerIconContainer: {
     backgroundColor: '#E53935',
@@ -404,8 +540,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
+    margin: 5,
     borderColor: '#fff',
-  }
+  },
+  indexBadge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: '#2196F3',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  indexText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  noticeContainer: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+  },
+  noticeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  noticeText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  singleDayInfo: {
+    marginHorizontal: 'auto',
+  },
 });
 
 export default TourMapScreen; 

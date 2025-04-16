@@ -13,7 +13,7 @@ interface BrokerCardProps {
 const BrokerCard = ({ item, handleSaveBroker, handleBrokerPress }: BrokerCardProps) => {
   return (
     <CardItem
-      imageUrl={'https://images.unsplash.com/photo-1580048915913-4f8f5cb481c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'}
+      images={item.images}
       title={item.name}
       subtitle={item.address}
       tags={[
@@ -33,14 +33,14 @@ const BrokerCard = ({ item, handleSaveBroker, handleBrokerPress }: BrokerCardPro
       ]}
       actionIcon={
         <Ionicons 
-          name={item.isSaved ? "bookmark" : "bookmark-outline"} 
-          size={20} color={item.isSaved ? "#666" : "#000"} />
+          name={item.saved ? "bookmark" : "bookmark-outline"} 
+          size={20} color={item.saved ? "#666" : "#000"} />
       }
       onActionPress={() => handleSaveBroker?.(item.id)}
       onCardPress={() => handleBrokerPress?.(item)}
       containerStyle={styles.cardContainer}
-      svgImage={!item.imageUrl ? <Ionicons name="cash-outline" size={32} color="#fff" /> : undefined}
-      isSaved={item.isSaved}
+      svgImage={!item.images || item.images.length === 0 ? <Ionicons name="cash-outline" size={32} color="#fff" /> : undefined}
+      isSaved={item.saved}
     />
   );
 };

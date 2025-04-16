@@ -126,7 +126,8 @@ const RestaurantDetailScreen: React.FC = () => {
             <View style={styles.operatingHoursContainer}>
               <Ionicons name="time-outline" size={16} color="#137A08" />
               <Text style={styles.operatingHoursText}>
-                Open until {selectedRestaurant!.endTime}              </Text>
+                Open until {selectedRestaurant!.endTime}    
+              </Text>
             </View>
 
             {/* About Section */}
@@ -230,8 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     borderRadius: 30,
     backgroundColor: '#F0FFFA',
-    paddingLeft: 10,
-    paddingRight: -150,
+    padding: 10,
 
   },
   operatingHoursText: {
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF7F7',
   },
   imageContainer: {
-    marginBottom: 20,
+    marginBottom: 8,
     backgroundColor: '#F6FAFF',
     width: 370,
     height: 234,

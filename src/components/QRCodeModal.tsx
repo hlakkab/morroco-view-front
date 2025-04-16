@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Brightness from 'expo-brightness';
 import React from 'react';
 import {
   Animated,
@@ -32,6 +33,41 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
 }) => {
   // Create animated value for drag gesture
   const pan = React.useRef(new Animated.ValueXY()).current;
+  const originalBrightness = React.useRef<number | null>(null);
+
+  // Function to request brightness permissions and store original brightness
+  const setupBrightness = async () => {
+    try {
+      const { status } = await Brightness.requestPermissionsAsync();
+      if (status === 'granted') {
+        originalBrightness.current = await Brightness.getBrightnessAsync();
+        await Brightness.setBrightnessAsync(1); // Set to maximum brightness
+      }
+    } catch (error) {
+      console.error('Error setting up brightness:', error);
+    }
+  };
+
+  // Function to restore original brightness
+  const restoreBrightness = async () => {
+    try {
+      if (originalBrightness.current !== null) {
+        await Brightness.setBrightnessAsync(originalBrightness.current);
+      }
+    } catch (error) {
+      console.error('Error restoring brightness:', error);
+    }
+  };
+
+  // Handle brightness when modal visibility changes
+  React.useEffect(() => {
+    if (visible) {
+      console.log('visible');
+      setupBrightness();
+    } else {
+      restoreBrightness();
+    }
+  }, [visible]);
 
   // Create pan responder for drag to dismiss
   const panResponder = React.useRef(

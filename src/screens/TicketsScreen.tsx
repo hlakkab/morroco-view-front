@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
   ticketsContainer: {
     flex: 1,
     paddingHorizontal: 15,
+    marginBottom: 80,
   },
   loadingContainer: {
     flex: 1,

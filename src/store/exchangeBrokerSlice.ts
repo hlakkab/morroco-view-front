@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import api from '../service/ApiProxy';
 import { Broker, ExchangeBrokerState } from '../types/exchange-broker';
 import { removeBookmark } from './bookmarkSlice';
@@ -55,7 +55,7 @@ export const fetchBrokers = createAsyncThunk(
 export const toggleBrokerBookmark = createAsyncThunk(
   'exchangeBroker/toggleBookmark',
   async (broker: Broker, { dispatch }) => {
-    if (broker.isSaved) {
+    if (broker.saved) {
       await dispatch(removeBookmark(broker.id)).unwrap();
     } else {
       await api.post(`/exchanges/${broker.id}/add-bookmark`);
@@ -75,7 +75,7 @@ const exchangeBrokerSlice = createSlice({
     toggleSaveBroker: (state, action: PayloadAction<string>) => {
       const broker = state.brokers.find(b => b.id === action.payload);
       if (broker) {
-        broker.isSaved = !broker.isSaved;
+        broker.saved = !broker.saved;
       }
     },
   },
@@ -102,7 +102,7 @@ const exchangeBrokerSlice = createSlice({
         state.error = null;
         // Optimistic update - toggle the saved flag immediately
         const broker = state.brokers.find(b => b.id === action.meta.arg.id)!;
-        broker.isSaved = !broker.isSaved;
+        broker.saved = !broker.saved;
       })
       .addCase(toggleBrokerBookmark.fulfilled, (state) => {
         // No need to toggle again since we already did it in pending
@@ -111,7 +111,7 @@ const exchangeBrokerSlice = createSlice({
         // Revert the optimistic update if the action fails
         const brokerId = action.meta.arg.id;
         const broker = state.brokers.find(b => b.id === brokerId)!;
-        broker.isSaved = !broker.isSaved;
+        broker.saved = !broker.saved;
         state.error = action.error.message || 'Failed to toggle bookmark';
       });
   },

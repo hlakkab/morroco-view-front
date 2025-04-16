@@ -1,18 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
+import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
-import FilterPopup, { FilterOption } from '../components/FilterPopup'; // Ajout de l'import
 import HotelPickupListContainer from '../containers/HotelPickupListContainer';
+import {
+  createPickupFilterOptions,
+  normalizeString,
+  pickupFilterCategories
+} from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchHotelPickups, setSelectedFromCity, setSelectedToCity, setSearchQuery } from '../store/hotelPickupSlice';
+import { fetchHotelPickups, setSearchQuery, setSelectedFromCity, setSelectedToCity } from '../store/hotelPickupSlice';
 
-
-
-const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fes', 'Tanger'];
+const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fez', 'Tangier'];
 
 const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -24,34 +27,27 @@ const HotelPickupScreen: React.FC = () => {
     searchQuery,
     loading,
     error
-  } = useAppSelector(
-      (state) => state.hotelPickup
-  );
+  } = useAppSelector((state) => state.hotelPickup);
 
-  // Use sample data while testing
   const [useSampleData, setUseSampleData] = useState(false);
-
-  // Ajout de l'état pour le FilterPopup
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
 
-  // Définir les options de filtre
-  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
-    // Options pour les villes de départ
-    ...CITIES.map(city => ({
-      id: `from-${city}`,
-      label: city,
-      selected: city === selectedFromCity,
-      category: 'Ville de départ'
-    })),
-    // Options pour les villes d'arrivée
-    ...CITIES.map(city => ({
-      id: `to-${city}`,
-      label: city,
-      selected: city === selectedToCity,
-      category: 'Ville d\'arrivée'
-    })),
-    // Ajoutez d'autres catégories au besoin
-  ]);
+  // Add icons to filter categories
+  const categoriesWithIcons = {
+    ...pickupFilterCategories,
+    pickup_type: {
+      ...pickupFilterCategories.pickup_type,
+      icon: <Ionicons name="car" size={20} color="#CE1126" />
+    }
+  };
+
+  // Initialize filter options for pickup types
+  useEffect(() => {
+    if (filterOptions.length === 0) {
+      setFilterOptions(createPickupFilterOptions());
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,7 +55,7 @@ const HotelPickupScreen: React.FC = () => {
         await dispatch(fetchHotelPickups(selectedFromCity)).unwrap();
       } catch (error) {
         console.error('Failed to fetch hotel pickups:', error);
-        setUseSampleData(true); // Fallback to sample data if API fails
+        setUseSampleData(true);
       }
     };
 
@@ -75,7 +71,6 @@ const HotelPickupScreen: React.FC = () => {
   };
 
   const handleFilter = () => {
-    // Ouvrir le popup de filtre
     setFilterPopupVisible(true);
   };
 
@@ -87,75 +82,80 @@ const HotelPickupScreen: React.FC = () => {
     }
   };
 
-  // Fonction pour appliquer les filtres sélectionnés
+  // Function to apply selected filters
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
-    // Traiter les options sélectionnées
-    const fromCity = selectedOptions
-        .find(option => option.category === 'Ville de départ' && option.selected)?.label;
-
-    const toCity = selectedOptions
-        .find(option => option.category === 'Ville d\'arrivée' && option.selected)?.label;
-
-    if (fromCity) {
-      dispatch(setSelectedFromCity(fromCity));
-    }
-
-    if (toCity) {
-      dispatch(setSelectedToCity(toCity));
-    }
-
-    // Mettre à jour les options de filtre
     setFilterOptions(selectedOptions);
+    setFilterPopupVisible(false);
   };
+
+  // Get active pickup type filters
+  const activePickupTypeFilters = filterOptions
+    .filter(option => option.category === 'pickup_type' && option.selected)
+    .map(option => option.id);
+
+  // Filter pickups based on search and pickup type filters
+  const filteredPickups = hotelPickups.filter(pickup => {
+    // Search match
+    const searchMatch = normalizeString(pickup.title).includes(normalizeString(searchQuery));
+
+    // Pickup type filter
+    const pickupTypeFilter = activePickupTypeFilters.length === 0 ||
+      (pickup.private && activePickupTypeFilters.includes('private')) ||
+      (!pickup.private && activePickupTypeFilters.includes('shared'));
+
+    return searchMatch && pickupTypeFilter;
+  });
 
   if (loading) {
     return (
-        <View style={[styles.container, styles.centerContent]}>
-          <ActivityIndicator size="large" color="#000" />
-        </View>
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
     );
   }
 
   if (error && !useSampleData) {
     return (
-        <View style={[styles.container, styles.centerContent]}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
     );
   }
 
   return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <ScreenHeader title="Hotel Pickup" onBack={handleBack} />
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="Pickup" onBack={handleBack} />
+      </View>
 
-        <View style={styles.content}>
-          <SearchBar
-              placeholder="Search for hotel..."
-              onChangeText={handleSearch}
-              onFilterPress={handleFilter}
-              value={searchQuery}
-          />
-          <HotelPickupListContainer
-              pickups={hotelPickups}
-              cities={CITIES}
-              selectedFromCity={selectedFromCity}
-              selectedToCity={selectedToCity}
-              onSelectCity={handleSelectCity}
-              isLoading={loading}
-          />
-        </View>
-
-        {/* Intégration du FilterPopup */}
-        <FilterPopup
-            visible={filterPopupVisible}
-            onClose={() => setFilterPopupVisible(false)}
-            filterOptions={filterOptions}
-            onApplyFilters={handleApplyFilters}
-            title="Filtrer les hôtels"
+      <View style={styles.content}>
+        <SearchBar
+          placeholder="Search for hotel..."
+          onChangeText={handleSearch}
+          onFilterPress={handleFilter}
+          value={searchQuery}
         />
-      </SafeAreaView>
+        
+        <HotelPickupListContainer
+          pickups={filteredPickups}
+          cities={CITIES}
+          selectedFromCity={selectedFromCity}
+          selectedToCity={selectedToCity}
+          onSelectCity={handleSelectCity}
+          isLoading={loading}
+        />
+      </View>
+
+      {/* FilterPopup with pickup type filters */}
+      <FilterPopup
+        visible={filterPopupVisible}
+        onClose={() => setFilterPopupVisible(false)}
+        filterOptions={filterOptions}
+        onApplyFilters={handleApplyFilters}
+        title="Filter Pickups"
+        categories={categoriesWithIcons}
+      />
+    </SafeAreaView>
   );
 };
 

@@ -18,6 +18,7 @@
     "@react-navigation/stack": "^7.1.2",
     "@reduxjs/toolkit": "^2.6.1",
     "axios": "^1.8.2",
+    "country-flags-svg": "^2.0.0-beta.1",
     "date-fns": "^4.1.0",
     "expo": "~52.0.38",
     "expo-auth-session": "~6.0.3",
@@ -51,7 +52,8 @@
     "react-native-worklets-core": "^1.5.0",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
-    "twrnc": "^4.6.1"
+    "twrnc": "^4.6.1",
+    "expo-brightness": "~13.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

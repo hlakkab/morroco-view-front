@@ -62,16 +62,7 @@ const HomeScreen: React.FC = () => {
         {/* Emergency Contacts Button */}
         <EmergencyContactsButton onPress={handleEmergencyContacts} />
         
-        {/* Test Screen Button */}
-        <TouchableOpacity 
-          style={styles.testButton}
-          onPress={() => {
-            clearTokens();
-            navigation.navigate('MarrakechMap' as never);
-          }}
-        >
-          <Text style={styles.testButtonText}>Logout</Text>
-        </TouchableOpacity>
+    
         
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
         <View style={styles.bottomPadding} />

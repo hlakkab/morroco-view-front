@@ -1,15 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchTours } from '../store/tourSlice';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNavBar from '../containers/BottomNavBar';
 import TourListContainer from '../containers/TourListContainer';
 import { RootStackParamList } from '../types/navigation';
+
 const ToursScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector((state) => state.tour);
+
+  useEffect(() => {
+    dispatch(fetchTours());
+  }, [dispatch]);
 
   const handleBack = () => {
+    // Handle back navigation if needed
   };
 
   const handleAddTour = () => {
@@ -57,6 +67,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
+    marginBottom: 60,
   },
   addButton: {
     flexDirection: 'row',
@@ -69,7 +80,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignSelf: 'flex-start',
     marginBottom: 16,
-  
   },
   addButtonText: {
     color: '#AE1913',

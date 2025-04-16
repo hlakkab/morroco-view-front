@@ -1,46 +1,139 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, View, ActivityIndicator, Text } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import FilterPopup, { FilterOption } from "../components/FilterPopup";
+import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import BrokerListContainer from '../containers/BrokerListContainer';
+import {
+  brokerFilterCategories,
+  cities,
+  createBrokerFilterOptions,
+  normalizeString
+} from '../data/filterData';
+import { fetchBrokers } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchBrokers, setSelectedLocation } from '../store/exchangeBrokerSlice';
-import FilterPopup, {FilterOption} from "../components/FilterPopup";
+import { Broker } from '../types/exchange-broker';
 
 const BrokerListScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+  const [selectedCity, setSelectedCity] = useState('all');
+  const [allBrokers, setAllBrokers] = useState<Broker[]>([]);
+  
+  // Add icons to filter categories - only include broker_type
+  const categoriesWithIcons = {
+    broker_type: {
+      ...brokerFilterCategories.broker_type,
+      icon: <Ionicons name="business" size={20} color="#CE1126" />
+    }
+  };
 
   // Get data from Redux store
   const {
     brokers,
-    locations,
-    selectedLocation,
     loading,
     error
   } = useAppSelector(state => state.exchangeBroker);
 
-  // Filtered brokers based on search query
-  const [filteredBrokers, setFilteredBrokers] = useState(brokers);
-  const [filterVisible, setFilterVisible] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
-    // Créez vos options de filtrage ici, par exemple :
-    {
-      id: 'rating_high',
-      label: 'Casablanca',
-      selected: false,
-      category: 'city'
+  // Store all brokers in local state when they're loaded
+  useEffect(() => {
+    if (brokers.length > 0) {
+      setAllBrokers(brokers);
+    }
+  }, [brokers]);
+
+  // Initialize filter options - only for broker_type
+  useEffect(() => {
+    if (filterOptions.length === 0) {
+      const allOptions = createBrokerFilterOptions();
+      // Only keep service type filters
+      const typeOptions = allOptions.filter(option => option.category === 'broker_type');
+      setFilterOptions(typeOptions);
+    }
+  }, []);
+
+  // Fetch brokers on component mount with default city
+  useEffect(() => {
+    // Fetch brokers with default city (Marrakech) to prevent API error
+    dispatch(fetchBrokers('Marrakech')).unwrap()
+      .catch(error => console.error("Error fetching brokers:", error));
+  }, [dispatch]);
+
+  // Create city options for the FilterSelector using cities from filterData
+  const cityOptions = [
+    { 
+      id: 'all', 
+      label: 'All Cities', 
+      icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
-    {
-      id: 'rating_low',
-      label: 'Rabat',
-      selected: false,
-      category: 'city'
-    },
-    // Vous pouvez ajouter d'autres filtres selon vos besoins
-  ]);
+    ...cities.map(city => ({
+      id: normalizeString(city.id),
+      label: city.label,
+      icon: <Ionicons name="location-outline" size={16} color="#888" style={{ marginRight: 4 }} />
+    }))
+  ];
+
+  // Get active type filters
+  const activeTypeFilters = filterOptions
+    .filter(option => option.category === 'broker_type' && option.selected)
+    .map(option => option.id);
+
+  // Helper function to check if a broker matches a city filter
+  const brokerMatchesCity = (broker: Broker, cityId: string): boolean => {
+    if (cityId === 'all') return true;
+    
+    // Try different matching approaches
+    const normalizedBrokerCity = normalizeString(broker.city);
+    const normalizedCityId = normalizeString(cityId);
+    
+    // Check exact match
+    if (normalizedBrokerCity === normalizedCityId) return true;
+    
+    // Check if broker city contains the city id
+    if (normalizedBrokerCity.includes(normalizedCityId)) return true;
+    
+    // Check if city id contains the broker city
+    if (normalizedCityId.includes(normalizedBrokerCity)) return true;
+    
+    // Look up city label and check if it matches
+    const cityObject = cities.find(c => normalizeString(c.id) === normalizedCityId);
+    if (cityObject && normalizedBrokerCity.includes(normalizeString(cityObject.label))) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  // Filter brokers based on search query, city selection and type filters
+  const filteredBrokers = brokers.filter(broker => {
+    // Search match
+    const searchMatch = searchQuery.trim() === '' || 
+      normalizeString(broker.name).includes(normalizeString(searchQuery)) ||
+      normalizeString(broker.address).includes(normalizeString(searchQuery));
+    
+    // City filter using our helper function
+    const cityFilter = brokerMatchesCity(broker, selectedCity);
+    
+    // Type filter - if no type is selected, show all
+    const typeFilter = activeTypeFilters.length === 0;
+    
+    return searchMatch && cityFilter && typeFilter;
+  });
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+  };
+
   const handleFilterPress = () => {
     setFilterVisible(true);
   };
@@ -51,53 +144,23 @@ const BrokerListScreen: React.FC = () => {
 
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
     setFilterOptions(selectedOptions);
-
-    // Appliquez la logique de filtrage ici
-    // Par exemple, vous pouvez filtrer les courtiers en fonction des options sélectionnées
-    const selected = selectedOptions.filter(option => option.selected);
-
-    // Logique de filtrage basée sur les options sélectionnées
-    // ...
+    setFilterVisible(false);
   };
 
-  // Fetch brokers on component mount
-  useEffect(() => {
-    // Fetch brokers with default city (Marrakech)
-    dispatch(fetchBrokers('Marrakech')).unwrap();
-  }, [dispatch]);
-
-  // Filter brokers based on search query
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredBrokers(brokers);
-    } else {
-      const lowercaseQuery = searchQuery.toLowerCase();
-      setFilteredBrokers(
-        brokers.filter(broker =>
-          broker.name.toLowerCase().includes(lowercaseQuery) ||
-          broker.address.toLowerCase().includes(lowercaseQuery)
-        )
-      );
-    }
-  }, [searchQuery, brokers]);
-
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-  };
-
-  const handleSelectLocation = (location: string) => {
-    dispatch(setSelectedLocation(location));
-
-    // If a specific city is selected (not "All Locations"), fetch brokers for that city
-    if (location !== 'All Locations') {
-      dispatch(fetchBrokers(location));
-    } else {
-      // If "All Locations" is selected, fetch all brokers
-      dispatch(fetchBrokers());
+  const handleCitySelect = (cityId: string) => {
+    setSelectedCity(cityId);
+    
+    // If it's not "all", fetch brokers for that city
+    if (cityId !== 'all') {
+      // Find the matching city object
+      const selectedCityObj = cities.find(city => normalizeString(city.id) === cityId);
+      if (selectedCityObj) {
+        dispatch(fetchBrokers(selectedCityObj.label))
+          .catch(error => console.error("Error fetching brokers for city:", error));
+      }
+    } else if (allBrokers.length > 0) {
+      // If "All Cities" is selected and we have cached brokers, use those
+      // We don't make an API call without a city parameter
     }
   };
 
@@ -140,23 +203,37 @@ const BrokerListScreen: React.FC = () => {
           onFilterPress={handleFilterPress}
           value={searchQuery}
         />
+        
+        <View style={styles.cityFilterContainer}>
+          <FilterSelector
+            options={cityOptions}
+            selectedOptionId={selectedCity}
+            onSelectOption={handleCitySelect}
+            title="City :"
+          />
+        </View>
 
-        <BrokerListContainer
-          brokers={filteredBrokers}
-          locations={locations}
-          selectedLocation={selectedLocation}
-          onSelectLocation={handleSelectLocation}
-        />
+        <Text style={styles.sectionTitle}>Available brokers</Text>
 
-        {/* Ajoutez le popup de filtres */}
+        {filteredBrokers.length > 0 ? (
+          <BrokerListContainer
+            brokers={filteredBrokers}
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="search-outline" size={48} color="#ccc" />
+            <Text style={styles.emptyText}>No brokers found for the selected filters</Text>
+          </View>
+        )}
+
         <FilterPopup
-            visible={filterVisible}
-            onClose={handleCloseFilter}
-            filterOptions={filterOptions}
-            onApplyFilters={handleApplyFilters}
-            title="Filtrer les courtiers"
+          visible={filterVisible}
+          onClose={handleCloseFilter}
+          filterOptions={filterOptions}
+          onApplyFilters={handleApplyFilters}
+          title="Filter Brokers"
+          categories={categoriesWithIcons}
         />
-
       </View>
     </SafeAreaView>
   );
@@ -175,7 +252,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-
+  cityFilterContainer: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 10,
+    color: '#666',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -202,6 +290,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 16,
   },
 });
 

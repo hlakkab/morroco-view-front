@@ -1,23 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View, Image } from 'react-native';
 import CardItem from '../../components/cards/CardItem';
+import { TourSavedItem } from '../../types/tour';
+import { getFlagUrl } from '../../utils/flagResolver';
 
-export interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  imageUrl?: string;
-  city: string;
-  coordinate?: {
-    latitude: number;
-    longitude: number;
-  };
-}
+
 
 interface ItemListProps {
-  items: SavedItem[];
+  items: TourSavedItem[];
   selectedCity: string;
   selectedItems: string[];
   totalSelectedCount: number;
@@ -42,19 +33,36 @@ const ItemList: React.FC<ItemListProps> = ({
         return <Ionicons name="football-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
       case 'entertainment':
         return <Ionicons name="musical-notes-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
+      case 'monument':
+        return <Ionicons name="business-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
+      case 'money-exchange':
+        return <Ionicons name="cash-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
       default:
         return <Ionicons name="location-outline" size={14} color="#008060" style={{ marginRight: 4 }} />;
     }
   };
 
-  const renderSavedItem = ({ item }: { item: SavedItem }) => {
+  const renderSavedItem = ({ item }: { item: TourSavedItem }) => {
     const isSelected = selectedItems.includes(item.id);
     const isDisabled = selectedCity && item.city !== selectedCity;
+
+    const renderMatchContent = () => {
+      const teams = item.title.split(' vs ');
+      if (teams.length !== 2) return null;
+      
+      return (
+        <View style={styles.matchContainer}>
+          <Image source={{ uri: getFlagUrl(teams[0]) }} style={styles.teamFlag} />
+          <Text style={styles.vsText}>VS</Text>
+          <Image source={{ uri: getFlagUrl(teams[1]) }} style={styles.teamFlag} />
+        </View>
+      );
+    };
 
     return (
       <View style={styles.cardContainer}>
         <CardItem
-          imageUrl={item.imageUrl}
+          images={item.type === 'match' ? [] : item.images}
           title={item.title}
           subtitle={item.subtitle}
           tags={[
@@ -87,6 +95,7 @@ const ItemList: React.FC<ItemListProps> = ({
           ]}
           imageStyle={styles.cardImage}
           contentStyle={isDisabled ? styles.disabledCardContent : {}}
+          svgImage={item.type === 'match' ? renderMatchContent() : undefined}
         />
       </View>
     );
@@ -170,6 +179,27 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#999',
+  },
+  matchContainer: {
+    width: 120,
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: "#F6FAFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    marginRight: 10,
+    paddingHorizontal: 6,
+  },
+  teamFlag: {
+    width: 36,
+    height: 26,
+    borderRadius: 5,
+  },
+  vsText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#555",
   },
 });
 

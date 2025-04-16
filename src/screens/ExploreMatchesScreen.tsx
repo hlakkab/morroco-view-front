@@ -1,36 +1,22 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Modal, SafeAreaView, StyleSheet, View } from 'react-native';
+import { FlatList, Modal, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import MatchCard from '../components/cards/MatchCard';
+import FilterPopup, { FilterCategory, FilterOption } from "../components/FilterPopup";
+import FilterSelector from '../components/FilterSelector';
 import MatchPopup from '../components/MatchPopup';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
-import HeaderContainer from '../containers/HeaderContainer';
-import SearchFilterContainer from '../containers/SearchFilterContainer';
+import {
+  cities,
+  createFilterOptions,
+  matchFilterCategories,
+  normalizeString,
+  matchCities
+} from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchMatches, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
-import FilterPopup, {FilterOption} from "../components/FilterPopup";
-import { Match, Team } from '../types/match';
-
-// Sample teams data for fallback
-const teams: Record<string, Team> = {
-  morocco: {
-    id: 'mor',
-    name: 'Morocco',
-    flag: 'https://www.countryflags.com/wp-content/uploads/morocco-flag-png-large.png'
-  },
-  comoros: {
-    id: 'com',
-    name: 'Comoros',
-    flag: 'https://www.countryflags.com/wp-content/uploads/comoros-flag-png-large.png'
-  },
-  senegal: {
-    id: 'sen',
-    name: 'Senegal',
-    flag: 'https://www.countryflags.com/wp-content/uploads/senegal-flag-png-large.png'
-  }
-};
-
-
+import { fetchMatches, setCurrentMatch, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
+import { Match } from '../types/match';
 
 const ExploreMatchesScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -38,50 +24,56 @@ const ExploreMatchesScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+  const [selectedCityId, setSelectedCityId] = useState('all');
 
+  // Add icons to filter categories
+  const categoriesWithIcons = {
+    stadium: {
+      ...matchFilterCategories.stadium,
+      icon: <Ionicons name="football" size={20} color="#CE1126" />
+    }
+  };
+
+  // Create city options for the FilterSelector component
+  const cityOptions = [
+    { id: 'all', label: 'All Cities', icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> },
+    ...matchCities.map(city => ({
+      id: normalizeString(city.id),
+      label: city.label,
+      icon: <Ionicons name="location" size={16} color="#888" style={{ marginRight: 4 }} />
+    }))
+  ];
 
   const dispatch = useAppDispatch();
   const { matches, selectedMatch, loading, error } = 
     useAppSelector(state => state.match);
 
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
         await dispatch(fetchMatches()).unwrap();
       } catch (error) {
         console.error('Failed to fetch matches:', error);
-        setUseSampleData(true); // Fallback to sample data if API fails
+        setUseSampleData(true);
       }
     };
     
     fetchData();
   }, [dispatch]);
 
-  // Initialise les options de filtre dès que les matchs sont chargés
+  // Initialize filter options - only for stadiums
   useEffect(() => {
-    if (matches.length > 0 && filterOptions.length === 0) {
-      const uniqueTeams = Array.from(new Set(matches.map(match => match.homeTeam)));
-      const teams = uniqueTeams.map(team => ({
-        id: team,
-        label: team,
-        selected: false,
-        category: 'team'
-      }));
-      const uniqueSpots = Array.from(new Set(matches.map(match => match.spot.name)));
-      const spots = uniqueSpots.map(spot => ({
-        id: spot,
-        label: spot,
-        selected: false,
-        category: 'spot'
-      }));
-      setFilterOptions([...teams, ...spots]);
+    if (filterOptions.length === 0) {
+      const allOptions = createFilterOptions();
+      // Only keep stadium filters
+      const stadiumOptions = allOptions.filter(option => option.category === 'stadium');
+      setFilterOptions(stadiumOptions);
     }
-  }, [matches]);
-
+  }, []);
 
   const handleCardPress = (match: Match) => {
     dispatch(setSelectedMatch(match));
+    dispatch(setCurrentMatch(match));
     setModalVisible(true);
   };
 
@@ -91,9 +83,9 @@ const ExploreMatchesScreen: React.FC = () => {
 
   const closeModal = () => {
     setModalVisible(false);
-    // Wait a bit for better animation
     setTimeout(() => {
       dispatch(setSelectedMatch(null));
+      dispatch(setCurrentMatch(null));
     }, 300);
   };
 
@@ -110,46 +102,39 @@ const ExploreMatchesScreen: React.FC = () => {
     setFilterPopupVisible(false);
   };
 
-  // Get matches from state or use sample data if API failed
-  const displayMatches = matches;
+  const handleCitySelect = (cityId: string) => {
+    setSelectedCityId(cityId);
+  };
 
+  // Get active stadium filters
+  const activeStadiumFilters = filterOptions
+    .filter(option => option.category === 'stadium' && option.selected)
+    .map(option => option.id);
 
-
-  // Récupérer les filtres actifs (par exemple, pour l'équipe à domicile)
-  const activeTeamFilters = filterOptions
-      .filter(option => option.category === 'team' && option.selected)
-      .map(option => option.id);
-
-
-  // Filtrer les matchs en fonction de la recherche et du filtre appliqué
+  // Filter matches based on search, city selection and stadium filters
   const filteredMatches = matches.filter(match => {
     const searchMatch =
-        match.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        match.awayTeam.toLowerCase().includes(searchQuery.toLowerCase());
+      normalizeString(match.homeTeam).includes(normalizeString(searchQuery)) ||
+      normalizeString(match.awayTeam).includes(normalizeString(searchQuery));
 
-    // Filtrer par équipe sélectionnée si des filtres sont actifs
-    const teamFilter = activeTeamFilters.length === 0 ||
-        activeTeamFilters.includes(match.homeTeam) ||
-        activeTeamFilters.includes(match.awayTeam);
+    // Filter by selected city (if not 'all')
+    const cityFilter = selectedCityId === 'all' || 
+      normalizeString(match.spot.city || '') === selectedCityId;
 
-    // Filtrer par stade si des filtres de stade sont actifs
-    const activeSpotFilters = filterOptions
-        .filter(option => option.category === 'spot' && option.selected)
-        .map(option => option.id);
+    // Filter by stadium if stadium filters are active
+    const stadiumFilter = activeStadiumFilters.length === 0 ||
+      activeStadiumFilters.includes(normalizeString(match.spot.name));
 
-    const spotFilter = activeSpotFilters.length === 0 ||
-        activeSpotFilters.includes(match.spot.name);
-
-    return searchMatch && teamFilter && spotFilter;
+    return searchMatch && cityFilter && stadiumFilter;
   });
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <ScreenHeader title="Africa Cup of Nations" />
+      </View>
 
-        <View style={styles.headerContainer}>
-          <ScreenHeader title="Africa Cup of Nations" />
-        </View>
-
+      <View style={styles.content}>
         <View style={styles.searchBarContainer}>
           <SearchBar
             placeholder="Search matches..."
@@ -158,41 +143,55 @@ const ExploreMatchesScreen: React.FC = () => {
             value={searchQuery}
           />
         </View>
+        
+        <View style={styles.cityFilterContainer}>
+          <FilterSelector
+            options={cityOptions}
+            selectedOptionId={selectedCityId}
+            onSelectOption={handleCitySelect}
+            title="City :"
+          />
+        </View>
 
-        <FlatList
-          data={filteredMatches}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <MatchCard
-              match={item}
-              handleCardPress={() => handleCardPress(item)}
-              handleSaveMatch={() => handleSavePress(item)}
-            />
-          )}
-          contentContainerStyle={styles.matchesList}
-          showsVerticalScrollIndicator={false}
-        />
-
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={closeModal}
-        >
-          <View style={styles.modalOverlay}>
-            <MatchPopup
-              match={selectedMatch!}
-              onClose={closeModal}
-            />
+        {filteredMatches.length > 0 ? (
+          <FlatList
+            data={filteredMatches}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <MatchCard
+                match={item}
+                handleCardPress={() => handleCardPress(item)}
+                handleSaveMatch={() => handleSavePress(item)}
+              />
+            )}
+            contentContainerStyle={styles.matchesList}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : (
+          <View style={styles.noMatchesContainer}>
+            <Text style={styles.noMatchesText}>No matches found for the selected filters.</Text>
           </View>
-        </Modal>
-      {/* Intégration du FilterPopup */}
+        )}
+      </View>
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <MatchPopup onClose={closeModal} />
+        </View>
+      </Modal>
+
       <FilterPopup
-          visible={filterPopupVisible}
-          onClose={() => setFilterPopupVisible(false)}
-          filterOptions={filterOptions}
-          onApplyFilters={handleApplyFilters}
-          title="Filtrer les matchs"
+        visible={filterPopupVisible}
+        onClose={() => setFilterPopupVisible(false)}
+        filterOptions={filterOptions}
+        onApplyFilters={handleApplyFilters}
+        title="Filter Matches"
+        categories={categoriesWithIcons}
       />
     </SafeAreaView>
   );
@@ -203,7 +202,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF7F7',
   },
- 
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -214,11 +212,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
-  searchBarContainer: {
+  content: {
+    flex: 1,
     paddingHorizontal: 16,
   },
+  searchBarContainer: {
+  },
+  cityFilterContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 16,
+  },
   matchesList: {
-    paddingHorizontal: 16,
+  },
+  noMatchesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 150,
+  },
+  noMatchesText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
 

@@ -1,27 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import CardItem from '../components/cards/CardItem';
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import RestaurantCard from '../components/cards/RestaurantCard';
 import FilterSelector from '../components/FilterSelector';
-import { RootStackParamList } from '../types/navigation';
-import { Restaurant, RestaurantType } from '../types/Restaurant';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAppDispatch } from '../store/hooks';
 import { setSelectedRestaurant, toggleRestaurantBookmark } from '../store/restaurantSlice';
-import RestaurantCard from '../components/cards/RestaurantCard';
+import { RootStackParamList } from '../types/navigation';
+import { Restaurant, RestaurantType } from '../types/Restaurant';
 
 interface RestaurantListContainerProps {
   restaurants: Restaurant[];
   selectedType: RestaurantType | 'All Types';
   onSelectType: (type: RestaurantType | 'All Types') => void;
+  showTypeFilter?: boolean;
 }
 
 const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
   restaurants,
   selectedType,
   onSelectType,
+  showTypeFilter = true,
 }) => {
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(restaurants);
   const dispatch = useAppDispatch();
@@ -60,16 +61,29 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
     dispatch(toggleRestaurantBookmark(restaurant));
   };
 
+  // Determine the empty state message based on filter conditions
+  const getEmptyStateMessage = () => {
+    if (restaurants.length === 0) {
+      return "No restaurants available";
+    } else if (filteredRestaurants.length === 0 && selectedType !== 'All Types') {
+      return `No restaurants found with type: ${selectedType}`;
+    } else {
+      return "No restaurants found for the selected filters";
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.filtersContainer}>
-        <FilterSelector
-         title="Restaurant Type:"
-          options={typeOptions}
-          selectedOptionId={selectedType}
-          onSelectOption={(optionId) => onSelectType(optionId as RestaurantType | "All Types")}
-        />
-      </View>
+      {showTypeFilter && (
+        <View style={styles.filtersContainer}>
+          <FilterSelector
+           title="Restaurant Type:"
+            options={typeOptions}
+            selectedOptionId={selectedType}
+            onSelectOption={(optionId) => onSelectType(optionId as RestaurantType | "All Types")}
+          />
+        </View>
+      )}
       {filteredRestaurants.length > 0 ? (
         <FlatList
           data={filteredRestaurants}
@@ -87,7 +101,7 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="search-outline" size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No restaurants found in this type</Text>
+          <Text style={styles.emptyText}>{getEmptyStateMessage()}</Text>
         </View>
       )}
     </View>
@@ -116,6 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
+    marginBottom: 100,
   },
   emptyText: {
     fontSize: 16,

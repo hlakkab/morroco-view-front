@@ -5,13 +5,12 @@ import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 
 interface LocationPickerModalProps {
-  visible: boolean;
+
   onClose: () => void;
-  onLocationSelect: (longitude: number, latitude: number) => void;
+  onLocationSelect: (longitude: number, latitude: number, address: string) => void;
 }
 
 const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
-  visible,
   onClose,
   onLocationSelect,
 }) => {
@@ -54,7 +53,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
   const handleConfirm = () => {
     if (selectedLocation) {
-      onLocationSelect(selectedLocation.longitude, selectedLocation.latitude);
+      onLocationSelect(selectedLocation.longitude, selectedLocation.latitude, selectedLocation.address);
       onClose();
     }
   };
@@ -85,13 +84,21 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
   return (
     <Modal
-      visible={visible}
-      animationType="slide"
+      visible={true}
+      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
+      <TouchableOpacity 
+        style={styles.modalContainer}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <TouchableOpacity 
+          activeOpacity={1}
+          style={styles.modalContent}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>Select Location</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -189,8 +196,8 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           >
             <Text style={styles.confirmButtonText}>Confirm Location</Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -199,14 +206,22 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderRadius: 24,
+    width: '90%',
     height: '80%',
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    position: 'relative',
+    zIndex: 1000,
   },
   header: {
     flexDirection: 'row',

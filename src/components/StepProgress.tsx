@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 10,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   stepContainer: {
     alignItems: 'center',
@@ -73,15 +73,15 @@ const styles = StyleSheet.create({
     marginRight: 24,
   },
   circle: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: 25,
     backgroundColor: '#FFF',
     borderWidth: 1,
     borderColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   currentStepCircle: {
     backgroundColor: '#FFF',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     borderColor: '#E53935',
   },
   stepNumber: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#666',
   },

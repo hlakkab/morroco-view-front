@@ -12,6 +12,7 @@ interface DaySelectorProps {
   selectedDay: number;
   getDayStatus: (day: number) => DayStatus;
   onSelectDay: (day: number) => void;
+  startDate: string;
 }
 
 const DaySelector: React.FC<DaySelectorProps> = ({
@@ -19,7 +20,23 @@ const DaySelector: React.FC<DaySelectorProps> = ({
   selectedDay,
   getDayStatus,
   onSelectDay,
+  startDate,
 }) => {
+  // Function to format date as "DD MMM"
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  // Function to get date for a specific day
+  const getDateForDay = (day: number) => {
+    const date = new Date(startDate.replace(/\//g, '-'));
+    date.setDate(date.getDate() + (day - 1));
+    return formatDate(date);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Choose a Day:</Text>
@@ -27,6 +44,7 @@ const DaySelector: React.FC<DaySelectorProps> = ({
         {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
           const dayStatus = getDayStatus(day);
           const isDaySelected = selectedDay === day;
+          const date = getDateForDay(day);
           
           return (
             <TouchableOpacity
@@ -43,7 +61,7 @@ const DaySelector: React.FC<DaySelectorProps> = ({
                 isDaySelected && styles.selectedDayButtonText,
                 dayStatus.status === 'locked' && styles.lockedDayButtonText
               ]}>
-                Day {day}
+                {date}
               </Text>
               {dayStatus.status !== 'empty' && (
                 <View style={styles.dayStatusIndicator}>

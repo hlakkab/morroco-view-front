@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
+import api from './ApiProxy';
 
-const KEYCLOAK_URL = `http://34.175.18.109:8080/realms/morocco-view/protocol/openid-connect/token`;
+const KEYCLOAK_URL = `http://49.13.89.74:8080/realms/morocco-view/protocol/openid-connect/token`;
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const TOKEN_EXPIRY_KEY = 'token_expiry';
@@ -129,6 +130,7 @@ const login = async (email: string, password: string) => {
   formData.append('grant_type', 'password');
   formData.append('client_id', 'marv-backend');
 
+
   try {
     const response = await fetch(KEYCLOAK_URL, {
       method: 'POST',
@@ -142,9 +144,15 @@ const login = async (email: string, password: string) => {
       throw new Error(`Login failed: ${response.status}`);
     }
 
+    
+
     const data = await response.json();
     const { access_token, refresh_token, expires_in } = data;
     await saveTokens(access_token, refresh_token, expires_in);
+
+    api.put("/verify")
+
+
     return data;
   } catch (error) {
     console.error('Error logging in:', error);
@@ -189,6 +197,48 @@ const getTokenExpiry = async () => {
   return await SecureStore.getItemAsync(TOKEN_EXPIRY_KEY);
 };
 
+const decodeJWT = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return null;
+  }
+};
+
+const getUserInfo = async () => {
+  try {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    const decodedToken = decodeJWT(accessToken);
+    if (!decodedToken) {
+      throw new Error('Failed to decode access token');
+    }
+
+    return {
+      id: decodedToken.sub,
+      firstName: decodedToken.given_name || '',
+      lastName: decodedToken.family_name || '',
+      email: decodedToken.email || '',
+      phoneNumber: decodedToken.phone_number || '',
+      profilePicture: decodedToken.profile_pic || '',
+      createdAt: decodedToken.created_at || new Date().toISOString(),
+      updatedAt: decodedToken.updated_at || new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error('Error getting user info:', error);
+    throw error;
+  }
+};
+
 export { 
   refreshToken, 
   saveTokens, 
@@ -196,5 +246,6 @@ export {
   login, 
   getAccessToken, 
   getRefreshToken, 
-  getTokenExpiry 
+  getTokenExpiry,
+  getUserInfo 
 };

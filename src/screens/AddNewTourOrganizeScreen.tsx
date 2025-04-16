@@ -1,27 +1,32 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../store';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import StepProgress from '../components/StepProgress';
 import DayHeader from '../components/tour/DayHeader';
 import DurationModal from '../components/tour/DurationModal';
 import TimeModal from '../components/tour/TimeModal';
+import TourDayHeader from '../components/tour/TourDayHeader';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
 import TourSummary from '../components/tour/TourSummary';
+import TrajectoryButton from '../components/tour/TrajectoryButton';
 import Timeline from '../containers/tour/Timeline';
-import { setTourItems, saveTour } from '../store/tourSlice';
-import { RootStackParamList } from '../types/navigation';
+import { setTourItems, saveTour, saveTourThunk } from '../store/tourSlice';
+import { TourSavedItem } from '../types/tour';
+import { RootStackParamList, SavedItem } from '../types/navigation';
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -35,32 +40,37 @@ const CITY_COORDINATES = {
   'Essaouira': { latitude: 31.513056, longitude: -9.77 },
 };
 
-interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  imageUrl?: string;
-  city: string;
+// Extend TourSavedItem to include tour-specific properties
+interface TourItem extends TourSavedItem {
   duration?: string;
   timeSlot?: string;
-  coordinate?: {
-    latitude: number;
-    longitude: number;
-  };
 }
 
 interface DailySchedule {
   date: string;
   city: string;
-  items: SavedItem[];
+  items: TourItem[];
 }
+
+// Map TourItem to SavedItem for Timeline compatibility
+const mapTourItemToSavedItem = (item: TourItem): SavedItem => {
+  return {
+    id: item.id,
+    type: item.type,
+    title: item.title,
+    subtitle: item.subtitle,
+    city: item.city,
+    duration: item.duration,
+    timeSlot: item.timeSlot,
+    images: item.images
+  };
+};
 
 const AddNewTourOrganizeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'AddNewTourOrganize'>>();
-  const { title, startDate, endDate, selectedItemsByDay, cities, savedItems } = route.params;
-  const dispatch = useDispatch();
+  const { title, startDate, endDate, selectedItemsByDay, cities, savedItems, viewMode } = route.params;
+  const dispatch = useAppDispatch();
   
   const [schedule, setSchedule] = useState<DailySchedule[]>([]);
   const [showDurationModal, setShowDurationModal] = useState(false);
@@ -68,6 +78,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<{dayIndex: number, itemIndex: number} | null>(null);
   const [durationText, setDurationText] = useState('');
   const [timeText, setTimeText] = useState('');
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
   const steps = [
     { id: '01', label: 'Basic infos' },
@@ -115,7 +126,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         const dayItems = selectedItemsByDay[dayNumber].map(itemId => {
           const item = savedItems.find(saved => saved.id === itemId);
           return item ? { ...item } : null;
-        }).filter(Boolean) as SavedItem[];
+        }).filter(Boolean) as TourSavedItem[];
         
         // Only add days with items
         if (dayItems.length > 0) {
@@ -127,65 +138,10 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         }
       });
       
-      // If no schedule was created, provide fallback data
-      if (scheduleDays.length === 0) {
-        const fallbackItems: DailySchedule[] = [
-          {
-            date: "Monday, October 03, 2023",
-            city: "Casablanca",
-            items: [
-              {
-                id: '1',
-                type: 'match',
-                title: 'Senegal Vs Egypt',
-                subtitle: 'Stade Mohamed V',
-                city: 'Casablanca',
-                timeSlot: 'Evening'
-              },
-              {
-                id: '2',
-                type: 'match',
-                title: 'Morocco Vs Comores',
-                subtitle: 'Stade Moulay Abdallah',
-                city: 'Casablanca',
-                duration: '2 hours'
-              }
-            ]
-          }
-        ];
-        
-        setSchedule(fallbackItems);
-      } else {
-        setSchedule(scheduleDays);
-      }
+      setSchedule(scheduleDays);
     } catch (e) {
       console.error("Error preparing schedule:", e);
-      // Provide fallback data in case of error
-      const fallbackSchedule: DailySchedule[] = [
-        {
-          date: "Monday, October 03, 2023",
-          city: "Casablanca",
-          items: [
-            {
-              id: '1',
-              type: 'match',
-              title: 'Senegal Vs Egypt',
-              subtitle: 'Stade Mohamed V',
-              city: 'Casablanca',
-              timeSlot: 'Evening'
-            },
-            {
-              id: '2',
-              type: 'match',
-              title: 'Morocco Vs Comores',
-              subtitle: 'Stade Moulay Abdallah',
-              city: 'Casablanca',
-              duration: '2 hours'
-            }
-          ]
-        }
-      ];
-      setSchedule(fallbackSchedule);
+      setSchedule([]);
     }
   }, [startDate, endDate, selectedItemsByDay, cities, savedItems]);
 
@@ -195,6 +151,8 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       case 'restaurant': return 2; 
       case 'match': return 1;
       case 'entertainment': return 3;
+      case 'monument': return 5;
+      case 'money-exchange': return 6;
       default: return 5;
     }
   };
@@ -263,9 +221,20 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     setSchedule(prevSchedule => {
       return prevSchedule.map((day, idx) => {
         if (idx === dayIndex) {
+          // Map SavedItem back to TourItem
+          const tourItems = newItems.map(item => {
+            const originalItem = day.items.find(original => original.id === item.id);
+            if (!originalItem) return null;
+            return {
+              ...originalItem,
+              duration: item.duration,
+              timeSlot: item.timeSlot
+            };
+          }).filter(Boolean) as TourItem[];
+          
           return {
             ...day,
-            items: newItems
+            items: tourItems
           };
         }
         return day;
@@ -274,7 +243,11 @@ const AddNewTourOrganizeScreen: React.FC = () => {
   }, []);
 
   // Add coordinates to items based on city
-  const addCoordinatesToItems = (items: SavedItem[]): SavedItem[] => {
+  const addCoordinatesToItems = (items: TourSavedItem[]): TourSavedItem[] => {
+
+    console.log('items', items);
+
+
     return items.map(item => {
       // If item already has coordinates, use them
       if (item.coordinate) {
@@ -299,7 +272,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
 
   const handleSaveTour = () => {
     // Process all items from the schedule and add coordinates
-    const allItems: SavedItem[] = [];
+    const allItems: TourSavedItem[] = [];
     
     schedule.forEach(day => {
       day.items.forEach(item => {
@@ -316,73 +289,200 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       cities
     }));
     
-    dispatch(saveTour());
+    // Transform date from yyyy/mm/dd to yyyy-mm-dd if needed
+    const formatDate = (dateStr: string): string => {
+      if (dateStr.includes('/')) {
+        return dateStr.split('/').join('-');
+      }
+      return dateStr;
+    };
+
+    // Transform date from "Tuesday, March 25, 2025" to "yyyy-mm-dd"
+    const transformDateString = (dateStr: string): string => {
+      const months: { [key: string]: number } = {
+        'January': 0, 'February': 1, 'March': 2, 'April': 3,
+        'May': 4, 'June': 5, 'July': 6, 'August': 7,
+        'September': 8, 'October': 9, 'November': 10, 'December': 11
+      };
+
+      // Split the date string into parts
+      const parts = dateStr.split(', ');
+      if (parts.length !== 3) return dateStr;
+
+      const monthDay = parts[1].split(' ');
+      if (monthDay.length !== 2) return dateStr;
+
+      const month = monthDay[0];
+      const day = parseInt(monthDay[1]);
+      const year = parseInt(parts[2]);
+
+      if (isNaN(day) || isNaN(year) || !months[month]) return dateStr;
+
+      // Create date object (months are 0-based in JavaScript Date)
+      const date = new Date(year, months[month], day);
+      
+      // Format as yyyy-mm-dd
+      return `${year}-${String(months[month] + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    };
+
+    // Transform items to use coordinates instead of coordinate
+    const transformedItems = itemsWithCoordinates.map(item => {
+      const { coordinate, images, ...rest } = item;
+      // Find the day this item belongs to in the schedule
+      const daySchedule = schedule.find(day => 
+        day.items.some(dayItem => dayItem.id === item.id)
+      );
+      
+      return {
+        ...rest,
+        coordinates: coordinate ? `${coordinate.latitude},${coordinate.longitude}` : undefined,
+        date: daySchedule?.date ? transformDateString(daySchedule.date) : undefined,
+        image: images?.[0] || undefined
+      };
+    });
+    
+    // Use the saveTourThunk instead of saveTour
+    dispatch(saveTourThunk({
+      title: title || "My Tour",
+      from: formatDate(startDate),
+      to: formatDate(endDate),
+      destinations: transformedItems as unknown as TourSavedItem[]
+    }));
     
     // Navigate to map view with the items
-    navigation.navigate('TourMapScreen', {
-      tourItems: itemsWithCoordinates
-    });
+    navigation.navigate("Tours")
   };
+
+  // Create day options for TourDayHeader
+  const dayOptions = useMemo(() => {
+    return schedule.map((day, index) => ({
+      id: index + 1,
+      label: `Day ${index + 1}`,
+      city: day.city,
+      date: day.date
+    }));
+  }, [schedule]);
+
+  // Callbacks for navigating between days
+  const handlePrevDay = useCallback(() => {
+    if (selectedDayIndex > 0) {
+      setSelectedDayIndex(selectedDayIndex - 1);
+    }
+  }, [selectedDayIndex]);
+
+  const handleNextDay = useCallback(() => {
+    if (selectedDayIndex < schedule.length - 1) {
+      setSelectedDayIndex(selectedDayIndex + 1);
+    }
+  }, [selectedDayIndex, schedule.length]);
+
+  // Handle day selection
+  const handleSelectDay = useCallback((dayId: number) => {
+    setSelectedDayIndex(dayId - 1);
+  }, []);
+
+  // Handle preview trajectory button press
+  const handleViewTrajectory = useCallback(() => {
+    if (schedule[selectedDayIndex]) {
+      const dayItems = schedule[selectedDayIndex].items;
+      const itemsWithCoordinates = addCoordinatesToItems(dayItems);
+
+
+      console.log('itemsWithCoordinates', itemsWithCoordinates.map(item => item.title));
+      
+      // Navigate to map view with the items for this day
+      navigation.navigate('TourMapScreen', {
+        tourItems: itemsWithCoordinates,
+        title: `Day ${selectedDayIndex + 1} - ${schedule[selectedDayIndex].city}`,
+        singleDayView: true
+      });
+    }
+  }, [schedule, selectedDayIndex, navigation]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TourFlowHeader title="Add New Tour" />
-        </View>
+        {!viewMode ? (
+          <View style={styles.headerContainer}>
+            <TourFlowHeader title="Add New Tour" />
+          </View>
+        ) : (
+          <View style={styles.headerContainer}>
+            <ScreenHeader title="Tour Details" />
+          </View>
+        )}
         
-        <View style={styles.stepProgressContainer}>
-          <StepProgress 
-            steps={steps} 
-            currentStep={2}
-            onStepPress={handleStepPress}
-          />
-        </View>
+        {!viewMode && (
+          <View style={styles.stepProgressContainer}>
+            <StepProgress 
+              steps={steps} 
+              currentStep={2}
+              onStepPress={handleStepPress}
+            />
+          </View>
+        )}
         
-        <ScrollView 
-          style={styles.content}
-          scrollEventThrottle={16}
-          nestedScrollEnabled={true}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <Text style={styles.tourTitle}>{title || "My Tour"}</Text>
-          
-          {schedule.length > 0 ? (
-            schedule.map((day, dayIndex) => (
-              <View key={`day-${dayIndex}`} style={styles.dayContainer}>
+        {schedule.length > 0 ? (
+          <>
+            <View style={styles.dayHeaderContainer}>
+              <TourDayHeader
+                title={title || "My Tour"}
+                days={dayOptions}
+                selectedDay={selectedDayIndex + 1}
+                onSelectDay={handleSelectDay}
+                onPrevDay={handlePrevDay}
+                onNextDay={handleNextDay}
+                startDate={startDate}
+              />
+            </View>
+            
+            <ScrollView 
+              style={styles.content}
+              scrollEventThrottle={16}
+              nestedScrollEnabled={true}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <View style={styles.dayContainer}>
                 <DayHeader 
-                  date={day.date}
-                  dayNumber={dayIndex + 1}
-                  city={day.city}
+                  date={schedule[selectedDayIndex].date}
+                  dayNumber={selectedDayIndex + 1}
+                  city={schedule[selectedDayIndex].city}
                 />
                 
                 <Timeline 
-                  items={day.items}
-                  onSetTime={(itemIndex) => handleSetTime(dayIndex, itemIndex)}
-                  onSetDuration={(itemIndex) => handleSetDuration(dayIndex, itemIndex)}
-                  onReorderItems={(newItems) => handleReorderItems(dayIndex, newItems)}
+                  items={schedule[selectedDayIndex].items.map(mapTourItemToSavedItem)}
+                  onSetTime={(itemIndex: number) => handleSetTime(selectedDayIndex, itemIndex)}
+                  onSetDuration={(itemIndex: number) => handleSetDuration(selectedDayIndex, itemIndex)}
+                  onReorderItems={(newItems: SavedItem[]) => handleReorderItems(selectedDayIndex, newItems)}
+                />
+                
+                <TrajectoryButton
+                  onPress={handleViewTrajectory}
+                  itemCount={schedule[selectedDayIndex].items.length}
                 />
               </View>
-            ))
-          ) : (
-            <View style={styles.noDataContainer}>
-              <Ionicons name="calendar-outline" size={64} color="#E0E0E0" />
-              <Text style={styles.noDataText}>No schedule data available</Text>
-              <Text style={styles.noDataHint}>
-                Add some destinations in the previous step to see your tour schedule
-              </Text>
-            </View>
-          )}
-          
-          <TourSummary schedule={schedule} />
-        </ScrollView>
+              
+              <TourSummary schedule={schedule} />
+            </ScrollView>
+          </>
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Ionicons name="calendar-outline" size={64} color="#E0E0E0" />
+            <Text style={styles.noDataText}>No schedule data available</Text>
+            <Text style={styles.noDataHint}>
+              Add some destinations in the previous step to see your tour schedule
+            </Text>
+          </View>
+        )}
         
-        <View style={styles.footer}>
-          <Button 
-            title="Save Tour"
-            onPress={handleSaveTour}
-          />
-        </View>
+        {!viewMode && (
+          <View style={styles.footer}>
+            <Button 
+              title="Save Tour"
+              onPress={handleSaveTour}
+            />
+          </View>
+        )}
         
         {/* Duration Modal - now using the component */}
         <DurationModal
@@ -416,23 +516,21 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   stepProgressContainer: {
-    marginVertical: 8,
+    marginVertical: 0,
+  },
+  dayHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   content: {
     flex: 1,
     paddingHorizontal: 16,
   },
-  tourTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
   dayContainer: {
-    marginBottom: 24,
+    
   },
   noDataContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,

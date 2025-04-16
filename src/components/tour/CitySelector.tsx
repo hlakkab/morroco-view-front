@@ -8,6 +8,7 @@ interface CitySelectorProps {
   selectedDay: number;
   isLocked: boolean;
   onCityChange: (city: string) => void;
+  startDate: string;
 }
 
 const CitySelector: React.FC<CitySelectorProps> = ({
@@ -16,11 +17,27 @@ const CitySelector: React.FC<CitySelectorProps> = ({
   selectedDay,
   isLocked,
   onCityChange,
+  startDate,
 }) => {
+  // Function to format date as "DD MMM"
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  // Function to get date for a specific day
+  const getDateForDay = (day: number) => {
+    const date = new Date(startDate.replace(/\//g, '-'));
+    date.setDate(date.getDate() + (day - 1));
+    return formatDate(date);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>City for Day {selectedDay}:</Text>
+        <Text style={styles.title}>City for {getDateForDay(selectedDay)}:</Text>
         {isLocked && (
           <View style={styles.lockedBadge}>
             <Ionicons name="lock-closed" size={12} color="#FFF" style={{ marginRight: 4 }} />

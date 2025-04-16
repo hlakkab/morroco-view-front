@@ -1,17 +1,21 @@
 export interface Broker {
+    email: any;
     id: string;
     name: string;
-    imageUrl?: string;
+    images: string[];
     address: string;
     city: string;
+    coordinates: string; // Format: "x,y" from backend
     rating?: number;
     isFeatured?: boolean;
-    isSaved?: boolean;
+    saved?: boolean;
     services?: string[];
-    operatingHours?: string;
+    startTime?: string;
+    endTime?: string;
     phoneNumber?: string;
     website?: string;
     description?: string;
+    mapId?: string;
   }
 
 export interface ExchangeBrokerState {

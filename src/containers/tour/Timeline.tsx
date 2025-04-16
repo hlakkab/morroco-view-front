@@ -1,18 +1,9 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import TimelineItem from '../../components/tour/TimelineItem';
-
-interface SavedItem {
-  id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment';
-  title: string;
-  subtitle?: string;
-  city: string;
-  duration?: string;
-  timeSlot?: string;
-}
+import { SavedItem } from '../../types/navigation';
 
 interface TimelineProps {
   items: SavedItem[];
@@ -20,6 +11,11 @@ interface TimelineProps {
   onSetDuration: (itemIndex: number) => void;
   onReorderItems?: (newItems: SavedItem[]) => void;
 }
+
+type RenderItemProps = {
+  item: SavedItem;
+  index: number;
+};
 
 const Timeline: React.FC<TimelineProps> = ({ 
   items, 
@@ -44,38 +40,106 @@ const Timeline: React.FC<TimelineProps> = ({
     );
   }
   
+  // State to manage the items for the flatlist
+  const [timelineItems, setTimelineItems] = useState(items);
+  
+  // Shared value to track dragged item
+  const draggingId = useSharedValue<string | null>(null);
+  const draggedIndex = useSharedValue<number>(-1);
+  const currentPositionY = useSharedValue(0);
+  
   // Create a memoized copy of items to prevent reference issues
   const itemsCopy = useMemo(() => 
-    items.map(item => ({...item})), 
-    [items]
+    timelineItems.map(item => ({...item})), 
+    [timelineItems]
   );
   
-  // Create a stable callback for handling drag end
-  const handleDragEnd = useCallback(({ data }: { data: SavedItem[] }) => {
+  // Update local state when props change
+  useMemo(() => {
+    setTimelineItems(items);
+  }, [items]);
+  
+  // Handle moving items
+  const handleMoveItem = useCallback((fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    
+    // Create a new array to avoid mutation issues
+    const newItems = [...itemsCopy];
+    
+    // Remove the item from its original position
+    const [movedItem] = newItems.splice(fromIndex, 1);
+    
+    // Insert the item at the new position
+    newItems.splice(toIndex, 0, movedItem);
+    
+    // Update the state immediately for a smooth visual update
+    setTimelineItems(newItems);
+    
+    // Notify parent component about the reordering
     if (onReorderItems) {
-      // Create a fresh copy to avoid reference issues
-      const newItems = data.map(item => ({...item}));
       onReorderItems(newItems);
     }
-  }, [onReorderItems]);
-
-  // Fixed render item function to avoid closure problems with Reanimated
-  const renderItem = useCallback(({ item, drag, isActive, index }: any) => {
-    // These handler functions are recreated for each item to avoid ref usage
+  }, [itemsCopy, onReorderItems]);
+  
+  // Handle drag start for an item
+  const handleDragStart = useCallback((id: string, index: number) => {
+    draggingId.value = id;
+    draggedIndex.value = index;
+  }, [draggingId, draggedIndex]);
+  
+  // Handle drag end
+  const handleDragEnd = useCallback(() => {
+    draggingId.value = null;
+    draggedIndex.value = -1;
+    currentPositionY.value = 0;
+  }, [draggingId, draggedIndex, currentPositionY]);
+  
+  // Handle position change during drag
+  const handlePositionChange = useCallback((id: string, destIndex: number) => {
+    const sourceIndex = itemsCopy.findIndex(item => item.id === id);
+    
+    if (sourceIndex !== -1 && sourceIndex !== destIndex) {
+      handleMoveItem(sourceIndex, destIndex);
+    }
+  }, [itemsCopy, handleMoveItem]);
+  
+  // Render item component
+  const renderItem = useCallback(({ item, index }: RenderItemProps) => {
     const handleSetTimeCallback = () => onSetTime(index);
     const handleSetDurationCallback = () => onSetDuration(index);
     
+    // Fix for accessing shared values in render functions:
+    // Instead of directly accessing draggingId.value, we pass the shared value object
     return (
       <TimelineItem
         key={item.id}
         item={item}
         onSetTime={handleSetTimeCallback}
         onSetDuration={handleSetDurationCallback}
-        onDragStart={drag}
-        isDragging={isActive}
+        index={index}
+        onDragStart={() => handleDragStart(item.id, index)}
+        onDragEnd={handleDragEnd}
+        onPositionChange={(destIndex: number) => handlePositionChange(item.id, destIndex)}
+        isDragging={false} // Static value to avoid shared value warning
+        totalItems={itemsCopy.length}
+        draggingId={draggingId}
+        draggedIndex={draggedIndex}
+        currentPositionY={currentPositionY}
       />
     );
-  }, [onSetTime, onSetDuration]);
+  }, [
+    onSetTime, 
+    onSetDuration, 
+    handleDragStart, 
+    handleDragEnd,
+    handlePositionChange, 
+    draggingId, 
+    draggedIndex,
+    currentPositionY,
+    itemsCopy
+  ]);
+  
+  const keyExtractor = useCallback((item: SavedItem) => item.id, []);
   
   return (
     <View style={styles.container}>
@@ -85,17 +149,19 @@ const Timeline: React.FC<TimelineProps> = ({
         </View>
         
         <View style={styles.itemsColumn}>
-          <DraggableFlatList
+          <FlatList
             data={itemsCopy}
-            keyExtractor={(item) => item.id}
-            onDragEnd={handleDragEnd}
+            keyExtractor={keyExtractor}
             renderItem={renderItem}
-            containerStyle={styles.flatListContainer}
-            activationDistance={5}
             scrollEnabled={false}
-            autoscrollSpeed={200}
-            dragHitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.flatListContainer}
+            removeClippedSubviews={false}
+            CellRendererComponent={({ children, ...props }) => (
+              <View {...props}>
+                {children}
+              </View>
+            )}
           />
         </View>
       </GestureHandlerRootView>
@@ -145,8 +211,8 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   flatListContainer: {
-    flex: 1,
-    width: '100%',
+    paddingBottom: 16,
+    paddingTop: 8,
   },
 });
 

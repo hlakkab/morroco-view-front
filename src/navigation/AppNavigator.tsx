@@ -4,9 +4,12 @@ import AccountScreen from '../screens/AccountScreen';
 import AddNewTourDestinationsScreen from '../screens/AddNewTourDestinationsScreen';
 import AddNewTourOrganizeScreen from '../screens/AddNewTourOrganizeScreen';
 import AddNewTourScreen from '../screens/AddNewTourScreen';
+import ArtisanDetailScreen from '../screens/ArtisanDetailScreen';
+import ArtisansScreen from '../screens/ArtisansScreen';
 import BookmarkScreen from '../screens/BookmarkScreen';
 import BrokerDetailScreen from '../screens/BrokerDetailScreen';
 import BrokerListScreen from '../screens/BrokerListScreen';
+import EmergencyScreen from "../screens/EmergencyScreen";
 import EntertainmentDetailScreenVo from '../screens/EntertainmentDetailScreenVo';
 import EntertainmentScreen from '../screens/EntertainmentScreen';
 import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
@@ -16,7 +19,6 @@ import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
-import TourMapScreen from '../screens/TourMapScreen';
 import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import MonumentDetailScreen from '../screens/MonumentDetailScreen';
 import MonumentsListScreen from '../screens/MonumentsListScreen';
@@ -25,13 +27,13 @@ import QRCodesScreen from '../screens/QRCodesScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import RestaurantScreen from '../screens/RestaurantScreen';
 import TicketsScreen from '../screens/TicketsScreen';
+import TourMapScreen from '../screens/TourMapScreen';
 import ToursScreen from '../screens/ToursScreen';
 import TransportDetailScreen from '../screens/TransportDetailScreen';
 import { RootStackParamList } from '../types/navigation';
-import EmergencyScreen from "../screens/EmergencyScreen";
 
-import MonumentsScreen from '../screens/MonumentsScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
+import MonumentsScreen from '../screens/MonumentsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -112,6 +114,16 @@ export function AppNavigator() {
       <Stack.Screen
         name="MonumentDetail"
         component={MonumentDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Artisans"
+        component={ArtisansScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ArtisanDetail"
+        component={ArtisanDetailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -196,6 +208,7 @@ export function AppNavigator() {
         component={AddNewTourOrganizeScreen}
         options={{ headerShown: false }}
       />
+      
     </Stack.Navigator>
   );
 }

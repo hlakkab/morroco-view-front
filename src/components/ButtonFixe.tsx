@@ -49,14 +49,11 @@ const ButtonFixe: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: -15,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
     width: 415,
     height: 85,
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: '#FFF7F7',
+    backgroundColor: '#fff',
   },
   button: {
     marginTop: 12,

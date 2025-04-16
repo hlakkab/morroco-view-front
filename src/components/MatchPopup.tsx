@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -14,26 +14,16 @@ import { RootState } from '../store';
 import { useAppDispatch } from '../store/hooks';
 import TicketPurchaseStatus from './TicketPurchaseStatus';
 import ButtonFixe from "./ButtonFixe";
+import { getFlagUrl } from '../utils/flagResolver';
 
 export interface MatchPopupProps {
-  match: Match;
   onClose: () => void;
 }
 
-const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
+const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
-  const { ticketPurchaseStatus, ticketPurchaseError, savedMatches } = useSelector((state: RootState) => state.match);
-
-  const [isMatchSaved, setIsMatchSaved] = useState(false);
-
-
-  // Check if the match is saved when component mounts or match changes
-  useEffect(() => {
-    if (match && savedMatches) {
-      const matchIsSaved = savedMatches.some(savedMatch => savedMatch.id === match.id);
-      setIsMatchSaved(matchIsSaved);
-    }
-  }, [match, savedMatches]);
+  const { currentMatch, ticketPurchaseStatus, ticketPurchaseError } 
+    = useSelector((state: RootState) => state.match);
 
   // Reset ticket purchase status when component unmounts
   useEffect(() => {
@@ -82,38 +72,30 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
   ).current;
 
   const handleSave = () => {
-    if (match) {
-      dispatch(toggleMatchBookmark(match));
-      // No need to update local state as it will be updated via the useEffect when savedMatches changes
+    if (currentMatch) {
+      dispatch(toggleMatchBookmark(currentMatch));
     }
   };
 
   const handleBuyTicket = () => {
-    if (match && match.id) {
-      dispatch(buyTicket(match.id));
+    if (currentMatch && currentMatch.id) {
+      dispatch(buyTicket(currentMatch.id));
+      onClose();
     } else {
       Alert.alert('Error', 'Cannot purchase ticket for this match');
     }
   };
 
-
-  // Utiliser une fonction pour récupérer les drapeaux depuis une source plus fiable
-  const flag = (country: string) => {
-    try {
-      country = country
-        .toLowerCase()
-        .replace(/\s+/g, '-');
-
-      // Approche plus robuste : utiliser une source locale si disponible
-      // ou une API plus fiable si nécessaire
-      return `https://www.countryflags.com/wp-content/uploads/${country}-flag-png-large.png`;
-    } catch (error) {
-      console.error('Erreur lors du chargement du drapeau:', error);
-      // Retourner une URL de secours (placeholder)
-      return 'https://via.placeholder.com/150';
-    }
-  };
-
+  // If no current match is available, return null or a loading state
+  if (!currentMatch) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.popup}>
+          <ActivityIndicator size="large" color="#AE1913" />
+        </View>
+      </View>
+    );
+  }
 
 
   return (
@@ -130,12 +112,11 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
           {/* Label de status */}
           <View style={styles.statusLabel}>
             <Ionicons name="football" size={15} color="#0000FF" />
-            <Text style={styles.statusLabelText}>{match?.status || 'À venir'}
-            </Text>
+            <Text style={styles.statusLabelText}> TBD</Text>
           </View>
 
           {/* Titre du match */}
-          <Text style={styles.matchTitle}>{match.homeTeam} Vs. {match.awayTeam}</Text>
+          <Text style={styles.matchTitle}>{currentMatch.homeTeam} Vs. {currentMatch.awayTeam}</Text>
 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <CloseButton />
@@ -151,32 +132,44 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
           bounces={true}
           nestedScrollEnabled={true}
         >
-          {/* Grand conteneur regroupant l'image et les détails */}
+          
           <View style={styles.content}>
 
-            {/* conntainer */}
+          
             <View style={styles.grandContainer}>
               <TouchableOpacity
-                style={[styles.saveButton, match.saved && styles.savedButton]}
+                style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
                 onPress={handleSave}
               >
                 <Ionicons
-                  name={match.saved ? "bookmark" : "bookmark-outline"}
+                  name={currentMatch.saved ? "bookmark" : "bookmark-outline"}
                   size={24}
-                  color={match.saved ? "#888888" : "#000"}
+                  color={currentMatch.saved ? "#888888" : "#000"}
                 />
               </TouchableOpacity>
 
 
-
-              {/* Affichage des images d'équipes avec VS au milieu */}
+              
               <View style={styles.teamsContainer}>
-                <>
-                  <Image source={{ uri: flag(match.homeTeam) }} style={styles.teamFlag} />
-                  <Text style={styles.vsText}>VS</Text>
-                  <Image source={{ uri: flag(match.awayTeam) }} style={styles.teamFlag} />
-                </>
+                <View style={styles.teamContainer}>
+                  <View style={styles.flagContainer}>
+                    <Image
+                      source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
+                      style={styles.flag}
+                    />
+                  </View>
+                </View>
 
+                <Text style={styles.vsText}>VS</Text>
+
+                <View style={styles.teamContainer}>
+                  <View style={styles.flagContainer}>
+                    <Image
+                      source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
+                      style={styles.flag}
+                    />
+                  </View>
+                </View>
               </View>
 
               <View style={styles.detailRow}>
@@ -186,7 +179,9 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
                     <Fontisto name="date" size={16} color="#656565" />
                     <Text style={styles.detailTitle}>Date</Text>
                   </View>
-                  <Text style={styles.detailValue}>{match.date.split(" ")[0]}</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
                 </View>
 
                 {/* Séparateur 1 */}
@@ -199,9 +194,9 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
                     <Text style={styles.detailTitle}>Time</Text>
                   </View>
                   <Text style={styles.detailValue}>
-                    {match.date.includes(" ")
-                      ? match.date.split(" ")[1]
-                      : "9:00 PM"}
+                    {currentMatch.date.includes("T")
+                      ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                      : "21:00"}
                   </Text>
                 </View>
 
@@ -214,20 +209,20 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
                     <StadiumIconPopup width={16} height={16} />
                     <Text style={styles.detailTitle}>Stadium</Text>
                   </View>
-                  <Text style={styles.detailValue}>{match.spot?.name || "Unknown"}</Text>
+                  <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
                 </View>
               </View>
             </View>
 
             {/* About Section */}
             <AboutSection
-              text={match.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
+              text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
             />
 
             {/* Location Section */}
             <LocationSection
-              address={match.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-              mapUrl={match.spot?.coordinates}
+              address={currentMatch.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
+              mapUrl={currentMatch.spot?.mapId}
             />
 
             {/* Ticket Purchase Status */}
@@ -240,31 +235,9 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ match, onClose }) => {
         </ScrollView>
 
         {/* Bottom Section: Boutons Add to Tour & Buy Tickets */}
-        {/*
-        <View style={styles.bottomContainer}>
-          <TouchableOpacity 
-            style={[
-              styles.buyTicketsButton, 
-              ticketPurchaseStatus === 'loading' && styles.disabledButton
-            ]}
-            onPress={handleBuyTicket}
-            disabled={ticketPurchaseStatus === 'loading'}
-          >
-            {ticketPurchaseStatus === 'loading' ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.buyTicketsText}>
-                Buy Tickets
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>*/}
-        <ButtonFixe title={'Buy Tickets'} onPress={() => { }} />
-
-
+        <ButtonFixe title={'Buy Tickets'} onPress={handleBuyTicket} />
       </View>
     </Animated.View>
-
   );
 };
 
@@ -351,12 +324,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 6,
   },
-  teamFlag: {
+  teamContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  flagContainer: {
     width: 72,
     height: 52,
     borderRadius: 10,
+    overflow: 'hidden',
+  },
+  flag: {
+    width: '100%',
+    height: '100%',
     resizeMode: 'cover',
-    alignItems: 'center',
+  },
+  teamName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 10,
   },
   vsText: {
     fontSize: 24,

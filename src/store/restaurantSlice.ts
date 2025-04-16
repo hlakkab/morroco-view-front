@@ -81,7 +81,6 @@ export const toggleRestaurantBookmark = createAsyncThunk(
   'restaurant/toggleBookmark',
   
   async (restaurant: Restaurant, { dispatch }) => {
-    console.log('toggleRestaurantBookmark', restaurant.id);
     try {
       if (restaurant.saved) {
         dispatch(removeBookmark(restaurant.id));

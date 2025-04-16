@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Button from '../components/Button';
 import LocationPickerModal from '../components/LocationPickerModal';
+import DatePickerModal from '../components/DatePickerModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
 import "react-native-get-random-values"
@@ -20,7 +21,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const { bookingStatus, bookingError } = useAppSelector(
     (state) => state.hotelPickupDetails
   );
-  
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -28,6 +29,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [hotelLocation, setHotelLocation] = useState('');
   const [destination, setDestination] = useState<[number, number] | null>(null);
+  const [showModernDatePicker, setShowModernDatePicker] = useState(false);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -60,14 +62,14 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
     const today = new Date();
     const nextYear = new Date();
     nextYear.setFullYear(today.getFullYear() + 1);
-    
+
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentMonth = selectedDate.getMonth();
     const currentYear = selectedDate.getFullYear();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    
+
     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-    
+
     return (
       <Modal
         visible={showDatePicker}
@@ -75,7 +77,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         animationType="fade"
         onRequestClose={() => setShowDatePicker(false)}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setShowDatePicker(false)}
@@ -85,20 +87,20 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               <View style={styles.pickerTitleContainer}>
                 <Text style={styles.pickerTitle} numberOfLines={1}>Select Date</Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowDatePicker(false)}
                 style={styles.pickerCloseButton}
               >
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.pickerContent}>
               {/* Month Selector */}
               <View style={styles.pickerRow}>
                 <Text style={styles.pickerLabel}>Month:</Text>
-                <ScrollView 
-                  horizontal 
+                <ScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.monthsContainer}
                 >
@@ -115,7 +117,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                         setSelectedDate(newDate);
                       }}
                     >
-                      <Text 
+                      <Text
                         style={[
                           styles.monthText,
                           currentMonth === index && styles.selectedItemText
@@ -127,12 +129,12 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                   ))}
                 </ScrollView>
               </View>
-              
+
               {/* Day Selector */}
               <View style={styles.pickerRow}>
                 <Text style={styles.pickerLabel}>Day:</Text>
-                <ScrollView 
-                  horizontal 
+                <ScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.daysContainer}
                 >
@@ -149,7 +151,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                         setSelectedDate(newDate);
                       }}
                     >
-                      <Text 
+                      <Text
                         style={[
                           styles.dayText,
                           selectedDate.getDate() === day && styles.selectedItemText
@@ -161,17 +163,17 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                   ))}
                 </ScrollView>
               </View>
-              
+
               {/* Year Selector */}
               <View style={styles.pickerRow}>
                 <Text style={styles.pickerLabel}>Year:</Text>
-                <ScrollView 
-                  horizontal 
+                <ScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.yearsContainer}
                 >
                   {Array.from(
-                    { length: 5 }, 
+                    { length: 5 },
                     (_, i) => today.getFullYear() + i
                   ).map((year) => (
                     <TouchableOpacity
@@ -186,7 +188,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                         setSelectedDate(newDate);
                       }}
                     >
-                      <Text 
+                      <Text
                         style={[
                           styles.yearText,
                           currentYear === year && styles.selectedItemText
@@ -199,10 +201,10 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                 </ScrollView>
               </View>
             </View>
-            
+
             <View style={styles.pickerActions}>
-              <Button 
-                title="Confirm" 
+              <Button
+                title="Confirm"
                 style={styles.confirmPickerButton}
                 onPress={() => setShowDatePicker(false)}
               />
@@ -218,12 +220,12 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
     const hours = Array.from({ length: 12 }, (_, i) => i + 1);
     const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
     const periods = ['AM', 'PM'];
-    
+
     const hour = selectedTime.getHours();
     const minute = selectedTime.getMinutes();
     const isPM = hour >= 12;
     const hour12 = hour % 12 || 12;
-    
+
     return (
       <Modal
         visible={showTimePicker}
@@ -231,7 +233,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         animationType="fade"
         onRequestClose={() => setShowTimePicker(false)}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setShowTimePicker(false)}
@@ -241,21 +243,21 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               <View style={styles.pickerTitleContainer}>
                 <Text style={styles.pickerTitle} numberOfLines={1}>Select Time</Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowTimePicker(false)}
                 style={styles.pickerCloseButton}
               >
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.pickerContent}>
               <View style={styles.timePickerRow}>
                 {/* Hour Selector */}
                 <View style={styles.timePickerColumn}>
                   <Text style={styles.pickerLabel}>Hour</Text>
                   <View style={styles.timePickerScrollWrapper}>
-                    <ScrollView 
+                    <ScrollView
                       showsVerticalScrollIndicator={true}
                       contentContainerStyle={styles.timePickerScrollContent}
                     >
@@ -273,7 +275,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                             setSelectedTime(newTime);
                           }}
                         >
-                          <Text 
+                          <Text
                             style={[
                               styles.timeText,
                               hour12 === h && styles.selectedItemText
@@ -286,12 +288,12 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                     </ScrollView>
                   </View>
                 </View>
-                
+
                 {/* Minute Selector */}
                 <View style={styles.timePickerColumn}>
                   <Text style={styles.pickerLabel}>Minute</Text>
                   <View style={styles.timePickerScrollWrapper}>
-                    <ScrollView 
+                    <ScrollView
                       showsVerticalScrollIndicator={true}
                       contentContainerStyle={styles.timePickerScrollContent}
                     >
@@ -308,7 +310,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                             setSelectedTime(newTime);
                           }}
                         >
-                          <Text 
+                          <Text
                             style={[
                               styles.timeText,
                               Math.floor(minute / 5) * 5 === m && styles.selectedItemText
@@ -321,7 +323,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                     </ScrollView>
                   </View>
                 </View>
-                
+
                 {/* AM/PM Selector */}
                 <View style={styles.timePickerColumn}>
                   <Text style={styles.pickerLabel}>AM/PM</Text>
@@ -337,14 +339,14 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                           const newTime = new Date(selectedTime);
                           const currentHour = newTime.getHours();
                           const currentIsPM = currentHour >= 12;
-                          
+
                           if ((period === 'PM' && !currentIsPM) || (period === 'AM' && currentIsPM)) {
                             newTime.setHours((currentHour + 12) % 24);
                             setSelectedTime(newTime);
                           }
                         }}
                       >
-                        <Text 
+                        <Text
                           style={[
                             styles.periodText,
                             (isPM ? 'PM' : 'AM') === period && styles.selectedItemText
@@ -358,10 +360,10 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                 </View>
               </View>
             </View>
-            
+
             <View style={styles.pickerActions}>
-              <Button 
-                title="Confirm" 
+              <Button
+                title="Confirm"
                 style={styles.confirmPickerButton}
                 onPress={() => setShowTimePicker(false)}
               />
@@ -370,6 +372,36 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         </TouchableOpacity>
       </Modal>
     );
+  };
+
+  // Format date for display
+  const formatDisplayDate = (dateString: string) => {
+    if (!dateString) return '';
+    
+    try {
+      const [year, month, day] = dateString.split('/');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      const dayName = days[date.getDay()];
+      const dayNum = date.getDate().toString().padStart(2, '0');
+      const monthName = months[date.getMonth()];
+      const yearNum = date.getFullYear();
+      
+      return `${dayName} ${dayNum} ${monthName}`;
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // Handle date selection from modern date picker
+  const handleDateSelect = (date: string) => {
+    const [year, month, day] = date.split('/');
+    const newDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    setSelectedDate(newDate);
+    setShowModernDatePicker(false);
   };
 
   const handleSubmit = async () => {
@@ -407,9 +439,9 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         </View>
 
         <View style={styles.divider} />
-        
+
         <ScrollView style={styles.scrollContent}>
-          
+
           <View style={styles.content}>
             <View style={styles.transportInfo}>
               <View style={styles.iconContainer}>
@@ -420,7 +452,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                 <Text style={styles.transportPrice}>{price} Dh per group</Text>
               </View>
             </View>
-            
+
             <View style={styles.routeContainer}>
               <View style={styles.routeItem}>
                 <View style={styles.routeIconContainer}>
@@ -444,13 +476,13 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
             <View style={styles.formContainer}>
               <Text style={styles.sectionTitle}>When are you arriving?</Text>
-              
+
               <View style={styles.dateTimeContainer}>
                 <View style={styles.dateContainer}>
                   <Text style={styles.inputLabel}>Date</Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.dateInput}
-                    onPress={() => setShowDatePicker(true)}
+                    onPress={() => setShowModernDatePicker(true)}
                   >
                     <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
                     <Text style={styles.dateTimeText}>
@@ -458,10 +490,10 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                     </Text>
                   </TouchableOpacity>
                 </View>
-                
+
                 <View style={styles.timeContainer}>
                   <Text style={styles.inputLabel}>Time</Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.timeInput}
                     onPress={() => setShowTimePicker(true)}
                   >
@@ -474,25 +506,15 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               </View>
 
               <Text style={styles.sectionTitle}>Where are you staying?</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="location" size={20} color="#666" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your hotel name or address"
-                  value={hotelLocation}
-                  onChangeText={setHotelLocation}
-                  placeholderTextColor="#999"
-                  returnKeyType="done"
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-                <TouchableOpacity
-                  style={styles.locationButton}
-                  onPress={() => setShowLocationPicker(true)}
-                >
-                  <MaterialIcons name="map" size={20} color="#999" style={styles.inputIcon} />
-                </TouchableOpacity>
-              </View>
-              
+              <TouchableOpacity
+                style={styles.inputContainer}
+                onPress={() => setShowLocationPicker(true)}
+              >
+                <Text style={[styles.input, !hotelLocation && styles.inputPlaceholder]}>
+                  {hotelLocation || "Tap to select your hotel location on the map"}
+                </Text>
+              </TouchableOpacity>
+
               {bookingError && (
                 <Text style={styles.errorText}>{bookingError}</Text>
               )}
@@ -500,8 +522,8 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
           </View>
 
           <View style={styles.footer}>
-            <Button 
-              title="Confirm Reservation" 
+            <Button
+              title="Confirm Reservation"
               style={styles.confirmButton}
               icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
               onPress={handleSubmit}
@@ -512,13 +534,33 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         </ScrollView>
       </View>
 
+      {/* Modern Date Picker */}
+      <DatePickerModal
+        visible={showModernDatePicker}
+        onClose={() => setShowModernDatePicker(false)}
+        pickerMode="start"
+        setPickerMode={() => {}}
+        startDate={format(selectedDate, 'yyyy/MM/dd')}
+        endDate=""
+        onDateSelect={handleDateSelect}
+        formatDisplayDate={formatDisplayDate}
+        color="#008060"
+        type="specific"
+      />
+
+      {/* Original Date Picker */}
       {showDatePicker && renderCustomDatePicker()}
       {showTimePicker && renderCustomTimePicker()}
-      <LocationPickerModal
-        visible={showLocationPicker}
-        onClose={() => setShowLocationPicker(false)}
-        onLocationSelect={(longitude: number, latitude: number) => setDestination([longitude, latitude])}
-      />
+
+      {showLocationPicker && (
+        <LocationPickerModal
+          onClose={() => setShowLocationPicker(false)}
+          onLocationSelect={(longitude: number, latitude: number, address: string) => {
+            setDestination([longitude, latitude]);
+            setHotelLocation(address);
+          }}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -535,6 +577,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     maxHeight: '90%',
     flexDirection: 'column',
+    zIndex: 1,
   },
   fixedHeader: {
     flexDirection: 'row',
@@ -716,7 +759,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: 50,
     fontSize: 14,
     color: '#333',
   },
@@ -879,7 +921,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 4,
     borderRadius: 8,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f5f5f9',
   },
   timeText: {
     fontSize: 16,
@@ -903,9 +945,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  locationButton: {
-    padding: 8,
-    marginLeft: 8,
+  inputPlaceholder: {
+    color: '#999',
   },
 });
 

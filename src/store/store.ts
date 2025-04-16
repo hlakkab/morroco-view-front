@@ -1,14 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
-import qrCodeReducer from "./qrCodeSlice";
-import hotelPickupReducer from "./hotelPickupSlice";
-import hotelPickupDetailsReducer from "./hotelPickupDetailsSlice";
+import artisanReducer from './artisanSlice';
 import bookmarkReducer from './bookmarkSlice';
-import exchangeBrokerReducer from './exchangeBrokerSlice';
 import entertainmentReducer from './entertainmentSlice';
+import exchangeBrokerReducer from './exchangeBrokerSlice';
+import hotelPickupDetailsReducer from "./hotelPickupDetailsSlice";
+import hotelPickupReducer from "./hotelPickupSlice";
 import matchReducer from './matchSlice';
-import ticketReducer from './ticketSlice';
-import restaurantReducer from './restaurantSlice';
 import monumentReducer from './monumentSlice';
+import qrCodeReducer from "./qrCodeSlice";
+import restaurantReducer from './restaurantSlice';
+import ticketReducer from './ticketSlice';
 import tourReducer from './tourSlice';
 
 const store = configureStore({
@@ -23,6 +24,7 @@ const store = configureStore({
     ticket: ticketReducer,
     restaurant: restaurantReducer,
     monument: monumentReducer,
+    artisan: artisanReducer,
     tour: tourReducer
   },
   middleware: (getDefaultMiddleware) => 

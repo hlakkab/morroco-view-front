@@ -1,8 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import React, { FC } from 'react';
-import { StyleSheet } from 'react-native';
+import { ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Tour } from '../../types/tour';
 import CardItem from './CardItem';
+
+// Define the default image using require
+const defaultTourImage = require('../../assets/img/nTour_gen.png');
 
 interface TourCardProps {
   item: Tour;
@@ -10,34 +13,76 @@ interface TourCardProps {
   handleCardPress?: (item: Tour) => void;
 }
 
-const TourCard: FC<TourCardProps> = ({ 
-  item, 
-  handleCardPress = () => {} 
+const TourCard: FC<TourCardProps> = ({
+  item,
+  handleCardPress = () => { }
 }) => {
-  return (
-    <CardItem
-      imageUrl={item.imageUrl}
-      title={item.title}
-      subtitle={`${item.destinations.length} Destination`}
-      tags={[
-        {
-          id: 'date',
-          label: item.startDate,
-          icon: <Ionicons name="calendar-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
-        }
-      ]}
-      actionIcon={
-        <Ionicons
-          name="pencil-outline"
-          size={20}
-          color="#115167"
-          style={{ backgroundColor: '#E0F7FF', borderRadius: 25, padding: 6}}
-        />
+  // Format the destinations text based on type
+  const formatDestinationText = () => {
+    if (!item.destinations) return '0 Destination';
+    if (typeof item.destinations === 'string') return '1 Destination';
+    if (Array.isArray(item.destinations)) {
+      const count = item.destinations.length;
+      return `${count} ${count === 1 ? 'Destination' : 'Destinations'}`;
+    }
+    return '0 Destination';
+  };
+
+  // Format dates for display
+  const formatDates = () => {
+    if (item.from && item.to) {
+      // Convert the dates to the desired format
+      const fromDate = new Date(item.from);
+      const toDate = new Date(item.to);
+      
+      // Format the dates
+      const fromDay = fromDate.getDate();
+      const toDay = toDate.getDate();
+      const fromMonth = fromDate.toLocaleString('default', { month: 'long' }).toLowerCase();
+      const toMonth = toDate.toLocaleString('default', { month: 'long' }).toLowerCase();
+      
+      // If the months are the same, only show the month once
+      if (fromMonth === toMonth) {
+        return `${fromDay} - ${toDay} ${fromMonth}`;
+      } else {
+        return `${fromDay} ${fromMonth} - ${toDay} ${toMonth}`;
       }
-      isEditable={item.isEditable}
-      onActionPress={() => handleCardPress(item)}
-      containerStyle={styles.cardContainer}
-    />
+    }
+    return item.from || 'No dates';
+  };
+
+
+  return (
+      <CardItem
+        imageUrl={item.imageUrl || defaultTourImage}
+        title={item.title}
+        subtitle={`${item.destinationCount} Destination`}
+        tags={[
+          {
+            id: 'date',
+            label: formatDates(),
+            icon: <Ionicons name="calendar-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
+          },
+          // {
+          //   id: 'duration',
+          //   label: `${item.duration} ${item.duration === 1 ? 'day' : 'days'}`,
+          //   icon: <Feather name="clock" size={14} color="#666" style={{ marginRight: 4 }} />,
+          // }
+        ]}
+        // actionIcon={
+        //   <Ionicons
+        //     name={item.isEditable ? "eye-outline" : "pencil-outline"}
+        //     size={20}
+        //     color="#115167"
+        //     style={{ backgroundColor: '#E0F7FF', borderRadius: 25, padding: 6 }}
+        //   />
+        // }
+        isEditable={item.isEditable}
+        onActionPress={() => handleCardPress(item)}
+        containerStyle={styles.cardContainer}
+        onCardPress={() => handleCardPress(item)}
+      />
+   
   );
 };
 
