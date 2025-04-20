@@ -11,6 +11,7 @@ import EntertainmentListContainerVo from '../containers/EntertainmentListContain
 import { cities, normalizeString } from '../data/filterData';
 import { EntertainmentState, fetchEntertainments } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import i18n from '../translations/i18n';
 import { Entertainment } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
 
@@ -32,7 +33,7 @@ const EntertainmentScreenVo: React.FC = () => {
   const categoriesWithIcons = {
     location: {
       key: 'location',
-      label: 'By Location',
+      label: i18n.t('filters.byType'),
       icon: <Ionicons name="navigate" size={20} color="#CE1126" />
     }
   };
@@ -41,7 +42,7 @@ const EntertainmentScreenVo: React.FC = () => {
   const cityOptions = [
     { 
       id: 'all', 
-      label: 'All Cities', 
+      label: i18n.t('entertainment.allCities'), 
       icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
     ...cities
@@ -123,11 +124,11 @@ const EntertainmentScreenVo: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headerContainer}>
-          <ScreenHeader title="Entertainment" />
+          <ScreenHeader title={i18n.t('entertainment.title')} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#CE1126" />
-          <Text style={styles.loadingText}>Loading entertainments...</Text>
+          <Text style={styles.loadingText}>{i18n.t('entertainment.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -137,7 +138,7 @@ const EntertainmentScreenVo: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headerContainer}>
-          <ScreenHeader title="Entertainment" />
+          <ScreenHeader title={i18n.t('entertainment.title')} />
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -149,11 +150,11 @@ const EntertainmentScreenVo: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Entertainment" />
+        <ScreenHeader title={i18n.t('entertainment.title')} />
       </View>
       <View style={styles.content}>
         <SearchBar
-            placeholder="Search entertainments..."
+            placeholder={i18n.t('entertainment.searchPlaceholder')}
             onChangeText={handleSearch}
             value={searchQuery}
             onFilterPress={handleFilterPress}
@@ -163,7 +164,7 @@ const EntertainmentScreenVo: React.FC = () => {
             options={cityOptions}
             selectedOptionId={selectedCityId}
             onSelectOption={handleCitySelect}
-            title="City :"
+            title={i18n.t('entertainment.city')}
           />
         </View>
         <EntertainmentListContainerVo entertainments={filteredEntertainments} />
@@ -175,7 +176,7 @@ const EntertainmentScreenVo: React.FC = () => {
           onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
-          title="Filter Entertainment"
+          title={i18n.t('entertainment.filterTitle')}
           categories={categoriesWithIcons}
       />
     </SafeAreaView>

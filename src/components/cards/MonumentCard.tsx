@@ -1,9 +1,10 @@
-import { Monument } from '../../types/Monument';
-import CardItem from './CardItem';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { FC } from 'react';
 import { StyleSheet } from 'react-native';
+import i18n from '../../translations/i18n';
+import { Monument } from '../../types/Monument';
+import CardItem from './CardItem';
 
 interface MonumentCardProps {
   item: Monument;
@@ -29,7 +30,7 @@ const MonumentCard: FC<MonumentCardProps> = ({ item, handleSaveMonument, handleM
       price={item.entryFee ? {
         value: parseInt(item.entryFee) || 0,
         currency: 'MAD',
-        prefix: 'Entry from'
+        prefix: i18n.t('monuments.entryFrom')
       } : undefined}
       actionIcon={
         <Ionicons

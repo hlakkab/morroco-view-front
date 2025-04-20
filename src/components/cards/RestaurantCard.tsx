@@ -1,11 +1,12 @@
-import { Restaurant } from '../../types/Restaurant';
-import CardItem from './CardItem';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { FC } from 'react';
 import { StyleSheet } from 'react-native';
 import { useAppDispatch } from '../../store/hooks';
 import { toggleRestaurantBookmark } from '../../store/restaurantSlice';
+import i18n from '../../translations/i18n';
+import { Restaurant } from '../../types/Restaurant';
+import CardItem from './CardItem';
 
 interface RestaurantCardProps {
   item: Restaurant;
@@ -24,7 +25,7 @@ const RestaurantCard: FC<RestaurantCardProps> = ({ item, handleSaveRestaurant, h
         {
           id: 'type',
           icon: <MaterialIcons name="restaurant" size={12} color="green" />,
-          label: "Restaurant",
+          label: i18n.t('restaurants.restaurant'),
           style: { backgroundColor: '#E8F5F0', borderWidth: 1, borderColor: '#008060' },
           textStyle: { color: '#008060', fontWeight: '600' },
         },

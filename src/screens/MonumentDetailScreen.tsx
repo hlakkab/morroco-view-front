@@ -7,9 +7,10 @@ import Button from '../components/Button';
 import ImageGallery from '../components/ImageGallery';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
-import { Monument } from '../types/Monument';
 import { useAppDispatch } from '../store/hooks';
 import { toggleMonumentBookmark } from '../store/monumentSlice';
+import i18n from '../translations/i18n';
+import { Monument } from '../types/Monument';
 
 // Sample monument images for the image gallery
 const MONUMENT_IMAGES = [
@@ -78,7 +79,6 @@ const MonumentDetailScreen: React.FC = () => {
   const params = route.params as Monument;
   const dispatch = useAppDispatch();
 
-
   const [saved, setSaved] = useState(params.saved || false);
   const [showTicketModal, setShowTicketModal] = useState(false);
 
@@ -92,8 +92,6 @@ const MonumentDetailScreen: React.FC = () => {
   const handleSave = () => {
     // Toggle saved state
     setSaved(!saved);
-    
-
     dispatch(toggleMonumentBookmark(monumentDetails));
   };
 
@@ -136,7 +134,7 @@ const MonumentDetailScreen: React.FC = () => {
             
             <View style={styles.infoItem}>
               <Ionicons name="cash-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>Entry Fee: 50 DH</Text>
+              <Text style={styles.infoText}>{i18n.t('monuments.entryFee')}: {monumentDetails.entryFee || "50 DH"}</Text>
             </View>
             
             <View style={styles.infoItem}>
@@ -146,8 +144,8 @@ const MonumentDetailScreen: React.FC = () => {
           </View>
 
           <AboutSection 
-            title="About" 
-            text={monumentDetails.description || 'No information available for this monument.'} 
+            title={i18n.t('monuments.about')}
+            text={monumentDetails.description || i18n.t('monuments.noInformation')} 
           />
 
           <LocationSection 
@@ -159,7 +157,7 @@ const MonumentDetailScreen: React.FC = () => {
 
       <View style={styles.footer}>
         <Button 
-          title="Buy Tickets" 
+          title={i18n.t('monuments.buyTickets')}
           style={styles.ticketButton}
           icon={<Ionicons name="ticket" size={20} color="#fff" style={{ marginRight: 8 }} />}
           onPress={handleBuyTicket}
@@ -177,7 +175,7 @@ const MonumentDetailScreen: React.FC = () => {
             <View style={styles.modalHeader}>
               <View style={styles.titleContainer}>
                 <Text style={styles.modalTitle} numberOfLines={1} ellipsizeMode="tail">
-                  Tickets for {monumentDetails.name}
+                  {i18n.t('monuments.ticketsFor')} {monumentDetails.name}
                 </Text>
               </View>
               <TouchableOpacity onPress={handleCloseTicketModal} style={styles.closeButton}>
@@ -188,37 +186,37 @@ const MonumentDetailScreen: React.FC = () => {
             <View style={styles.ticketOptions}>
               <View style={styles.ticketOption}>
                 <View style={styles.ticketDetails}>
-                  <Text style={styles.ticketType}>Standard Entry</Text>
-                  <Text style={styles.ticketPrice}>{monumentDetails.entryFee}</Text>
+                  <Text style={styles.ticketType}>{i18n.t('monuments.standardEntry')}</Text>
+                  <Text style={styles.ticketPrice}>{monumentDetails.entryFee || "50 MAD"}</Text>
                 </View>
                 <TouchableOpacity style={styles.buyButton}>
-                  <Text style={styles.buyButtonText}>Buy</Text>
+                  <Text style={styles.buyButtonText}>{i18n.t('monuments.buy')}</Text>
                 </TouchableOpacity>
               </View>
               
               <View style={styles.ticketOption}>
                 <View style={styles.ticketDetails}>
-                  <Text style={styles.ticketType}>Guided Tour</Text>
+                  <Text style={styles.ticketType}>{i18n.t('monuments.guidedTour')}</Text>
                   <Text style={styles.ticketPrice}>150 MAD</Text>
                 </View>
                 <TouchableOpacity style={styles.buyButton}>
-                  <Text style={styles.buyButtonText}>Buy</Text>
+                  <Text style={styles.buyButtonText}>{i18n.t('monuments.buy')}</Text>
                 </TouchableOpacity>
               </View>
               
               <View style={styles.ticketOption}>
                 <View style={styles.ticketDetails}>
-                  <Text style={styles.ticketType}>Skip the Line</Text>
+                  <Text style={styles.ticketType}>{i18n.t('monuments.skipTheLine')}</Text>
                   <Text style={styles.ticketPrice}>200 MAD</Text>
                 </View>
                 <TouchableOpacity style={styles.buyButton}>
-                  <Text style={styles.buyButtonText}>Buy</Text>
+                  <Text style={styles.buyButtonText}>{i18n.t('monuments.buy')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
             
             <Button 
-              title="Close" 
+              title={i18n.t('monuments.close')}
               style={styles.closeModalButton}
               onPress={handleCloseTicketModal}
             />

@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import i18n from '../translations/i18n';
 
 // Import Redux hooks and actions
 import { fetchArtisans, setSelectedType } from '../store/artisanSlice';
@@ -18,10 +19,10 @@ import ArtisanListContainer from '../containers/ArtisanListContainer';
 import ButtonFixe from '../components/ButtonFixe';
 import ScreenHeader from '../components/ScreenHeader';
 import {
-    artisanFilterCategories,
-    cities,
-    createArtisanFilterOptions,
-    normalizeString
+  artisanFilterCategories,
+  cities,
+  createArtisanFilterOptions,
+  normalizeString
 } from '../data/filterData';
 import { Artisan, ArtisanType } from '../types/Artisan';
 import { RootStackParamList } from '../types/navigation';
@@ -72,7 +73,7 @@ const ArtisansScreen: React.FC = () => {
   const cityOptions = [
     { 
       id: 'all', 
-      label: 'All Cities', 
+      label: i18n.t('artisans.allCities'), 
       icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
     ...cities.map(city => ({
@@ -168,10 +169,10 @@ const ArtisansScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Artisans" />
+        <ScreenHeader title={i18n.t('artisans.title')} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#CE1126" />
-          <Text style={styles.loadingText}>Loading artisan souks...</Text>
+          <Text style={styles.loadingText}>{i18n.t('artisans.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -181,11 +182,11 @@ const ArtisansScreen: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Artisans" />
+        <ScreenHeader title={i18n.t('artisans.title')} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
           <ButtonFixe 
-            title="Try Again" 
+            title={i18n.t('artisans.tryAgain')} 
             onPress={() => dispatch(fetchArtisans())} 
             style={styles.retryButton}
           />
@@ -197,11 +198,11 @@ const ArtisansScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Artisans" />
+        <ScreenHeader title={i18n.t('artisans.title')} />
       </View>
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search artisan souks..."
+          placeholder={i18n.t('artisans.searchPlaceholder')}
           onChangeText={handleSearch}
           value={searchQuery}
           onFilterPress={handleFilterPress}
@@ -212,7 +213,7 @@ const ArtisansScreen: React.FC = () => {
             options={cityOptions}
             selectedOptionId={selectedCity}
             onSelectOption={handleCitySelect}
-            title="City :"
+            title={i18n.t('artisans.city')}
           />
         </View>
 
@@ -228,7 +229,7 @@ const ArtisansScreen: React.FC = () => {
           onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
-          title="Filter Artisan Souks"
+          title={i18n.t('artisans.filterTitle')}
           categories={categoriesWithIcons}
         />
       </View>

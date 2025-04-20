@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { LogBox } from 'react-native';
+import { LogBox, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ModernDatePicker from 'react-native-modern-datepicker';
+import i18n from '../translations/i18n';
 
 // Suppress the specific warning about defaultProps
 LogBox.ignoreLogs([
@@ -77,9 +77,9 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
 
   const getPickerTitle = () => {
     if (type === 'specific') {
-      return 'Select Date';
+      return i18n.t('reservation.selectDate');
     }
-    return pickerMode === 'start' ? 'Select Start Date' : 'Select End Date';
+    return pickerMode === 'start' ? i18n.t('tours.selectStartDate') : i18n.t('tours.selectEndDate');
   };
 
   return (
@@ -113,33 +113,33 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
               <View style={styles.dateSelectionSummary}>
                 <View style={styles.selectedDatesInfo}>
                   <View style={styles.dateInfoItem}>
-                    <Text style={styles.dateInfoLabel}>Start Date:</Text>
+                    <Text style={styles.dateInfoLabel}>{i18n.t('tours.startDate')}:</Text>
                     <Text style={[
                       styles.dateInfoValue, 
                       startDate ? styles.dateInfoValueFilled : null,
                       pickerMode === 'start' ? [styles.dateInfoValueActive, { color }] : null
                     ]}>
-                      {startDate ? formatDisplayDate(startDate) : 'Not selected'}
+                      {startDate ? formatDisplayDate(startDate) : i18n.t('tours.notSelected')}
                     </Text>
                   </View>
                   
                   <View style={styles.dateInfoDivider} />
                   
                   <View style={styles.dateInfoItem}>
-                    <Text style={styles.dateInfoLabel}>End Date:</Text>
+                    <Text style={styles.dateInfoLabel}>{i18n.t('tours.endDate')}:</Text>
                     <Text style={[
                       styles.dateInfoValue, 
                       endDate ? styles.dateInfoValueFilled : null,
                       pickerMode === 'end' ? [styles.dateInfoValueActive, { color }] : null
                     ]}>
-                      {endDate ? formatDisplayDate(endDate) : 'Not selected'}
+                      {endDate ? formatDisplayDate(endDate) : i18n.t('tours.notSelected')}
                     </Text>
                   </View>
                 </View>
                 
                 {pickerMode === 'end' && startDate && (
                   <Text style={styles.dateSelectionHint}>
-                    End date must be on or after {formatDisplayDate(startDate)}
+                    {i18n.t('tours.endDateHint')} {formatDisplayDate(startDate)}
                   </Text>
                 )}
               </View>
@@ -175,7 +175,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                       styles.switchModeText,
                       pickerMode === 'start' ? styles.switchModeTextActive : null
                     ]}>
-                      Select Start
+                      {i18n.t('tours.selectStart')}
                     </Text>
                   </TouchableOpacity>
                   
@@ -190,7 +190,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                       styles.switchModeText,
                       pickerMode === 'end' ? styles.switchModeTextActive : null
                     ]}>
-                      Select End
+                      {i18n.t('tours.selectEnd')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -199,7 +199,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                   style={styles.closeModalButton}
                   onPress={onClose}
                 >
-                  <Text style={styles.closeModalText}>Close</Text>
+                  <Text style={styles.closeModalText}>{i18n.t('common.close')}</Text>
                 </TouchableOpacity>
               </View>
             )}
