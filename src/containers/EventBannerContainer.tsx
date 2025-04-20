@@ -125,18 +125,17 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
     },
     {
       id: '2',
-      name: 'Gitex Africa Morocco', 
-      images: ['https://gitexafrica.com/Uploads//Posts/news/GITEX-Africa-News_07.jpg'],
-      logo: 'https://www.internationalboost.com/wp-content/uploads/2023/07/logo-gitex-africa.png',
-      backgroundColor: '#0dc2',
-      type: 'EXPO',
-      description: 'Gitex Africa Morocco is a leading technology event that brings together industry leaders, innovators, and experts to discuss the latest trends and advancements in the technology sector.',
-      website: 'https://www.gitexafrica.com',
-      fromDate: '2025-04-14',
-      toDate: '2025-04-16',
-      location: 'Morocco',
-      address: 'Morocco',
- 
+      name: 'Mawazine Festival', 
+      images: ['https://mawazine.ma/wp-content/uploads/2025/04/slider-mawazine-25.jpg'],
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_mawazine.png',
+      backgroundColor: '#00000022',
+      type: 'FESTIVAL',
+      description: 'Mawazine Festival is one of the largest music festivals in Africa, featuring international and local artists across various genres. It takes place annually in Rabat, Morocco.',
+      website: 'https://www.mawazine.ma',
+      fromDate: '2025-06-20',
+      toDate: '2025-06-28',
+      location: 'Rabat',
+      address: 'Rabat, Morocco',
     }
   ]
 

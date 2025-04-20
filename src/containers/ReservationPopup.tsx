@@ -22,6 +22,13 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const { bookingStatus, bookingError } = useAppSelector(
     (state) => state.hotelPickupDetails
   );
+  const selectedCity = useAppSelector(
+    (state) => state.hotelPickup.selectedCity
+  );
+
+  const pickupDirection = useAppSelector(
+    (state) => state.hotelPickup.pickupDirection
+  );
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
@@ -63,6 +70,11 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
       onClose();
     }
   }, [bookingStatus, onClose]);
+
+  useEffect(() => {
+    console.log('ReservationPopup - Current pickup direction:', pickupDirection);
+    console.log('ReservationPopup - City:', selectedCity);
+  }, [pickupDirection, selectedCity]);
 
   // Custom date picker implementation
   const renderCustomDatePicker = () => {
@@ -472,24 +484,49 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
             </View>
 
             <View style={styles.routeContainer}>
-              <View style={styles.routeItem}>
-                <View style={styles.routeIconContainer}>
-                  <MaterialIcons name="flight" size={20} color="#fff" />
-                </View>
-                <Text style={styles.routeText}>Marrakech Airport</Text>
-              </View>
-              <View style={styles.routeLine}>
-                <View style={styles.routeDash}></View>
-                <View style={styles.routeDash}></View>
-                <View style={styles.routeDash}></View>
-                <View style={styles.routeDash}></View>
-              </View>
-              <View style={styles.routeItem}>
-                <View style={[styles.routeIconContainer, styles.destinationIconContainer]}>
-                  <MaterialIcons name="hotel" size={20} color="#fff" />
-                </View>
-                <Text style={styles.routeText}>Your Hotel in Marrakech</Text>
-              </View>
+              {pickupDirection === 'a2h' ? (
+                <>
+                  <View style={styles.routeItem}>
+                    <View style={styles.routeIconContainer}>
+                      <MaterialIcons name="flight" size={20} color="#fff" />
+                    </View>
+                    <Text style={styles.routeText}>{selectedCity} Airport</Text>
+                  </View>
+                  <View style={styles.routeLine}>
+                    <View style={styles.routeDash}></View>
+                    <View style={styles.routeDash}></View>
+                    <View style={styles.routeDash}></View>
+                    <View style={styles.routeDash}></View>
+                  </View>
+                  <View style={styles.routeItem}>
+                    <View style={[styles.routeIconContainer, styles.destinationIconContainer]}>
+                      <MaterialIcons name="hotel" size={20} color="#fff" />
+                    </View>
+                    <Text style={styles.routeText}>Your Hotel in {selectedCity}</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={styles.routeItem}>
+                    <View style={[styles.routeIconContainer, styles.destinationIconContainer]}>
+                      <MaterialIcons name="hotel" size={20} color="#fff" />
+                    </View>
+                    <Text style={styles.routeText}>Your Hotel in {selectedCity}</Text>
+                  </View>
+                  <View style={styles.routeLine}>
+                    <View style={styles.routeDash}></View>
+                    <View style={styles.routeDash}></View>
+                    <View style={styles.routeDash}></View>
+                    <View style={styles.routeDash}></View>
+                  </View>
+                  <View style={styles.routeItem}>
+                    <View style={styles.routeIconContainer}>
+                      <MaterialIcons name="flight" size={20} color="#fff" />
+                    </View>
+                    <Text style={styles.routeText}>{selectedCity} Airport</Text>
+                  </View>
+                </>
+              )}
             </View>
 
             <View style={styles.formContainer}>

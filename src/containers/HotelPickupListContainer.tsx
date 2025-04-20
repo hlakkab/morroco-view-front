@@ -8,17 +8,16 @@ import PickupCard from '../components/cards/PickupCard';
 import FilterSelector from '../components/FilterSelector';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { toggleHotelPickupBookmark } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
+import { setSelectedCity, toggleHotelPickupBookmark, togglePickupDirection } from '../store/hotelPickupSlice';
 import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
 
 interface HotelPickupListContainerProps {
   pickups: HotelPickup[];
   cities: string[];
-  selectedFromCity: string;
-  selectedToCity: string;
-  onSelectCity: (city: string, type: 'from' | 'to') => void;
+  selectedCity: string;
+  onSelectCity: (city: string) => void;
   isLoading: boolean;
 }
 
@@ -26,13 +25,11 @@ interface HotelPickupListContainerProps {
 const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   pickups,
   cities,
-  selectedFromCity,
-  selectedToCity,
-  onSelectCity,
+  selectedCity,
+  onSelectCity, 
   isLoading,
 }) => {
-  const [selectedAirport, setSelectedAirport] = useState(selectedFromCity);
-  const [selectedCity, setSelectedCity] = useState(selectedToCity);
+  const [selectedCityState, setSelectedCityState] = useState(selectedCity);
   const dispatch = useAppDispatch();
   const bookmarks = useAppSelector(state => state.bookmark.bookmarks);
   const { currentLanguage } = useLanguage();
@@ -41,26 +38,25 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
     dispatch(toggleHotelPickupBookmark(pickup));
   };
 
-  const fromCities = [selectedAirport, ...cities.filter(city => city !== selectedFromCity)];
-  const toCities = [selectedCity, ...cities.filter(city => city !== selectedToCity)];
+  const orderedCities = [selectedCity, ...cities.filter(city => city !== selectedCity)];
 
-  const [reverse, setReverse] = useState(false);
+  const pickupDirection = useAppSelector(state => state.hotelPickup.pickupDirection);
 
-  // Convert airports to filter options format
-  const airportOptions = fromCities.map(city => ({
-    id: city,
-    label: city + (!reverse ? ' Airport' : ''),
-    icon: <Ionicons name={!reverse ? "airplane-outline" : "location-outline"} size={16} color={selectedAirport === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
-  }));
+  
 
   // Convert cities to filter options format
-  const cityOptions = toCities.map(city => ({
+  const cityOptions = orderedCities.map(city => ({
     id: city,
-    label: city + (reverse ? ' Airport' : ''),
-    icon: <Ionicons name={!reverse ? "location-outline" : "airplane-outline"} size={16} color={selectedCity === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
+    label: city,
+    icon: <Ionicons name={"location-outline"} size={16} color={selectedCity === city ? '#fff' : '#888'} style={{ marginRight: 4 }} />
   }));
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const handleToggleDirection = () => {
+    console.log('Toggling direction from screen');
+    dispatch(togglePickupDirection());
+  };
 
   const handleCardPress = (item: HotelPickup) => {
     navigation.navigate('TransportDetail', {
@@ -77,12 +73,12 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
       <View style={styles.filtersContainer}>
         <View style={styles.filterFromSection}>
           <FilterSelector
-            title={i18n.t('pickup.from')}
-            options={airportOptions}
-            selectedOptionId={selectedAirport}
+            title="City:"
+            options={cityOptions}
+            selectedOptionId={selectedCity}
             onSelectOption={(option) => {
-              setSelectedAirport(_ => {
-                onSelectCity(option, 'from')
+              setSelectedCityState(_ => {
+                onSelectCity(option)
                 return option
               })
             }}
@@ -92,29 +88,27 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
 
         {/* <View style={styles.filterDivider} /> */}
         
-        <TouchableOpacity 
-          style={styles.swapButton}
-          onPress={() => setReverse(prev => !prev)}
-        >
-          <View style={styles.swapButtonInner}>
-            <Ionicons name="swap-vertical" size={20} color="#CE1126" />
-          </View>
-        </TouchableOpacity>
-
-        <View style={styles.filterToSection}>
-          <FilterSelector
-            title={i18n.t('pickup.to')}
-            options={cityOptions}
-            selectedOptionId={selectedCity}
-            onSelectOption={(option) => {
-              setSelectedCity(_ => {
-                onSelectCity(option, 'to')
-                return option
-              })
-            }}
-            containerStyle={styles.filterContainer}
-          />
+        <View style={styles.directionContainer}>
+          <TouchableOpacity 
+            style={styles.directionButton}
+            onPress={handleToggleDirection}
+          >
+            <Ionicons 
+              name={pickupDirection === 'a2h' ? 'airplane' : 'home'} 
+              size={24} 
+              color="#CE1126" 
+            />
+            <Text style={styles.directionText}>
+              {pickupDirection === 'a2h' ? 'Airport to Hotel' : 'Hotel to Airport'}
+            </Text>
+            <Ionicons 
+              name={pickupDirection === 'a2h' ? 'home' : 'airplane'} 
+              size={24} 
+              color="#CE1126" 
+            />
+          </TouchableOpacity>
         </View>
+
       </View>
 
       <Text style={styles.sectionTitle}>{i18n.t('pickup.availablePickups')}</Text>
@@ -209,6 +203,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 150,
+  },
+  directionContainer: {
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+  directionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  directionText: {
+    marginHorizontal: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
   },
 });
 

@@ -32,9 +32,10 @@ const initialState: HotelPickupState = {
   hotelPickups: [],
   loading: false, 
   error: null,
-  selectedFromCity: 'Marrakech',
-  selectedToCity: 'Marrakech',
+  selectedCity: 'Marrakech',
+  
   searchQuery: '',
+  pickupDirection: 'a2h', // Default to airport to hotel
 };
 
 // Async thunks for API operations
@@ -76,14 +77,21 @@ const hotelPickupSlice = createSlice({
   name: 'hotelPickup',
   initialState,
   reducers: {
-    setSelectedFromCity: (state, action: PayloadAction<string>) => {
-      state.selectedFromCity = action.payload;
-    },
-    setSelectedToCity: (state, action: PayloadAction<string>) => {
-      state.selectedToCity = action.payload;
+    setSelectedCity: (state, action: PayloadAction<string>) => {
+      state.selectedCity = action.payload;
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
+    },
+    togglePickupDirection: (state) => {
+      console.log('Toggling pickup direction from:', state.pickupDirection);
+      state.pickupDirection = state.pickupDirection === 'a2h' ? 'h2a' : 'a2h';
+      console.log('New pickup direction:', state.pickupDirection);
+      // Swap cities when direction changes
+      const temp = state.selectedCity;
+      state.selectedCity = state.selectedCity;
+      state.selectedCity = temp;
+      console.log('Cities swapped - From:', state.selectedCity, 'To:', state.selectedCity);
     },
   },
   extraReducers: (builder) => {
@@ -128,5 +136,9 @@ const hotelPickupSlice = createSlice({
   },
 });
 
-export const { setSelectedFromCity, setSelectedToCity, setSearchQuery } = hotelPickupSlice.actions;
+export const { 
+  setSelectedCity, 
+  setSearchQuery,
+  togglePickupDirection 
+} = hotelPickupSlice.actions;
 export default hotelPickupSlice.reducer; 

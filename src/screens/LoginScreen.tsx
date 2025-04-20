@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import GoogleIcon from '../assets/img/icons8-google.svg';
 import LogoSvg from '../assets/img/morroco-view-logo.svg';
 import Button from '../components/Button';
@@ -22,6 +22,7 @@ const LoginScreen = () => {
       })
       .catch(error => {
         console.error('Login failed:', error);
+        Alert.alert('Login failed', error.message);
       });
   };
 
