@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import i18n from '../../translations/i18n';
 
 interface TrajectoryButtonProps {
   onPress: () => void;
@@ -19,7 +20,7 @@ const TrajectoryButton: React.FC<TrajectoryButtonProps> = ({
         activeOpacity={0.8}
       >
         <Feather name="map-pin" size={18} color="#E53935" style={styles.icon} />
-        <Text style={styles.text}>Preview Trajectory</Text>
+        <Text style={styles.text}>{i18n.t('tours.previewTrajectory')}</Text>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{itemCount}</Text>
         </View>

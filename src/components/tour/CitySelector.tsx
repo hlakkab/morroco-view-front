@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import i18n from '../../translations/i18n';
 
 interface CitySelectorProps {
   cities: string[];
@@ -37,11 +38,11 @@ const CitySelector: React.FC<CitySelectorProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>City for {getDateForDay(selectedDay)}:</Text>
+        <Text style={styles.title}>{i18n.t('tours.cityForDay').replace('{date}', getDateForDay(selectedDay))}</Text>
         {isLocked && (
           <View style={styles.lockedBadge}>
             <Ionicons name="lock-closed" size={12} color="#FFF" style={{ marginRight: 4 }} />
-            <Text style={styles.lockedText}>Locked</Text>
+            <Text style={styles.lockedText}>{i18n.t('tours.locked')}</Text>
           </View>
         )}
       </View>

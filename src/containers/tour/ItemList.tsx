@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { FlatList, StyleSheet, Text, View, Image } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
 import CardItem from '../../components/cards/CardItem';
+import i18n from '../../translations/i18n';
 import { TourSavedItem } from '../../types/tour';
 import { getFlagUrl } from '../../utils/flagResolver';
 
@@ -53,7 +54,7 @@ const ItemList: React.FC<ItemListProps> = ({
       return (
         <View style={styles.matchContainer}>
           <Image source={{ uri: getFlagUrl(teams[0]) }} style={styles.teamFlag} />
-          <Text style={styles.vsText}>VS</Text>
+          <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
           <Image source={{ uri: getFlagUrl(teams[1]) }} style={styles.teamFlag} />
         </View>
       );
@@ -104,8 +105,8 @@ const ItemList: React.FC<ItemListProps> = ({
   return (
     <>
       <View style={styles.header}>
-        <Text style={styles.title}>Items in {selectedCity}</Text>
-        <Text style={styles.selectedCount}>{totalSelectedCount} selected</Text>
+        <Text style={styles.title}>{i18n.t('tours.itemsInCity').replace('{city}', selectedCity)}</Text>
+        <Text style={styles.selectedCount}>{i18n.t('tours.selectedCount').replace('{count}', totalSelectedCount.toString())}</Text>
       </View>
 
       <FlatList
@@ -116,7 +117,7 @@ const ItemList: React.FC<ItemListProps> = ({
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No items found for this city</Text>
+            <Text style={styles.emptyText}>{i18n.t('tours.noItemsFound')}</Text>
           </View>
         }
       />

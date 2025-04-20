@@ -250,13 +250,17 @@ const styles = StyleSheet.create({
     titleContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        flex: 1,
+        paddingRight: 8,
     },
     titleIcon: {
         marginRight: 6,
+        flexShrink: 0,
     },
     headerControls: {
         flexDirection: 'row',
         alignItems: 'center',
+        flexShrink: 0,
     },
     closeButton: {
         marginLeft: 6,
@@ -281,6 +285,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         color: '#333',
+        flexShrink: 1,
     },
     headerDivider: {
         height: 1,

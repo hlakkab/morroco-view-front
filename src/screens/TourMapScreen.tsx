@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootState } from '../store/store';
 import { RootStackParamList } from '../types/navigation';
+import i18n from '../translations/i18n';
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -250,7 +251,7 @@ const TourMapScreen: React.FC = () => {
   // Initialize available days and selected day
   useEffect(() => {
     if (!tourItems || tourItems.length === 0) {
-      alert('No tour items available');
+      alert(i18n.t('tours.noTourItemsAvailable'));
       navigation.goBack();
       return;
     }
@@ -276,7 +277,7 @@ const TourMapScreen: React.FC = () => {
           city: city,
           type: 'hotel',
           coordinate: cityHotel.coordinate,
-          subtitle: 'Your Hotel'
+          subtitle: i18n.t('tours.yourHotel')
         };
 
         const itemsWithHotel = [hotelItem, ...dayItems];
@@ -359,7 +360,7 @@ const TourMapScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ScreenHeader title={selectedDay ? getDateForDay(selectedDay) : "Tour Map"} />
+        <ScreenHeader title={selectedDay ? getDateForDay(selectedDay) : i18n.t('tours.tourMap')} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -423,7 +424,7 @@ const TourMapScreen: React.FC = () => {
           <View style={styles.noticeContainer}>
             <View style={styles.noticeBox}>
               <Ionicons name="information-circle-outline" size={24} color="#FFF" style={{ marginRight: 8 }} />
-              <Text style={styles.noticeText}>Need at least 2 destinations to show routes.</Text>
+              <Text style={styles.noticeText}>{i18n.t('tours.needAtLeastTwoDestinations')}</Text>
             </View>
           </View>
         )}
@@ -443,7 +444,7 @@ const TourMapScreen: React.FC = () => {
           ]}>
             <Text style={styles.controlText}>{getDateForDay(selectedDay)}</Text>
             <Text style={styles.destinationCount}>
-              {displayItems.length} destination{displayItems.length !== 1 ? 's' : ''}
+              {displayItems.length} {i18n.t('tours.destination')}{displayItems.length !== 1 ? 's' : ''}
             </Text>
           </View>
           {availableDays.length > 1 && (

@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import TimelineItem from '../../components/tour/TimelineItem';
+import i18n from '../../translations/i18n';
 import { SavedItem } from '../../types/navigation';
 
 interface TimelineProps {
@@ -33,7 +34,7 @@ const Timeline: React.FC<TimelineProps> = ({
         
         <View style={styles.itemsColumn}>
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No activities planned for this day</Text>
+            <Text style={styles.emptyText}>{i18n.t('tours.noActivitiesPlanned')}</Text>
           </View>
         </View>
       </View>

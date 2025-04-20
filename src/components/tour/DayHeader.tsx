@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import i18n from '../../translations/i18n';
 
 interface DayHeaderProps {
   date: string;
@@ -15,7 +16,7 @@ const DayHeader: React.FC<DayHeaderProps> = ({ date, dayNumber, city }) => {
       </View>
       <View style={styles.rightSection}>
         <View style={styles.dayNumberBadge}>
-          <Text style={styles.dayNumberText}>Day {dayNumber}</Text>
+          <Text style={styles.dayNumberText}>{i18n.t('tours.day')} {dayNumber}</Text>
         </View>
         {city && <Text style={styles.cityBadge}>{city}</Text>}
       </View>

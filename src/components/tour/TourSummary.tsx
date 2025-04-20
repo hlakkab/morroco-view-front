@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import i18n from '../../translations/i18n';
 
 interface DailySchedule {
   date: string;
@@ -14,21 +15,23 @@ interface TourSummaryProps {
 const TourSummary: React.FC<TourSummaryProps> = ({ schedule }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tour Summary</Text>
+      <Text style={styles.title}>{i18n.t('tours.tourSummary')}</Text>
       <View style={styles.summaryItem}>
-        <Text style={styles.summaryLabel}>Duration:</Text>
-        <Text style={styles.summaryValue}>{schedule.length} days</Text>
+        <Text style={styles.summaryLabel}>{i18n.t('tours.duration')}:</Text>
+        <Text style={styles.summaryValue}>
+          {schedule.length} {schedule.length === 1 ? i18n.t('tours.day') : i18n.t('tours.days')}
+        </Text>
       </View>
       <View style={styles.summaryItem}>
-        <Text style={styles.summaryLabel}>Cities:</Text>
+        <Text style={styles.summaryLabel}>{i18n.t('tours.cities')}:</Text>
         <Text style={styles.summaryValue}>
           {Array.from(new Set(schedule.map(day => day.city))).join(', ')}
         </Text>
       </View>
       <View style={styles.summaryItem}>
-        <Text style={styles.summaryLabel}>Activities:</Text>
+        <Text style={styles.summaryLabel}>{i18n.t('tours.activities')}:</Text>
         <Text style={styles.summaryValue}>
-          {schedule.reduce((count, day) => count + day.items.length, 0)} planned
+          {schedule.reduce((count, day) => count + day.items.length, 0)} {i18n.t('tours.planned')}
         </Text>
       </View>
     </View>
