@@ -7,6 +7,7 @@ import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import HotelPickupListContainer from '../containers/HotelPickupListContainer';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   createPickupFilterOptions,
   normalizeString,
@@ -14,12 +15,14 @@ import {
 } from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchHotelPickups, setSearchQuery, setSelectedFromCity, setSelectedToCity } from '../store/hotelPickupSlice';
+import i18n from '../translations/i18n';
 
 const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fez', 'Tangier'];
 
 const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
+  const { currentLanguage } = useLanguage();
   const {
     hotelPickups,
     selectedFromCity,
@@ -125,12 +128,12 @@ const HotelPickupScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Pickup" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('pickup.title')} onBack={handleBack} />
       </View>
 
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search for hotel..."
+          placeholder={i18n.t('pickup.searchHotel')}
           onChangeText={handleSearch}
           onFilterPress={handleFilter}
           value={searchQuery}
@@ -152,7 +155,7 @@ const HotelPickupScreen: React.FC = () => {
         onClose={() => setFilterPopupVisible(false)}
         filterOptions={filterOptions}
         onApplyFilters={handleApplyFilters}
-        title="Filter Pickups"
+        title={i18n.t('pickup.filterPickups')}
         categories={categoriesWithIcons}
       />
     </SafeAreaView>

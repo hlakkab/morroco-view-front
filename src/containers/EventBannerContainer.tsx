@@ -1,12 +1,14 @@
-import React, { Component, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ImageBackground, FlatList, Image} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import CafCupSvg   from '../assets/img/caf-cup-img.svg';
-import GitexAfrica from '../assets/img/gitex-africa.svg';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator'; 
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { Component, useState } from 'react';
+import { Dimensions, FlatList, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import CafCupSvg from '../assets/img/caf-cup-img.svg';
+import GitexAfrica from '../assets/img/gitex-africa.svg';
+import { useLanguage } from '../contexts/LanguageContext';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import i18n from '../translations/i18n';
 import { Event } from '../types/Event';
 
 // Import the JPG as a require statement instead of importing it as a component
@@ -25,7 +27,8 @@ interface EventBannerProps extends Event {
 
 
 const EventBanner: React.FC<EventBannerProps> = (props) => {
-
+  // Use language context to force re-render on language change
+  const { currentLanguage } = useLanguage();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { name, images, logo, backgroundColor, type} = props;
@@ -39,6 +42,10 @@ const EventBanner: React.FC<EventBannerProps> = (props) => {
     }
   }
 
+  // Get the appropriate text based on event type
+  const exploreButtonText = type === 'FOOTBALL' 
+    ? i18n.t('home.exploreMatches') 
+    : i18n.t('home.exploreEvent');
 
   return (
     <TouchableOpacity style={styles.banner} onPress={handlePress}>
@@ -78,7 +85,7 @@ const EventBanner: React.FC<EventBannerProps> = (props) => {
             </View>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.exploreButton} onPress={handlePress}>
-                <Text style={styles.exploreButtonText}>Explore {type === 'FOOTBALL' ? 'Matches' : 'Event'}</Text>
+                <Text style={styles.exploreButtonText}>{exploreButtonText}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -232,7 +239,7 @@ const styles = StyleSheet.create({
   exploreButtonText: {
     color: '#AE1913',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 13.5,
   },
 
   paginationContainer: {

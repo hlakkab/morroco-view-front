@@ -1,8 +1,10 @@
-import React, { FC } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import CardItem from './CardItem';
+import React, { FC } from 'react';
 import HotelPickupSvg from '../../assets/serviceIcons/car-img.svg';
+import { useLanguage } from '../../contexts/LanguageContext';
+import i18n from '../../translations/i18n';
 import { HotelPickup } from '../../types/transport';
+import CardItem from './CardItem';
 
 interface PickupCardProps {
   item: HotelPickup;
@@ -15,7 +17,7 @@ const PickupCard : FC<PickupCardProps> = ({
   handleSavePickup = () => {}, 
   handleCardPress = () => {} 
 }) => {
-
+  const { currentLanguage } = useLanguage();
 
   return (
     <CardItem
@@ -24,18 +26,18 @@ const PickupCard : FC<PickupCardProps> = ({
       title={item.title}
       price={{
         value: item.price,
-        suffix: 'per group'
+        suffix: i18n.t('pickup.perGroup')
       }}
       tags={[
         {
           id: 'pickup',
-          label: 'Pickup',
+          label: i18n.t('pickup.pickup'),
           icon: <Ionicons name="car-outline" size={14} color="#008060" style={{ marginRight: 4 }} />,
           textStyle: { color: '#008060', fontWeight: '500' }
         },
         {
           id: 'type',
-          label: item.private ? 'Private Pickup' : 'Shared Pickup',
+          label: item.private ? i18n.t('pickup.privatePickup') : i18n.t('pickup.sharedPickup'),
           textStyle: { color: '#888' }
         }
       ]}

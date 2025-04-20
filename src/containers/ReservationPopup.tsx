@@ -1,13 +1,14 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import "react-native-get-random-values";
 import Button from '../components/Button';
-import LocationPickerModal from '../components/LocationPickerModal';
 import DatePickerModal from '../components/DatePickerModal';
+import LocationPickerModal from '../components/LocationPickerModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
-import "react-native-get-random-values"
+import i18n from '../translations/i18n';
 
 interface ReservationPopupProps {
   onClose: () => void;
@@ -30,6 +31,12 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const [hotelLocation, setHotelLocation] = useState('');
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [showModernDatePicker, setShowModernDatePicker] = useState(false);
+  const [passengers, setPassengers] = useState(1);
+  const [luggage, setLuggage] = useState(0);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [specialRequests, setSpecialRequests] = useState('');
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -85,7 +92,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
           <View style={styles.pickerContainer}>
             <View style={styles.pickerHeader}>
               <View style={styles.pickerTitleContainer}>
-                <Text style={styles.pickerTitle} numberOfLines={1}>Select Date</Text>
+                <Text style={styles.pickerTitle} numberOfLines={1}>{i18n.t('reservation.selectDate')}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => setShowDatePicker(false)}
@@ -241,7 +248,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
           <View style={styles.pickerContainer}>
             <View style={styles.pickerHeader}>
               <View style={styles.pickerTitleContainer}>
-                <Text style={styles.pickerTitle} numberOfLines={1}>Select Time</Text>
+                <Text style={styles.pickerTitle} numberOfLines={1}>{i18n.t('reservation.selectTime')}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => setShowTimePicker(false)}
@@ -375,12 +382,18 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   };
 
   // Format date for display
-  const formatDisplayDate = (dateString: string) => {
-    if (!dateString) return '';
+  const formatDisplayDate = (dateInput: string | Date) => {
+    if (!dateInput) return '';
     
     try {
-      const [year, month, day] = dateString.split('/');
-      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      let date: Date;
+      
+      if (typeof dateInput === 'string') {
+        const [year, month, day] = dateInput.split('/');
+        date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        date = dateInput;
+      }
       
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -388,11 +401,10 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
       const dayName = days[date.getDay()];
       const dayNum = date.getDate().toString().padStart(2, '0');
       const monthName = months[date.getMonth()];
-      const yearNum = date.getFullYear();
       
       return `${dayName} ${dayNum} ${monthName}`;
     } catch (e) {
-      return dateString;
+      return typeof dateInput === 'string' ? dateInput : format(dateInput, 'MMM dd, yyyy');
     }
   };
 
@@ -416,6 +428,12 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         pickupTime: format(selectedTime, 'HH:mm'),
         destination,
       })).unwrap();
+
+      Alert.alert(
+        i18n.t('reservation.success'),
+        i18n.t('reservation.bookingConfirmed'),
+        [{ text: i18n.t('common.close'), onPress: onClose }]
+      );
     } catch (error) {
       console.error('Failed to book pickup:', error);
     }
@@ -430,7 +448,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         <View style={styles.fixedHeader}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-              Reserve Your Transport
+              {i18n.t('reservation.reservePickup')}
             </Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -449,7 +467,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               </View>
               <View style={styles.transportDetails}>
                 <Text style={styles.transportTitle}>{title}</Text>
-                <Text style={styles.transportPrice}>{price} Dh per group</Text>
+                <Text style={styles.transportPrice}>{price} {i18n.t('pickup.perGroup')}</Text>
               </View>
             </View>
 
@@ -475,43 +493,43 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
             </View>
 
             <View style={styles.formContainer}>
-              <Text style={styles.sectionTitle}>When are you arriving?</Text>
+              <Text style={styles.sectionTitle}>{i18n.t('reservation.whenAreYouArriving')}</Text>
 
               <View style={styles.dateTimeContainer}>
                 <View style={styles.dateContainer}>
-                  <Text style={styles.inputLabel}>Date</Text>
+                  <Text style={styles.inputLabel}>{i18n.t('reservation.date')}</Text>
                   <TouchableOpacity
                     style={styles.dateInput}
                     onPress={() => setShowModernDatePicker(true)}
                   >
                     <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
                     <Text style={styles.dateTimeText}>
-                      {format(selectedDate, 'MMM dd, yyyy')}
+                      {selectedDate ? formatDisplayDate(selectedDate) : i18n.t('reservation.selectDate')}
                     </Text>
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.timeContainer}>
-                  <Text style={styles.inputLabel}>Time</Text>
+                  <Text style={styles.inputLabel}>{i18n.t('reservation.time')}</Text>
                   <TouchableOpacity
                     style={styles.timeInput}
                     onPress={() => setShowTimePicker(true)}
                   >
                     <Ionicons name="time" size={20} color="#666" style={styles.inputIcon} />
                     <Text style={styles.dateTimeText}>
-                      {format(selectedTime, 'hh:mm a')}
+                      {selectedTime ? format(selectedTime, 'hh:mm a') : i18n.t('reservation.selectTime')}
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <Text style={styles.sectionTitle}>Where are you staying?</Text>
+              <Text style={styles.sectionTitle}>{i18n.t('reservation.whereAreYouStaying')}</Text>
               <TouchableOpacity
                 style={styles.inputContainer}
                 onPress={() => setShowLocationPicker(true)}
               >
                 <Text style={[styles.input, !hotelLocation && styles.inputPlaceholder]}>
-                  {hotelLocation || "Tap to select your hotel location on the map"}
+                  {hotelLocation || i18n.t('reservation.tapToSelectYourHotelLocationOnTheMap')}
                 </Text>
               </TouchableOpacity>
 
@@ -523,7 +541,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
           <View style={styles.footer}>
             <Button
-              title="Confirm Reservation"
+              title={i18n.t('reservation.confirmReservation')}
               style={styles.confirmButton}
               icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
               onPress={handleSubmit}

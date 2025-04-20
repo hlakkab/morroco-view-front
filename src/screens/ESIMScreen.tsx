@@ -1,13 +1,13 @@
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
-import ESIMCardsContainer from '../containers/ESIMCardsContainer';
-import BuyESIMModal from '../containers/BuyESIMModal';
-import ScreenHeader from '../components/ScreenHeader';
-import { RootStackParamList } from '../types/navigation';
 import Button from '../components/Button';
+import ScreenHeader from '../components/ScreenHeader';
+import BuyESIMModal from '../containers/BuyESIMModal';
+import ESIMCardsContainer from '../containers/ESIMCardsContainer';
+import i18n from '../translations/i18n';
+import { RootStackParamList } from '../types/navigation';
 
 const ESIMScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -36,7 +36,7 @@ const ESIMScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="eSIM" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('qrcode.eSim')} onBack={handleBack} />
       </View>
 
       <ScrollView style={styles.scrollContainer}>
@@ -46,7 +46,7 @@ const ESIMScreen: React.FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button title="Buy One" onPress={handleBuyOne} />
+        <Button title={i18n.t('qrcode.buyOne')} onPress={handleBuyOne} />
       </View>
 
       {/* Buy eSIM Modal */}

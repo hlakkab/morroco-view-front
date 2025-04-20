@@ -14,6 +14,8 @@ import {
     View
 } from 'react-native';
 import CloseButton from "../assets/img/CloseButton.svg";
+import { useLanguage } from '../contexts/LanguageContext';
+import i18n from '../translations/i18n';
 import ButtonFixe from "./ButtonFixe";
 
 // Generic type for filter options
@@ -48,17 +50,18 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
     onClose,
     filterOptions,
     onApplyFilters,
-    title = "Filter",
+    title = i18n.t('common.filter'),
     categories = {
-        city: { key: 'city', label: 'By City', icon: <Ionicons name="location" size={20} color="#CE1126" /> },
-        stadium: { key: 'stadium', label: 'By Stadium', icon: <Ionicons name="football" size={20} color="#CE1126" /> },
-        type: { key: 'type', label: 'By Type', icon: <Ionicons name="options" size={20} color="#CE1126" /> },
-        price: { key: 'price', label: 'By Price', icon: <Ionicons name="cash" size={20} color="#CE1126" /> },
-        features: { key: 'features', label: 'By Features', icon: <Ionicons name="list" size={20} color="#CE1126" /> }
+        city: { key: 'city', label: i18n.t('filters.byCity'), icon: <Ionicons name="location" size={20} color="#CE1126" /> },
+        stadium: { key: 'stadium', label: i18n.t('filters.byStadium'), icon: <Ionicons name="football" size={20} color="#CE1126" /> },
+        type: { key: 'type', label: i18n.t('filters.byType'), icon: <Ionicons name="options" size={20} color="#CE1126" /> },
+        price: { key: 'price', label: i18n.t('filters.byPrice'), icon: <Ionicons name="cash" size={20} color="#CE1126" /> },
+        features: { key: 'features', label: i18n.t('filters.byFeatures'), icon: <Ionicons name="list" size={20} color="#CE1126" /> }
     }
 }) => {
     // Local state for managing selected options in the popup
     const [localOptions, setLocalOptions] = useState<FilterOption[]>(filterOptions);
+    const { currentLanguage } = useLanguage();
 
     // Create an animated value for swipe gesture
     const pan = React.useRef(new Animated.ValueXY()).current;
@@ -158,7 +161,7 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
                                         <View style={styles.headerControls}>
                                             <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
                                                 <Ionicons name="refresh-outline" size={14} color="#CE1126" style={styles.resetIcon} />
-                                                <Text style={styles.resetText}>Reset</Text>
+                                                <Text style={styles.resetText}>{i18n.t('common.reset')}</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                                                 <CloseButton />
@@ -210,7 +213,7 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
                             </Animated.View>
                         </TouchableWithoutFeedback>
                     </View>
-                    <ButtonFixe title={'Apply'} onPress={handleApply} />
+                    <ButtonFixe title={i18n.t('common.apply')} onPress={handleApply} />
                 </View>
             </TouchableWithoutFeedback>
         </Modal>

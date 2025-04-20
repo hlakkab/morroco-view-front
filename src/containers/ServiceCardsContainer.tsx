@@ -1,6 +1,8 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
+import i18n from '../translations/i18n';
 
 // Example of SVG imports - replace these with your actual paths
 import HotelSvg from '../assets/serviceIcons/hotelPick-icon.svg';
@@ -38,6 +40,7 @@ interface ServiceCardsContainerProps {
 
 const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { currentLanguage } = useLanguage();
 
   const handleESIMPress = () => {
     navigation.navigate('ESIM');
@@ -59,22 +62,22 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
     <View style={styles.serviceIconsContainer}>
       <ServiceCard 
         icon={<HotelSvg width={28} height={28} />}
-        title="Hotel Pickup"
+        title={i18n.t('services.hotelPickup')}
         onPress={handleHotelPickupPress}
       />
       <ServiceCard 
         icon={<MoneySvg width={28} height={28} />}
-        title="Money Exchange"
+        title={i18n.t('services.moneyExchange')}
         onPress={handleMoneyExchangePress}
       />
       <ServiceCard 
         icon={<SimCardSvg width={28} height={28} />}
-        title="eSIM"
+        title={i18n.t('services.eSIM')}
         onPress={handleESIMPress}
       />
       <ServiceCard 
         icon={<QrCodeSvg width={28} height={28} />}
-        title="QR Codes"
+        title={i18n.t('services.qrCodes')}
         onPress={handleQRCodesPress}
       />
     </View>

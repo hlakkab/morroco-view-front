@@ -15,6 +15,7 @@ import {
 } from '../data/filterData';
 import { fetchBrokers } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import i18n from '../translations/i18n';
 import { Broker } from '../types/exchange-broker';
 
 const BrokerListScreen: React.FC = () => {
@@ -69,7 +70,7 @@ const BrokerListScreen: React.FC = () => {
   const cityOptions = [
     { 
       id: 'all', 
-      label: 'All Cities', 
+      label: i18n.t('matches.allCities'), 
       icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
     ...cities.map(city => ({
@@ -168,10 +169,10 @@ const BrokerListScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Money Exchange Brokers" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('exchange.brokerList')} onBack={handleBack} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E53935" />
-          <Text style={styles.loadingText}>Loading brokers...</Text>
+          <Text style={styles.loadingText}>{i18n.t('exchange.loadingBrokers')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -181,9 +182,9 @@ const BrokerListScreen: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Money Exchange Brokers" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('exchange.brokerList')} onBack={handleBack} />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load brokers</Text>
+          <Text style={styles.errorText}>{i18n.t('exchange.failedToLoad')}</Text>
           <Text style={styles.errorSubtext}>{error}</Text>
         </View>
       </SafeAreaView>
@@ -193,12 +194,12 @@ const BrokerListScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Money Exchange Brokers" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('exchange.brokerList')} onBack={handleBack} />
       </View>
 
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search for brokers..."
+          placeholder={i18n.t('exchange.searchBrokers')}
           onChangeText={handleSearch}
           onFilterPress={handleFilterPress}
           value={searchQuery}
@@ -209,11 +210,11 @@ const BrokerListScreen: React.FC = () => {
             options={cityOptions}
             selectedOptionId={selectedCity}
             onSelectOption={handleCitySelect}
-            title="City :"
+            title={i18n.t('matches.city')}
           />
         </View>
 
-        <Text style={styles.sectionTitle}>Available brokers</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('exchange.availableBrokers')}</Text>
 
         {filteredBrokers.length > 0 ? (
           <BrokerListContainer
@@ -222,7 +223,7 @@ const BrokerListScreen: React.FC = () => {
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="search-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>No brokers found for the selected filters</Text>
+            <Text style={styles.emptyText}>{i18n.t('exchange.noBrokersFound')}</Text>
           </View>
         )}
 
@@ -231,7 +232,7 @@ const BrokerListScreen: React.FC = () => {
           onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
-          title="Filter Brokers"
+          title={i18n.t('exchange.filterBrokers')}
           categories={categoriesWithIcons}
         />
       </View>

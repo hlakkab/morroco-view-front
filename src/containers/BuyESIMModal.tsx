@@ -16,6 +16,7 @@ import Button from '../components/Button';
 // SVG imports for different providers
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
 import OrangeSvg from '../assets/serviceIcons/orange-img.svg';
+import i18n from '../translations/i18n';
 
 interface OperatorOption {
   id: string;
@@ -130,7 +131,7 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
             </View>
             
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Buy New eSIm</Text>
+              <Text style={styles.modalTitle}>{i18n.t('qrcode.buyNew')}</Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={16} color="black" />
               </TouchableOpacity>
@@ -140,7 +141,7 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
           <View style={styles.modalContent}>
             {/* Operator Selection */}
             <View style={styles.formField}>
-              <Text style={styles.label}>Select Operator <Text style={styles.required}>*</Text></Text>
+              <Text style={styles.label}>{i18n.t('qrcode.selectOperator')} <Text style={styles.required}>*</Text></Text>
               
               <View style={styles.operatorList}>
                 {operators.map(operator => (
@@ -171,7 +172,7 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
             <View style={styles.buttonContainer}>
               {selectedOperator && (
                 <Button 
-                  title={`Buy for ${operators.find(op => op.id === selectedOperator)?.price}`} 
+                  title={`${i18n.t('qrcode.buyFor')} ${operators.find(op => op.id === selectedOperator)?.price}`} 
                   onPress={handleBuy} 
                 />
               )}

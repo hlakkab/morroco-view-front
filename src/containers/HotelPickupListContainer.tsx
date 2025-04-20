@@ -6,8 +6,10 @@ import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/cards/CardItem';
 import PickupCard from '../components/cards/PickupCard';
 import FilterSelector from '../components/FilterSelector';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleHotelPickupBookmark } from '../store/hotelPickupSlice';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
 
@@ -33,6 +35,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
   const [selectedCity, setSelectedCity] = useState(selectedToCity);
   const dispatch = useAppDispatch();
   const bookmarks = useAppSelector(state => state.bookmark.bookmarks);
+  const { currentLanguage } = useLanguage();
 
   const handleSavePickup = (pickup: HotelPickup) => {
     dispatch(toggleHotelPickupBookmark(pickup));
@@ -74,7 +77,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
       <View style={styles.filtersContainer}>
         <View style={styles.filterFromSection}>
           <FilterSelector
-            title="From :"
+            title={i18n.t('pickup.from')}
             options={airportOptions}
             selectedOptionId={selectedAirport}
             onSelectOption={(option) => {
@@ -100,7 +103,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
 
         <View style={styles.filterToSection}>
           <FilterSelector
-            title="To :"
+            title={i18n.t('pickup.to')}
             options={cityOptions}
             selectedOptionId={selectedCity}
             onSelectOption={(option) => {
@@ -114,13 +117,13 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Available pickups</Text>
+      <Text style={styles.sectionTitle}>{i18n.t('pickup.availablePickups')}</Text>
 
       {pickups.length === 0 ? (
         <View style={styles.noPickupsContainer}>
           <Ionicons name="search-outline" size={48} color="#ccc" />
           <Text style={styles.noPickupsText}>
-            No pickups available for the selected filters
+            {i18n.t('pickup.noPickupsAvailable')}
           </Text>
         </View>
       ) : (

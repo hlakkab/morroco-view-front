@@ -1,15 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ContactsIcon from '../assets/img/contacts-icon.svg';
+import { useLanguage } from '../contexts/LanguageContext';
+import i18n from '../translations/i18n';
 
 interface EmergencyContactsButtonProps {
   onPress: () => void;
 }
 
 const EmergencyContactsButton: React.FC<EmergencyContactsButtonProps> = ({ onPress }) => {
+  // Use language context to force re-render on language change
+  const { currentLanguage } = useLanguage();
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.text}>Emergency Contacts</Text>
+      <Text style={styles.text}>{i18n.t('home.emergencyContacts')}</Text>
       <View style={styles.iconContainer}>
         <ContactsIcon width={18} height={18} />
       </View>
