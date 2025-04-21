@@ -2,10 +2,11 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
-import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import BackgroundSvg from '../assets/img/lanch-screen-frame.svg';
 import LogoSvg from '../assets/img/morroco-view-logo.svg';
 import { getAccessToken } from '../service/KeycloakService';
+import i18n from '../translations/i18n';
 
 const { width, height } = Dimensions.get('window');
 

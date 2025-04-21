@@ -184,10 +184,9 @@ export const createArtisanFilterOptions = (): FilterOption[] => {
 };
 
 /**
- * Filter categories for matches
- * Icons should be added in the component
+ * Filter categories for matches - Using getters to ensure translations are fresh
  */
-export const matchFilterCategories: Record<string, FilterCategory> = {
+export const getMatchFilterCategories = (): Record<string, FilterCategory> => ({
     city: { 
         key: 'city', 
         label: i18n.t('filters.byCity')
@@ -196,24 +195,22 @@ export const matchFilterCategories: Record<string, FilterCategory> = {
         key: 'stadium', 
         label: i18n.t('filters.byStadium')
     }
-};
+});
 
 /**
- * Filter categories for pickups
- * Icons should be added in the component
+ * Filter categories for pickups - Using getters to ensure translations are fresh
  */
-export const pickupFilterCategories: Record<string, FilterCategory> = {
+export const getPickupFilterCategories = (): Record<string, FilterCategory> => ({
     pickup_type: { 
         key: 'pickup_type', 
         label: i18n.t('filters.byType')
     }
-};
+});
 
 /**
- * Filter categories for brokers
- * Icons should be added in the component
+ * Filter categories for brokers - Using getters to ensure translations are fresh
  */
-export const brokerFilterCategories: Record<string, FilterCategory> = {
+export const getBrokerFilterCategories = (): Record<string, FilterCategory> => ({
     broker_city: {
         key: 'broker_city',
         label: i18n.t('filters.byCity')
@@ -222,13 +219,12 @@ export const brokerFilterCategories: Record<string, FilterCategory> = {
         key: 'broker_type',
         label: i18n.t('filters.byType')
     }
-};
+});
 
 /**
- * Filter categories for monuments
- * Icons should be added in the component
+ * Filter categories for monuments - Using getters to ensure translations are fresh
  */
-export const monumentFilterCategories: Record<string, FilterCategory> = {
+export const getMonumentFilterCategories = (): Record<string, FilterCategory> => ({
     monument_city: {
         key: 'monument_city',
         label: i18n.t('filters.byCity')
@@ -237,13 +233,12 @@ export const monumentFilterCategories: Record<string, FilterCategory> = {
         key: 'monument_type',
         label: i18n.t('filters.byType')
     }
-};
+});
 
 /**
- * Filter categories for artisans
- * Icons should be added in the component
+ * Filter categories for artisans - Using getters to ensure translations are fresh
  */
-export const artisanFilterCategories: Record<string, FilterCategory> = {
+export const getArtisanFilterCategories = (): Record<string, FilterCategory> => ({
     artisan_city: {
         key: 'artisan_city',
         label: i18n.t('filters.byCity')
@@ -252,4 +247,11 @@ export const artisanFilterCategories: Record<string, FilterCategory> = {
         key: 'artisan_type',
         label: i18n.t('filters.byType')
     }
-}; 
+});
+
+// For backward compatibility, keep the old references but they should be deprecated
+export const matchFilterCategories = getMatchFilterCategories();
+export const pickupFilterCategories = getPickupFilterCategories();
+export const brokerFilterCategories = getBrokerFilterCategories();
+export const monumentFilterCategories = getMonumentFilterCategories();
+export const artisanFilterCategories = getArtisanFilterCategories(); 

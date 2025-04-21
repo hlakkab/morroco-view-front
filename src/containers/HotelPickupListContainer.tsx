@@ -8,8 +8,8 @@ import PickupCard from '../components/cards/PickupCard';
 import FilterSelector from '../components/FilterSelector';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import i18n from '../translations/i18n';
 import { setSelectedCity, toggleHotelPickupBookmark, togglePickupDirection } from '../store/hotelPickupSlice';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
 
@@ -73,7 +73,7 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
       <View style={styles.filtersContainer}>
         <View style={styles.filterFromSection}>
           <FilterSelector
-            title="City:"
+            title={i18n.t('pickup.city')} 
             options={cityOptions}
             selectedOptionId={selectedCity}
             onSelectOption={(option) => {
@@ -89,24 +89,65 @@ const HotelPickupListContainer: React.FC<HotelPickupListContainerProps> = ({
         {/* <View style={styles.filterDivider} /> */}
         
         <View style={styles.directionContainer}>
-          <TouchableOpacity 
-            style={styles.directionButton}
-            onPress={handleToggleDirection}
-          >
-            <Ionicons 
-              name={pickupDirection === 'a2h' ? 'airplane' : 'home'} 
-              size={24} 
-              color="#CE1126" 
-            />
-            <Text style={styles.directionText}>
-              {pickupDirection === 'a2h' ? 'Airport to Hotel' : 'Hotel to Airport'}
-            </Text>
-            <Ionicons 
-              name={pickupDirection === 'a2h' ? 'home' : 'airplane'} 
-              size={24} 
-              color="#CE1126" 
-            />
-          </TouchableOpacity>
+          <View style={styles.directionControlsWrapper}>
+            <View style={styles.directionControls}>
+              {pickupDirection === 'a2h' ? (
+                // Airport to Hotel layout
+                <>
+                  <View style={styles.endpointWithLabel}>
+                    <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                      <Ionicons name="airplane" size={20} color="#CE1126" />
+                    </View>
+                    <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                  </View>
+                  
+                  <View style={styles.directionMiddle}>
+                    <TouchableOpacity 
+                      style={styles.switchButton}
+                      onPress={handleToggleDirection}
+                    >
+                      <Ionicons name="arrow-forward" size={16} color="#666" />
+                    </TouchableOpacity>
+                    <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                  </View>
+                  
+                  <View style={styles.endpointWithLabel}>
+                    <View style={styles.directionEndpoint}>
+                      <Ionicons name="home" size={20} color="#777" />
+                    </View>
+                    <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                  </View>
+                </>
+              ) : (
+                // Hotel to Airport layout
+                <>
+                  <View style={styles.endpointWithLabel}>
+                    <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                      <Ionicons name="home" size={20} color="#CE1126" />
+                    </View>
+                    <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                  </View>
+                  
+                  <View style={styles.directionMiddle}>
+                    <TouchableOpacity 
+                      style={styles.switchButton}
+                      onPress={handleToggleDirection}
+                    >
+                      <Ionicons name="arrow-forward" size={16} color="#666" />
+                    </TouchableOpacity>
+                    <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                  </View>
+                  
+                  <View style={styles.endpointWithLabel}>
+                    <View style={styles.directionEndpoint}>
+                      <Ionicons name="airplane" size={20} color="#777" />
+                    </View>
+                    <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
         </View>
 
       </View>
@@ -205,26 +246,70 @@ const styles = StyleSheet.create({
     marginBottom: 150,
   },
   directionContainer: {
-    marginVertical: 16,
+    marginTop: 8,
     alignItems: 'center',
   },
-  directionButton: {
+  directionControlsWrapper: {
+    backgroundColor: '#FCEBEC',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    width: '100%',
+  },
+  directionControls: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  endpointWithLabel: {
+    alignItems: 'center',
+    width: 80,
+  },
+  directionEndpoint: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
+    marginBottom: 6,
+  },
+  activeEndpoint: {
     backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 2,
     elevation: 2,
   },
-  directionText: {
-    marginHorizontal: 12,
-    fontSize: 16,
-    fontWeight: '600',
+  directionMiddle: {
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  switchButton: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#eee',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  endpointLabel: {
+    fontSize: 14,
     color: '#333',
+    fontWeight: '500',
+  },
+  toLabel: {
+    fontSize: 12,
+    color: '#666',
   },
 });
 

@@ -10,11 +10,12 @@ import HotelPickupListContainer from '../containers/HotelPickupListContainer';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   createPickupFilterOptions,
-  normalizeString,
-  pickupFilterCategories
+  getPickupFilterCategories,
+  normalizeString
 } from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchHotelPickups, setSearchQuery, setSelectedFromCity, setSelectedToCity } from '../store/hotelPickupSlice';
+import { fetchHotelPickups, setSearchQuery, setSelectedCity } from '../store/hotelPickupSlice';
+import i18n from '../translations/i18n';
 
 const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fez', 'Tangier'];
 
@@ -37,9 +38,8 @@ const HotelPickupScreen: React.FC = () => {
 
   // Add icons to filter categories
   const categoriesWithIcons = {
-    ...pickupFilterCategories,
     pickup_type: {
-      ...pickupFilterCategories.pickup_type,
+      ...getPickupFilterCategories().pickup_type,
       icon: <Ionicons name="car" size={20} color="#CE1126" />
     }
   };

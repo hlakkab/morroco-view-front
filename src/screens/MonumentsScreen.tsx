@@ -21,7 +21,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import {
   cities,
   createMonumentFilterOptions,
-  monumentFilterCategories,
+  getMonumentFilterCategories,
   monumentTypes,
   normalizeString
 } from '../data/filterData';
@@ -50,7 +50,7 @@ const MonumentsScreen: React.FC = () => {
   // Add icons to filter categories - only include monument_type for FilterPopup
   const categoriesWithIcons = {
     monument_type: {
-      ...monumentFilterCategories.monument_type,
+      ...getMonumentFilterCategories().monument_type,
       icon: <Ionicons name="business" size={20} color="#CE1126" />
     }
   };

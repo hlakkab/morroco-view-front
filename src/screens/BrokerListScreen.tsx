@@ -8,9 +8,9 @@ import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import BrokerListContainer from '../containers/BrokerListContainer';
 import {
-  brokerFilterCategories,
   cities,
   createBrokerFilterOptions,
+  getBrokerFilterCategories,
   normalizeString
 } from '../data/filterData';
 import { fetchBrokers } from '../store/exchangeBrokerSlice';
@@ -30,7 +30,7 @@ const BrokerListScreen: React.FC = () => {
   // Add icons to filter categories - only include broker_type
   const categoriesWithIcons = {
     broker_type: {
-      ...brokerFilterCategories.broker_type,
+      ...getBrokerFilterCategories().broker_type,
       icon: <Ionicons name="business" size={20} color="#CE1126" />
     }
   };
