@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, Text, Image, FlatList, Dimensions, ActivityIndicator } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Dimensions, FlatList, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import i18n from '../translations/i18n';
 
-import ScreenHeader from '../components/ScreenHeader';
-import ButtonFixe from '../components/ButtonFixe';
-import { RootStackParamList } from '../types/navigation';
 import AboutSection from '../components/AboutSection';
+import ButtonFixe from '../components/ButtonFixe';
 import LocationSection from '../components/LocationSection';
 import SaveButton from '../components/SaveButtonPrf';
-import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
+import ScreenHeader from '../components/ScreenHeader';
 import ViatorService from '../service/ViatorService';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { toggleEntertainmentBookmark } from '../store/entertainmentSlice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
+import { RootStackParamList } from '../types/navigation';
 
 const { width } = Dimensions.get('window');
 
@@ -108,7 +109,7 @@ const EntertainmentDetailScreenVo: React.FC = () => {
         <ScreenHeader title={title || 'Loading...'} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#000" />
-          <Text style={styles.loadingText}>Loading entertainment details...</Text>
+          <Text style={styles.loadingText}>{i18n.t('entertainment.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -120,7 +121,7 @@ const EntertainmentDetailScreenVo: React.FC = () => {
         <ScreenHeader title={title || 'Error'} />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={50} color="red" />
-          <Text style={styles.errorText}>{error || 'Failed to load entertainment details'}</Text>
+          <Text style={styles.errorText}>{error || i18n.t('entertainment.noInformation')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -248,10 +249,10 @@ const EntertainmentDetailScreenVo: React.FC = () => {
         <View style={styles.content}>
           <View style={styles.ratingContainer}>
             {renderStars(rating)}
-            <Text style={styles.reviewsText}>({ratingCount} reviews)</Text>
+            <Text style={styles.reviewsText}>({ratingCount} {ratingCount === 1 ? i18n.t('entertainment.review') : i18n.t('entertainment.reviews')})</Text>
           </View>
 
-          <Text style={styles.sectionTitle}>Specifications</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('transport.specifications')}</Text>
           <View style={styles.specificationsContainer}>
             {durationText !== '' && (
               <View style={styles.specItem}>
@@ -285,12 +286,19 @@ const EntertainmentDetailScreenVo: React.FC = () => {
                         </View> */}
           </View>
 
-          <AboutSection text={entertainmentHelpers.cleanDescription(entertainment.description || 'No description available.')} />
+          <AboutSection 
+            text={entertainmentHelpers.cleanDescription(entertainment.description || i18n.t('entertainment.noInformation'))} 
+            title={i18n.t('entertainment.about')} 
+          />
 
-          <LocationSection address={entertainment.location} mapUrl={entertainment.mapUrl} />
+          <LocationSection 
+            address={entertainment.location} 
+            mapUrl={entertainment.mapUrl} 
+            title={i18n.t('entertainment.location')} 
+          />
         </View>
       </ScrollView>
-      <ButtonFixe title="Book Now" onPress={handleBook} />
+      <ButtonFixe title={i18n.t('entertainment.bookReservation')} onPress={handleBook} />
     </SafeAreaView>
   );
 };

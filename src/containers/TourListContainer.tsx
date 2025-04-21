@@ -1,10 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchTours, fetchTourDetails } from '../store/tourSlice';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import TourDetailsModal from '../components/TourDetailsModal';
 import TourCard from '../components/cards/TourCard';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchTourDetails, fetchTours } from '../store/tourSlice';
+import i18n from '../translations/i18n';
 import { Destination, Tour } from '../types/tour';
 
 const TourListContainer: React.FC = () => {
@@ -123,14 +124,14 @@ const TourListContainer: React.FC = () => {
   if (!savedTours || savedTours.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No tours available</Text>
+        <Text style={styles.emptyText}>{i18n.t('common.noData')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Available Tours</Text>
+      <Text style={styles.sectionTitle}>{i18n.t('tours.availableTours')}</Text>
       
       <FlatList
         data={savedTours} 

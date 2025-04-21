@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import QRCodeLargeSvg from '../assets/serviceIcons/qrcode-large.svg'; // Ensure this exists
 import ESIMCard from '../components/ESIMCard';
 import QRCodeModal from '../components/QRCodeModal';
-import QRCodeLargeSvg from '../assets/serviceIcons/qrcode-large.svg'; // Ensure this exists
+import i18n from '../translations/i18n';
 
 // SVG imports for different providers
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
@@ -49,7 +50,7 @@ const ESIMCardsContainer: React.FC<ESIMCardsContainerProps> = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>eSim Founds</Text>
+      <Text style={styles.sectionTitle}>{i18n.t('qrcode.eSIMFounds')}</Text>
       
       {esimData.map(esim => (
         <ESIMCard

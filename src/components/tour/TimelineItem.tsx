@@ -21,6 +21,7 @@ import Animated, {
   withSpring,
   withTiming
 } from 'react-native-reanimated';
+import i18n from '../../translations/i18n';
 import { SavedItem } from '../../types/navigation';
 
 const ITEM_HEIGHT = 120; // Approximate height of each item
@@ -252,7 +253,7 @@ const TimelineItem = memo(({
                 onPress={onSetTime}
               >
                 <Feather name="clock" size={14} color="#E53935" style={{ marginRight: 4 }} />
-                <Text style={styles.addButtonText}>Set Time</Text>
+                <Text style={styles.addButtonText}>{i18n.t('tours.setTime')}</Text>
               </TouchableOpacity>
             )}
             
@@ -268,13 +269,13 @@ const TimelineItem = memo(({
                   onPress={onSetDuration}
                 >
                   <Feather name="calendar" size={14} color="#E53935" style={{ marginRight: 4 }} />
-                  <Text style={styles.addButtonText}>Set Duration</Text>
+                  <Text style={styles.addButtonText}>{i18n.t('tours.setDuration')}</Text>
                 </TouchableOpacity>
               )
             )}
             
             <TouchableOpacity style={styles.viewDetailsButton}>
-              <Text style={styles.viewDetailsText}>View Details</Text>
+              <Text style={styles.viewDetailsText}>{i18n.t('tours.viewDetails')}</Text>
             </TouchableOpacity>
           </View> */}
 

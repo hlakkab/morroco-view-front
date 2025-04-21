@@ -6,9 +6,10 @@ import Button from '../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
 import StepProgress from '../components/StepProgress';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
-import { RootStackParamList } from '../types/navigation';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setTourInfo } from '../store/tourSlice';
+import i18n from '../translations/i18n';
+import { RootStackParamList } from '../types/navigation';
 
 interface FormData {
   title: string;
@@ -35,9 +36,9 @@ const AddNewTourScreen: React.FC = () => {
   const [pickerMode, setPickerMode] = useState<DatePickerMode>('start');
 
   const steps = [
-    { id: '01', label: 'Basic infos' },
-    { id: '02', label: 'Destinations' },
-    { id: '03', label: 'Organize' },
+    { id: '01', label: i18n.t('tours.basicInfos') },
+    { id: '02', label: i18n.t('tours.destinations') },
+    { id: '03', label: i18n.t('tours.organize') },
   ];
 
   const formatDisplayDate = (dateString: string) => {
@@ -100,25 +101,25 @@ const AddNewTourScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TourFlowHeader title="Add New Tour" />
+        <TourFlowHeader title={i18n.t('tours.addNewTour')} />
       </View>
       
       <View style={styles.content}>
         <StepProgress steps={steps} currentStep={0} />
         
         <Text style={styles.subtitle}>
-          To help organize your tour enter some basic infos
+          {i18n.t('tours.basicInfosSubtitle')}
         </Text>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Title<Text style={styles.required}>*</Text></Text>
+            <Text style={styles.label}>{i18n.t('tours.title')}<Text style={styles.required}>*</Text></Text>
             <View style={[styles.inputWithIcon, formData.title ? styles.inputFilled : null]}>
               <TextInput
                 style={styles.input}
                 value={formData.title}
                 onChangeText={(text) => setFormData({ ...formData, title: text })}
-                placeholder="Enter a memorable title for your tour"
+                placeholder={i18n.t('tours.titlePlaceholder')}
                 placeholderTextColor="#999"
               />
               <Feather name="edit-3" size={20} color={formData.title ? "#E53935" : "#666"} style={styles.inputIcon} />
@@ -126,17 +127,17 @@ const AddNewTourScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Duration<Text style={styles.required}>*</Text></Text>
+            <Text style={styles.label}>{i18n.t('tours.duration')}<Text style={styles.required}>*</Text></Text>
             <View style={styles.durationContainer}>
               <View style={styles.dateInput}>
-                <Text style={styles.dateLabel}>From</Text>
+                <Text style={styles.dateLabel}>{i18n.t('tours.from')}</Text>
                 <TouchableOpacity 
                   style={[styles.inputWithIcon, formData.startDate ? styles.inputFilled : null]}
                   onPress={() => openDatePicker('start')}
                   activeOpacity={0.7}
                 >
                   <Text style={formData.startDate ? styles.dateText : styles.placeholderText}>
-                    {formData.startDate ? formatDisplayDate(formData.startDate) : "Start date"}
+                    {formData.startDate ? formatDisplayDate(formData.startDate) : i18n.t('tours.startDate')}
                   </Text>
                   <Feather 
                     name="calendar" 
@@ -148,14 +149,14 @@ const AddNewTourScreen: React.FC = () => {
               </View>
               
               <View style={styles.dateInput}>
-                <Text style={styles.dateLabel}>To</Text>
+                <Text style={styles.dateLabel}>{i18n.t('tours.to')}</Text>
                 <TouchableOpacity 
                   style={[styles.inputWithIcon, formData.endDate ? styles.inputFilled : null]}
                   onPress={() => openDatePicker('end')}
                   activeOpacity={0.7}
                 >
                   <Text style={formData.endDate ? styles.dateText : styles.placeholderText}>
-                    {formData.endDate ? formatDisplayDate(formData.endDate) : "End date"}
+                    {formData.endDate ? formatDisplayDate(formData.endDate) : i18n.t('tours.endDate')}
                   </Text>
                   <Feather 
                     name="calendar" 
@@ -168,7 +169,7 @@ const AddNewTourScreen: React.FC = () => {
             </View>
             <Text style={styles.dateHint}>
               <Feather name="info" size={12} color="#666" style={{ marginRight: 4 }} />
-              Select dates to define your tour's duration
+              {i18n.t('tours.dateHint')}
             </Text>
           </View>
         </View>
@@ -188,7 +189,7 @@ const AddNewTourScreen: React.FC = () => {
 
       <View style={styles.footer}>
         <Button 
-          title="Next"
+          title={i18n.t('common.next')}
           onPress={handleNext}
           disabled={!formData.title || !formData.startDate || !formData.endDate}
         />

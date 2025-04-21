@@ -1,6 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import React, { FC } from 'react';
 import { ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import i18n from '../../translations/i18n';
 import { Tour } from '../../types/tour';
 import CardItem from './CardItem';
 
@@ -19,13 +20,13 @@ const TourCard: FC<TourCardProps> = ({
 }) => {
   // Format the destinations text based on type
   const formatDestinationText = () => {
-    if (!item.destinations) return '0 Destination';
-    if (typeof item.destinations === 'string') return '1 Destination';
+    if (!item.destinations) return i18n.t('tours.noDestination');
+    if (typeof item.destinations === 'string') return i18n.t('tours.oneDestination');
     if (Array.isArray(item.destinations)) {
       const count = item.destinations.length;
-      return `${count} ${count === 1 ? 'Destination' : 'Destinations'}`;
+      return count === 1 ? i18n.t('tours.oneDestination') : `${count} ${i18n.t('tours.destinations')}`;
     }
-    return '0 Destination';
+    return i18n.t('tours.noDestination');
   };
 
   // Format dates for display
@@ -48,7 +49,7 @@ const TourCard: FC<TourCardProps> = ({
         return `${fromDay} ${fromMonth} - ${toDay} ${toMonth}`;
       }
     }
-    return item.from || 'No dates';
+    return item.from || i18n.t('tours.noDates');
   };
 
 
@@ -56,7 +57,7 @@ const TourCard: FC<TourCardProps> = ({
       <CardItem
         imageUrl={item.imageUrl || defaultTourImage}
         title={item.title}
-        subtitle={`${item.destinationCount} Destination`}
+        subtitle={`${item.destinationCount} ${i18n.t('tours.destination')}`}
         tags={[
           {
             id: 'date',

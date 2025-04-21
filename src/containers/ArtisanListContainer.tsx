@@ -7,6 +7,7 @@ import ArtisanCard from '../components/cards/ArtisanCard';
 import FilterSelector from '../components/FilterSelector';
 import { setSelectedArtisan, toggleArtisanBookmark } from '../store/artisanSlice';
 import { useAppDispatch } from '../store/hooks';
+import i18n from '../translations/i18n';
 import { Artisan, ArtisanType } from '../types/Artisan';
 import { RootStackParamList } from '../types/navigation';
 
@@ -39,7 +40,7 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
   const typeOptions = [
     {
       id: 'All Types',
-      label: 'All Types',
+      label: i18n.t('artisans.allTypes'),
       icon: <Ionicons name="hand-left-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
     },
     ...Object.values(ArtisanType).map(type => ({
@@ -63,11 +64,11 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
   // Determine the empty state message based on filter conditions
   const getEmptyStateMessage = () => {
     if (artisans.length === 0) {
-      return "No artisan souks available";
+      return i18n.t('artisans.noArtisansAvailable');
     } else if (filteredArtisans.length === 0 && selectedType !== 'All Types') {
-      return `No artisan souks found with type: ${selectedType}`;
+      return `${i18n.t('artisans.noArtisansType')} ${selectedType}`;
     } else {
-      return "No artisan souks found for the selected filters";
+      return i18n.t('artisans.noArtisansFilters');
     }
   };
 
@@ -76,7 +77,7 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
       {showTypeFilter && (
         <View style={styles.filtersContainer}>
           <FilterSelector
-            title="Artisan Type:"
+            title={i18n.t('artisans.artisanType')}
             options={typeOptions}
             selectedOptionId={selectedType}
             onSelectOption={(optionId) => onSelectType(optionId as ArtisanType | "All Types")}

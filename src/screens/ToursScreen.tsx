@@ -2,11 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchTours } from '../store/tourSlice';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNavBar from '../containers/BottomNavBar';
 import TourListContainer from '../containers/TourListContainer';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchTours } from '../store/tourSlice';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
 const ToursScreen: React.FC = () => {
@@ -35,7 +36,7 @@ const ToursScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Tours" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('navigation.tours')} onBack={handleBack} />
       </View>
       
       <View style={styles.content}>
@@ -44,7 +45,7 @@ const ToursScreen: React.FC = () => {
           onPress={handleAddTour}
         >
           <Ionicons name="add" size={25} color="#FFFFFF" style={{ backgroundColor: '#AE1913', borderRadius: 25, padding: 4}} />
-          <Text style={styles.addButtonText}>Add new Tour</Text>
+          <Text style={styles.addButtonText}>{i18n.t('tours.addNewTour')}</Text>
         </TouchableOpacity>
 
         <TourListContainer />

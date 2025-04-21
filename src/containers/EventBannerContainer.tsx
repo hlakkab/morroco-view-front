@@ -1,12 +1,14 @@
-import React, { Component, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ImageBackground, FlatList, Image} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import CafCupSvg   from '../assets/img/caf-cup-img.svg';
-import GitexAfrica from '../assets/img/gitex-africa.svg';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator'; 
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { Component, useState } from 'react';
+import { Dimensions, FlatList, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import CafCupSvg from '../assets/img/caf-cup-img.svg';
+import GitexAfrica from '../assets/img/gitex-africa.svg';
+import { useLanguage } from '../contexts/LanguageContext';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import i18n from '../translations/i18n';
 import { Event } from '../types/Event';
 
 // Import the JPG as a require statement instead of importing it as a component
@@ -25,7 +27,8 @@ interface EventBannerProps extends Event {
 
 
 const EventBanner: React.FC<EventBannerProps> = (props) => {
-
+  // Use language context to force re-render on language change
+  const { currentLanguage } = useLanguage();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { name, images, logo, backgroundColor, type} = props;
@@ -39,6 +42,10 @@ const EventBanner: React.FC<EventBannerProps> = (props) => {
     }
   }
 
+  // Get the appropriate text based on event type
+  const exploreButtonText = type === 'FOOTBALL' 
+    ? i18n.t('home.exploreMatches') 
+    : i18n.t('home.exploreEvent');
 
   return (
     <TouchableOpacity style={styles.banner} onPress={handlePress}>
@@ -78,7 +85,7 @@ const EventBanner: React.FC<EventBannerProps> = (props) => {
             </View>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.exploreButton} onPress={handlePress}>
-                <Text style={styles.exploreButtonText}>Explore {type === 'FOOTBALL' ? 'Matches' : 'Event'}</Text>
+                <Text style={styles.exploreButtonText}>{exploreButtonText}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -118,18 +125,17 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
     },
     {
       id: '2',
-      name: 'Gitex Africa Morocco', 
-      images: ['https://gitexafrica.com/Uploads//Posts/news/GITEX-Africa-News_07.jpg'],
-      logo: 'https://www.internationalboost.com/wp-content/uploads/2023/07/logo-gitex-africa.png',
-      backgroundColor: '#0dc2',
-      type: 'EXPO',
-      description: 'Gitex Africa Morocco is a leading technology event that brings together industry leaders, innovators, and experts to discuss the latest trends and advancements in the technology sector.',
-      website: 'https://www.gitexafrica.com',
-      fromDate: '2025-04-14',
-      toDate: '2025-04-16',
-      location: 'Morocco',
-      address: 'Morocco',
- 
+      name: 'Mawazine Festival', 
+      images: ['https://mawazine.ma/wp-content/uploads/2025/04/slider-mawazine-25.jpg'],
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_mawazine.png',
+      backgroundColor: '#00000022',
+      type: 'FESTIVAL',
+      description: 'Mawazine Festival is one of the largest music festivals in Africa, featuring international and local artists across various genres. It takes place annually in Rabat, Morocco.',
+      website: 'https://www.mawazine.ma',
+      fromDate: '2025-06-20',
+      toDate: '2025-06-28',
+      location: 'Rabat',
+      address: 'Rabat, Morocco',
     }
   ]
 
@@ -232,7 +238,7 @@ const styles = StyleSheet.create({
   exploreButtonText: {
     color: '#AE1913',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 13.5,
   },
 
   paginationContainer: {

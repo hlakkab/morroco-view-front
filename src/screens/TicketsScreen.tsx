@@ -1,25 +1,26 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  ActivityIndicator,
   SafeAreaView,
-  TextInput,
   ScrollView,
-  ActivityIndicator
+  StyleSheet,
+  Text,
+  TextInput,
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import ScreenHeader from '../components/ScreenHeader';
-import { useNavigation } from '@react-navigation/native';
-import BottomNavBar from '../containers/BottomNavBar';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../store/store';
-import { fetchTickets } from '../store/ticketSlice';
-import { Ticket } from '../types/ticket';
-import { Match } from '../types/match';
-import { HotelPickup } from '../types/transport';
 import MatchTicketCard from '../components/cards/MatchTicketCard';
 import PickupTicketCard from '../components/cards/PickupTicketCard';
+import ScreenHeader from '../components/ScreenHeader';
+import BottomNavBar from '../containers/BottomNavBar';
+import { AppDispatch, RootState } from '../store/store';
+import { fetchTickets } from '../store/ticketSlice';
+import i18n from '../translations/i18n';
+import { Match } from '../types/match';
+import { Ticket } from '../types/ticket';
+import { HotelPickup } from '../types/transport';
 
 const TicketsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -59,14 +60,14 @@ const TicketsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-      <ScreenHeader title="Tickets" onBack={() => navigation.goBack()} />
+      <ScreenHeader title={i18n.t('tickets.title')} onBack={() => navigation.goBack()} />
       </View>
 
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="search by a reference, match"
+          placeholder={i18n.t('tickets.searchPlaceholder')}
           placeholderTextColor="#999"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -85,7 +86,7 @@ const TicketsScreen: React.FC = () => {
         <ScrollView style={styles.ticketsContainer}>
           {filteredTickets.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No tickets found</Text>
+              <Text style={styles.emptyText}>{i18n.t('tickets.noTickets')}</Text>
             </View>
           ) : (
             filteredTickets.map(ticket => (

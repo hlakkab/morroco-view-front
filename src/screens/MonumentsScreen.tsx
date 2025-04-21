@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import i18n from '../translations/i18n';
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -73,7 +74,7 @@ const MonumentsScreen: React.FC = () => {
   const cityOptions = [
     { 
       id: 'all', 
-      label: 'All Cities', 
+      label: i18n.t('monuments.allCities'), 
       icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
     ...cities.map(city => ({
@@ -169,10 +170,10 @@ const MonumentsScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Monuments" />
+        <ScreenHeader title={i18n.t('monuments.title')} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#008060" />
-          <Text style={styles.loadingText}>Loading monuments...</Text>
+          <Text style={styles.loadingText}>{i18n.t('monuments.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -182,11 +183,11 @@ const MonumentsScreen: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Monuments" />
+        <ScreenHeader title={i18n.t('monuments.title')} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
           <ButtonFixe 
-            title="Try Again" 
+            title={i18n.t('monuments.tryAgain')}
             onPress={() => dispatch(fetchMonuments())} 
             style={styles.retryButton}
           />
@@ -198,11 +199,11 @@ const MonumentsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Monuments" />
+        <ScreenHeader title={i18n.t('monuments.title')} />
       </View>
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search monuments..."
+          placeholder={i18n.t('monuments.searchPlaceholder')}
           onChangeText={handleSearch}
           value={searchQuery}
           onFilterPress={handleFilterPress}
@@ -213,7 +214,7 @@ const MonumentsScreen: React.FC = () => {
             options={cityOptions}
             selectedOptionId={selectedCity}
             onSelectOption={handleCitySelect}
-            title="City :"
+            title={i18n.t('monuments.city')}
           />
         </View>
 
@@ -229,7 +230,7 @@ const MonumentsScreen: React.FC = () => {
           onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
-          title="Filter Monuments"
+          title={i18n.t('monuments.filterTitle')}
           categories={categoriesWithIcons}
         />
       </View>

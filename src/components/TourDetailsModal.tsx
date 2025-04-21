@@ -2,22 +2,22 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    PanResponder,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  PanResponder,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { RootStackParamList } from '../types/navigation';
-import { RootState } from '../store/store';
 import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import i18n from '../translations/i18n';
+import { RootStackParamList, SavedItem } from '../types/navigation';
 import { Destination, Tour } from '../types/tour';
-import { SavedItem } from '../types/navigation';
 import { getFlagUrl } from '../utils/flagResolver';
 
 interface TourDetailsModalProps {
@@ -343,12 +343,12 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
             <View style={styles.tourInfoContainer}>
               <View style={styles.tourInfoItem}>
                 <Feather name="map-pin" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{destinations.length} destinations</Text>
+                <Text style={styles.infoText}>{destinations.length} {i18n.t('tours.destinations')}</Text>
               </View>
               <View style={styles.tourInfoDivider} />
               <View style={styles.tourInfoItem}>
                 <Feather name="calendar" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{days.length} {days.length === 1 ? 'day' : 'days'}</Text>
+                <Text style={styles.infoText}>{days.length} {days.length === 1 ? i18n.t('tours.day') : i18n.t('tours.days')}</Text>
               </View>
               <View style={styles.tourInfoDivider} />
               <View style={styles.tourInfoItem}>
@@ -361,7 +361,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
 
             {/* Day selector header */}
             <View style={styles.destinationsHeader}>
-              <Text style={styles.sectionTitle}>Selected Destinations</Text>
+              <Text style={styles.sectionTitle}>{i18n.t('tours.selectedDestinations')}</Text>
               
               {/* Day Selector Dropdown */}
               <View style={styles.dayDropdownContainer}>
@@ -401,7 +401,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
               ListEmptyComponent={
                 <View style={styles.emptyListContainer}>
                   <Ionicons name="location-outline" size={48} color="#E0E0E0" />
-                  <Text style={styles.emptyListText}>No destinations for this day</Text>
+                  <Text style={styles.emptyListText}>{i18n.t('tours.noDestinationsForDay')}</Text>
                 </View>
               }
             />
@@ -412,14 +412,14 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
               onPress={handleViewMap}
             >
               <Feather name="map" size={20} style={styles.buttonIcon} />
-              <Text style={styles.mapButtonText}>View on Map</Text>
+              <Text style={styles.mapButtonText}>{i18n.t('tours.viewOnMap')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.previewButton}
               onPress={handleViewTimeline}
             >
-              <Text style={styles.previewButtonText}>Preview Timeline</Text>
+              <Text style={styles.previewButtonText}>{i18n.t('tours.previewTimeline')}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

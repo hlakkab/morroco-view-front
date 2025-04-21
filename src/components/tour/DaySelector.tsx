@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import i18n from '../../translations/i18n';
 
 interface DayStatus {
   status: 'empty' | 'selected' | 'locked';
@@ -39,7 +40,7 @@ const DaySelector: React.FC<DaySelectorProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Choose a Day:</Text>
+      <Text style={styles.title}>{i18n.t('tours.chooseDay')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollView}>
         {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
           const dayStatus = getDayStatus(day);

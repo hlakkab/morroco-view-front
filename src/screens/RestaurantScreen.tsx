@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import i18n from '../translations/i18n';
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -44,7 +45,7 @@ const RestaurantScreen: React.FC = () => {
   const categoriesWithIcons = {
     restaurant_type: {
       key: 'restaurant_type',
-      label: 'By Type',
+      label: i18n.t('restaurants.byType'),
       icon: <Ionicons name="restaurant" size={20} color="#CE1126" />
     }
   };
@@ -73,13 +74,13 @@ const RestaurantScreen: React.FC = () => {
   const cityOptions = [
     { 
       id: 'all', 
-      label: 'All Cities', 
-      icon: <Ionicons name="globe-outline" size={18} color="#CE1126" /> 
+      label: i18n.t('restaurants.allCities'), 
+      icon: <Ionicons name="globe-outline" size={18} color="#888" /> 
     },
     ...cities.map(city => ({
       id: normalizeString(city.id),
       label: city.label,
-      icon: <Ionicons name="location-outline" size={18} color="#CE1126" />
+      icon: <Ionicons name="location-outline" size={18} color="#888" />
     }))
   ];
 
@@ -174,10 +175,10 @@ const RestaurantScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Restaurants" />
+        <ScreenHeader title={i18n.t('restaurants.title')} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#008060" />
-          <Text style={styles.loadingText}>Loading restaurants...</Text>
+          <Text style={styles.loadingText}>{i18n.t('restaurants.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -187,11 +188,11 @@ const RestaurantScreen: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Restaurants" />
+        <ScreenHeader title={i18n.t('restaurants.title')} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
           <ButtonFixe 
-            title="Try Again" 
+            title={i18n.t('restaurants.tryAgain')}
             onPress={() => dispatch(fetchRestaurants())} 
             style={styles.retryButton}
           />
@@ -203,11 +204,11 @@ const RestaurantScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Restaurants" />
+        <ScreenHeader title={i18n.t('restaurants.title')} />
       </View>
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search restaurants..."
+          placeholder={i18n.t('restaurants.searchPlaceholder')}
           onChangeText={handleSearch}
           value={searchQuery}
           onFilterPress={handleFilterPress}
@@ -218,7 +219,7 @@ const RestaurantScreen: React.FC = () => {
             options={cityOptions}
             selectedOptionId={selectedCity}
             onSelectOption={handleCitySelect}
-            title="City :"
+            title={i18n.t('restaurants.city')}
           />
         </View>
 
@@ -234,7 +235,7 @@ const RestaurantScreen: React.FC = () => {
           onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
-          title="Filter Restaurants"
+          title={i18n.t('restaurants.filterTitle')}
           categories={categoriesWithIcons}
         />
       </View>

@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import i18n from '../../translations/i18n';
 
 interface DayOption {
   id: number;
@@ -109,7 +110,7 @@ const TourDayHeader: React.FC<TourDayHeaderProps> = ({
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Day</Text>
+              <Text style={styles.modalTitle}>{i18n.t('tours.selectDay')}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Feather name="x" size={24} color="#E53935" />
               </TouchableOpacity>

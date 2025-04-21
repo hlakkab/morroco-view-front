@@ -6,6 +6,7 @@ import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import ArtisanCard from '../components/cards/ArtisanCard';
 import BrokerCard from '../components/cards/BrokerCard';
 import CardItem from '../components/cards/CardItem';
+import EntertainmentSmallCard from '../components/cards/EntertainmentSmallCard';
 import MatchCard from '../components/cards/MatchCard';
 import MonumentCard from '../components/cards/MonumentCard';
 import PickupCard from '../components/cards/PickupCard';
@@ -14,12 +15,12 @@ import MatchPopup from '../components/MatchPopup';
 import { removeBookmark } from '../store/bookmarkSlice';
 import { useAppDispatch } from '../store/hooks';
 import { setCurrentMatch, setSelectedMatch } from '../store/matchSlice';
+import i18n from '../translations/i18n';
+import { Artisan } from '../types/Artisan';
 import { Bookmark } from '../types/bookmark';
 import { Match } from '../types/match';
 import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
-import EntertainmentSmallCard from '../components/cards/EntertainmentSmallCard';
-import { Artisan } from '../types/Artisan';
 
 interface BookmarkListContainerProps {
   bookmarks: Bookmark[];
@@ -70,15 +71,15 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
   // Get appropriate empty state message
   const getEmptyStateMessage = () => {
     if (!bookmarks || bookmarks.length === 0) {
-      return "You haven't saved any bookmarks yet.";
+      return i18n.t('bookmark.noBookmarksSaved');
     }
-    return "No bookmarks match your search or filter criteria.";
+    return i18n.t('bookmark.noBookmarksMatch');
   };
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading your bookmarks...</Text>
+        <Text style={styles.loadingText}>{i18n.t('bookmark.loading')}</Text>
       </View>
     );
   }
@@ -93,7 +94,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Your Bookmarks</Text>
+      <Text style={styles.sectionTitle}>{i18n.t('bookmark.yourBookmarks')}</Text>
       
       {bookmarks.length === 0 ? (
         <View style={styles.emptyContainer}>

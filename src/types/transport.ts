@@ -22,9 +22,9 @@ export interface HotelPickupState {
   hotelPickups: HotelPickup[];
   loading: boolean;
   error: string | null;
-  selectedFromCity: string;
-  selectedToCity: string;
+  selectedCity: string;
   searchQuery: string;
+  pickupDirection: 'a2h' | 'h2a'; // 'a2h' for airport to hotel, 'h2a' for hotel to airport
 }
 
 export interface HotelPickupDetailsState {

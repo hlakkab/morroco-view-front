@@ -1,7 +1,8 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Linking,
   Modal,
@@ -11,12 +12,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  ActivityIndicator
+  View
 } from 'react-native';
 import Button from '../components/Button';
 import BottomNavBar from '../containers/BottomNavBar';
 import { clearTokens, getUserInfo } from '../service/KeycloakService';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { User } from '../types/user';
 
@@ -114,7 +115,7 @@ const AccountScreen: React.FC = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#CE1126" />
-        <Text style={styles.loadingText}>Loading profile...</Text>
+        <Text style={styles.loadingText}>{i18n.t('account.loading')}</Text>
       </View>
     );
   }
@@ -122,9 +123,9 @@ const AccountScreen: React.FC = () => {
   if (!user) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Failed to load user data</Text>
+        <Text style={styles.errorText}>{i18n.t('account.failedToLoad')}</Text>
         <Button 
-          title="Retry" 
+          title={i18n.t('account.retry')} 
           onPress={fetchUserData}
           style={styles.retryButton}
         />
@@ -150,7 +151,7 @@ const AccountScreen: React.FC = () => {
           </View>
           
           <Text style={styles.welcomeText}>
-            Welcome, {user.firstName}!
+            {i18n.t('account.welcome').replace('{name}', user.firstName)}
           </Text>
           
           <TouchableOpacity 
@@ -158,7 +159,7 @@ const AccountScreen: React.FC = () => {
             onPress={handleEditProfile}
           >
             <Text style={[styles.editProfileText, editing ? styles.saveProfileText : {}]}>
-              {editing ? 'Save Profile' : 'Edit Profile'}
+              {editing ? i18n.t('account.saveProfile') : i18n.t('account.editProfile')}
             </Text>
             <Ionicons 
               name={editing ? "checkmark-circle" : "create-outline"} 
@@ -171,19 +172,19 @@ const AccountScreen: React.FC = () => {
 
         {/* Personal Information Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('account.personalInfo')}</Text>
           
           <View style={styles.infoField}>
             <View style={styles.fieldLabelContainer}>
               <Ionicons name="person-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>First Name</Text>
+              <Text style={styles.fieldLabel}>{i18n.t('account.firstName')}</Text>
             </View>
             {editing ? (
               <TextInput
                 style={styles.input}
                 value={editFirstName}
                 onChangeText={setEditFirstName}
-                placeholder="Enter first name"
+                placeholder={i18n.t('account.enterFirstName')}
               />
             ) : (
               <Text style={styles.fieldValue}>{user.firstName}</Text>
@@ -193,14 +194,14 @@ const AccountScreen: React.FC = () => {
           <View style={styles.infoField}>
             <View style={styles.fieldLabelContainer}>
               <Ionicons name="person-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>Last Name</Text>
+              <Text style={styles.fieldLabel}>{i18n.t('account.lastName')}</Text>
             </View>
             {editing ? (
               <TextInput
                 style={styles.input}
                 value={editLastName}
                 onChangeText={setEditLastName}
-                placeholder="Enter last name"
+                placeholder={i18n.t('account.enterLastName')}
               />
             ) : (
               <Text style={styles.fieldValue}>{user.lastName}</Text>
@@ -210,14 +211,14 @@ const AccountScreen: React.FC = () => {
           <View style={styles.infoField}>
             <View style={styles.fieldLabelContainer}>
               <Ionicons name="mail-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>Email</Text>
+              <Text style={styles.fieldLabel}>{i18n.t('account.email')}</Text>
             </View>
             {editing ? (
               <TextInput
                 style={styles.input}
                 value={editEmail}
                 onChangeText={setEditEmail}
-                placeholder="Enter email"
+                placeholder={i18n.t('account.enterEmail')}
                 keyboardType="email-address"
               />
             ) : (
@@ -228,19 +229,19 @@ const AccountScreen: React.FC = () => {
           <View style={styles.infoField}>
             <View style={styles.fieldLabelContainer}>
               <Ionicons name="call-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>Phone Number</Text>
+              <Text style={styles.fieldLabel}>{i18n.t('account.phoneNumber')}</Text>
             </View>
             {editing ? (
               <TextInput
                 style={styles.input}
                 value={editPhoneNumber}
                 onChangeText={setEditPhoneNumber}
-                placeholder="Enter phone number"
+                placeholder={i18n.t('account.enterPhoneNumber')}
                 keyboardType="phone-pad"
               />
             ) : (
               <Text style={styles.fieldValue}>
-                {user.phoneNumber ? user.phoneNumber : 'Not provided'}
+                {user.phoneNumber ? user.phoneNumber : i18n.t('account.notProvided')}
               </Text>
             )}
           </View>
@@ -248,12 +249,12 @@ const AccountScreen: React.FC = () => {
 
         {/* Support Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('account.support')}</Text>
           
           <TouchableOpacity style={styles.supportItem} onPress={handleContactPress}>
             <View style={styles.supportItemLeft}>
               <MaterialIcons name="support-agent" size={24} color="#CE1126" />
-              <Text style={styles.supportItemText}>Contact Support</Text>
+              <Text style={styles.supportItemText}>{i18n.t('account.contactSupport')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color="#666" />
           </TouchableOpacity>
@@ -278,11 +279,11 @@ const AccountScreen: React.FC = () => {
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={24} color="#fff" style={styles.logoutIcon} />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{i18n.t('account.logout')}</Text>
         </TouchableOpacity>
         
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Morocco View v1.0.0</Text>
+          <Text style={styles.versionText}>{i18n.t('account.version')}</Text>
         </View>
         
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
@@ -299,14 +300,14 @@ const AccountScreen: React.FC = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Contact Support</Text>
+              <Text style={styles.modalTitle}>{i18n.t('account.contactSupport')}</Text>
               <TouchableOpacity onPress={handleCloseContactModal}>
                 <Ionicons name="close" size={24} color="#000" />
               </TouchableOpacity>
             </View>
             
             <Text style={styles.modalDescription}>
-              Our support team is here to help! Choose your preferred way to contact us:
+              {i18n.t('account.supportTeamHelp')}
             </Text>
             
             <View style={styles.contactOptions}>
@@ -314,29 +315,29 @@ const AccountScreen: React.FC = () => {
                 <View style={[styles.contactIconContainer, { backgroundColor: '#E8F5F0' }]}>
                   <Ionicons name="call" size={28} color="#008060" />
                 </View>
-                <Text style={styles.contactOptionText}>Call</Text>
-                <Text style={styles.contactOptionSubtext}>Talk to an agent</Text>
+                <Text style={styles.contactOptionText}>{i18n.t('account.call')}</Text>
+                <Text style={styles.contactOptionSubtext}>{i18n.t('account.talkToAgent')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.contactOption} onPress={handleEmail}>
                 <View style={[styles.contactIconContainer, { backgroundColor: '#FFF3E0' }]}>
                   <Ionicons name="mail" size={28} color="#FF9800" />
                 </View>
-                <Text style={styles.contactOptionText}>Email</Text>
-                <Text style={styles.contactOptionSubtext}>support@moroccoview.ma</Text>
+                <Text style={styles.contactOptionText}>{i18n.t('account.email')}</Text>
+                <Text style={styles.contactOptionSubtext}>{i18n.t('account.emailSupport')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.contactOption} onPress={handleWhatsApp}>
                 <View style={[styles.contactIconContainer, { backgroundColor: '#E8F5E9' }]}>
                   <Ionicons name="logo-whatsapp" size={28} color="#25D366" />
                 </View>
-                <Text style={styles.contactOptionText}>WhatsApp</Text>
-                <Text style={styles.contactOptionSubtext}>Quick chat support</Text>
+                <Text style={styles.contactOptionText}>{i18n.t('account.whatsapp')}</Text>
+                <Text style={styles.contactOptionSubtext}>{i18n.t('account.quickChatSupport')}</Text>
               </TouchableOpacity>
             </View>
             
             <Button 
-              title="Close" 
+              title={i18n.t('account.close')} 
               style={styles.closeButton}
               onPress={handleCloseContactModal}
             />

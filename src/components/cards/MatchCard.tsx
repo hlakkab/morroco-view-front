@@ -1,7 +1,8 @@
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useLanguage } from "../../contexts/LanguageContext";
+import i18n from "../../translations/i18n";
 import { Match } from "../../types/match";
 import { getFlagUrl } from "../../utils/flagResolver";
 
@@ -17,6 +18,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   handleSaveMatch
 }) => {
   const isSaved = match.saved
+  const { currentLanguage } = useLanguage();
 
   const date = new Date(match.date);
   // convert date to MMM DD, YYYY,  HH:MM
@@ -35,7 +37,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       <View style={styles.teamsImageContainer}>
         
         <Image source={{ uri: getFlagUrl(match.homeTeam) }} style={styles.teamFlag} />
-        <Text style={styles.vsText}>VS</Text>
+        <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
         <Image source={{ uri: getFlagUrl(match.awayTeam) }} style={styles.teamFlag} />
           
       </View>
@@ -45,7 +47,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         <View style={styles.tagsRow}>
           <View style={styles.mainTagContainer}>
             <Ionicons name="football-outline" size={14} color="#0000FF" />
-            <Text style={styles.mainTagText}> Match </Text>
+            <Text style={styles.mainTagText}> {i18n.t('matches.match')} </Text>
           </View>
 
           

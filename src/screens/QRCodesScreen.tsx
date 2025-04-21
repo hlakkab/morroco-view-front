@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, ActivityIndicator, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 // Import components and containers
+import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
-import QRCodesContainer from '../containers/QRCodesContainer';
 import AddQRCodeModal from '../containers/AddQRCodeModal';
-import Button from '../components/Button';
+import QRCodesContainer from '../containers/QRCodesContainer';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import QRCode from '../types/qrcode';
 
@@ -65,13 +65,13 @@ const QRCodesScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header with back button and title */}
       <View style={styles.headerContainer}>
-        <ScreenHeader title="QR Codes" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('qrcode.title')} onBack={handleBack} />
       </View>
 
       {/* Search bar component */}
       <View style={styles.content}>
         <SearchBar 
-          placeholder="Search for by title ..."
+          placeholder={i18n.t('qrcode.search')}
           onChangeText={handleSearch}
           onFilterPress={handleFilterPress}
           value={searchQuery}
@@ -97,7 +97,7 @@ const QRCodesScreen: React.FC = () => {
 
       {/* Footer with add button */}
       <View style={styles.footer}>
-        <Button title="Add A QR Code" onPress={handleAddQrCode} />
+        <Button title={i18n.t('qrcode.addQrCode')} onPress={handleAddQrCode} />
       </View>
 
       {/* Add QR Code Modal */}

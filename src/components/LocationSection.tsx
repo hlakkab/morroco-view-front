@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import i18n from '../translations/i18n';
 
 interface LocationSectionProps {
   address: string;
   mapUrl?: string;
+  title?: string;
 }
 
-const LocationSection: React.FC<LocationSectionProps> = ({ address, mapUrl }) => {
+const LocationSection: React.FC<LocationSectionProps> = ({ address, mapUrl, title = i18n.t('restaurants.location') }) => {
   const handleMapPress = () => {
     if (mapUrl) {
       Linking.openURL(mapUrl).catch(err => {
@@ -17,7 +19,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({ address, mapUrl }) =>
 
   return (
     <View style={styles.locationSection}>
-      <Text style={styles.locationTitle}>Location</Text>
+      <Text style={styles.locationTitle}>{title}</Text>
       <View style={styles.locationContainer}>
         <TouchableOpacity 
           onPress={handleMapPress}

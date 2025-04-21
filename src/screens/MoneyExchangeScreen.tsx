@@ -5,6 +5,7 @@ import { Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, Touchable
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import i18n from '../translations/i18n';
 
 // Define a type for currency codes
 type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY' | 'CHF';
@@ -107,17 +108,17 @@ const MoneyExchangeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Money Exchange" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('exchange.title')} onBack={handleBack} />
       </View>
       
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
           <View style={styles.converterCard}>
-            <Text style={styles.converterTitle}>Currency Converter</Text>
+            <Text style={styles.converterTitle}>{i18n.t('exchange.converter')}</Text>
             
             <View style={styles.inputContainer}>
               <View style={styles.amountContainer}>
-                <Text style={styles.inputLabel}>Amount</Text>
+                <Text style={styles.inputLabel}>{i18n.t('exchange.amount')}</Text>
                 <View style={styles.amountInputWrapper}>
                   <Text style={styles.currencySymbol}>{selectedCurrency.symbol}</Text>
                   <TextInput
@@ -125,13 +126,13 @@ const MoneyExchangeScreen: React.FC = () => {
                     value={amount}
                     onChangeText={handleAmountChange}
                     keyboardType="numeric"
-                    placeholder="Enter amount"
+                    placeholder={i18n.t('exchange.amount')}
                   />
                 </View>
               </View>
               
               <View style={styles.currencyContainer}>
-                <Text style={styles.inputLabel}>Currency</Text>
+                <Text style={styles.inputLabel}>{i18n.t('exchange.currency')}</Text>
                 <TouchableOpacity 
                   style={styles.currencySelector}
                   onPress={() => setShowCurrencyPicker(true)}
@@ -154,7 +155,7 @@ const MoneyExchangeScreen: React.FC = () => {
                   <TouchableWithoutFeedback>
                     <View style={styles.modalContent}>
                       <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Select Currency</Text>
+                        <Text style={styles.modalTitle}>{i18n.t('exchange.selectCurrency')}</Text>
                         <TouchableOpacity onPress={() => setShowCurrencyPicker(false)}>
                           <Ionicons name="close" size={24} color="#333" />
                         </TouchableOpacity>
@@ -185,17 +186,17 @@ const MoneyExchangeScreen: React.FC = () => {
             </Modal>
             
             <View style={styles.resultContainer}>
-              <Text style={styles.resultLabel}>You'll get approximately:</Text>
+              <Text style={styles.resultLabel}>{i18n.t('exchange.youllGet')}</Text>
               <Text style={styles.resultValue}>
                 {exchangeResults.broker.toFixed(2)} <Text style={styles.madText}>MAD</Text>
               </Text>
               <Text style={styles.resultNote}>
-                *Rates are indicative and may vary slightly at the time of exchange
+                {i18n.t('exchange.ratesDisclaimer')}
               </Text>
             </View>
           </View>
           
-          <Text style={styles.sectionTitle}>Compare Exchange Options</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('exchange.compareOptions')}</Text>
           
           <View style={styles.optionsContainer}>
             {/* Airport Exchange Option */}
@@ -204,15 +205,15 @@ const MoneyExchangeScreen: React.FC = () => {
                 <View style={styles.optionIconContainer}>
                   <Ionicons name="airplane" size={20} color="#fff" />
                 </View>
-                <Text style={styles.optionTitle}>Airport Exchange</Text>
+                <Text style={styles.optionTitle}>{i18n.t('exchange.airport')}</Text>
               </View>
               <View style={styles.optionContent}>
-                <Text style={styles.optionRate}>Rate: {EXCHANGE_RATES[selectedCurrency.code].airport.toFixed(2)} MAD</Text>
+                <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].airport.toFixed(2)} MAD</Text>
                 <Text style={styles.optionAmount}>
-                  You get: <Text style={styles.optionAmountValue}>{exchangeResults.airport.toFixed(2)} MAD</Text>
+                  {i18n.t('exchange.youGet')} <Text style={styles.optionAmountValue}>{exchangeResults.airport.toFixed(2)} MAD</Text>
                 </Text>
                 <View style={styles.optionBadge}>
-                  <Text style={styles.optionBadgeText}>Convenient but Expensive</Text>
+                  <Text style={styles.optionBadgeText}>{i18n.t('exchange.airportBadge')}</Text>
                 </View>
               </View>
             </View>
@@ -223,15 +224,15 @@ const MoneyExchangeScreen: React.FC = () => {
                 <View style={styles.optionIconContainer}>
                   <Ionicons name="business" size={20} color="#fff" />
                 </View>
-                <Text style={styles.optionTitle}>Bank Exchange</Text>
+                <Text style={styles.optionTitle}>{i18n.t('exchange.bank')}</Text>
               </View>
               <View style={styles.optionContent}>
-                <Text style={styles.optionRate}>Rate: {EXCHANGE_RATES[selectedCurrency.code].bank.toFixed(2)} MAD</Text>
+                <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].bank.toFixed(2)} MAD</Text>
                 <Text style={styles.optionAmount}>
-                  You get: <Text style={styles.optionAmountValue}>{exchangeResults.bank.toFixed(2)} MAD</Text>
+                  {i18n.t('exchange.youGet')} <Text style={styles.optionAmountValue}>{exchangeResults.bank.toFixed(2)} MAD</Text>
                 </Text>
                 <View style={styles.optionBadge}>
-                  <Text style={styles.optionBadgeText}>Secure but Time-Consuming</Text>
+                  <Text style={styles.optionBadgeText}>{i18n.t('exchange.bankBadge')}</Text>
                 </View>
               </View>
             </View>
@@ -239,30 +240,30 @@ const MoneyExchangeScreen: React.FC = () => {
             {/* Broker Exchange Option - Highlighted */}
             <View style={styles.exchangeOptionHighlighted}>
               <View style={styles.bestDealBadge}>
-                <Text style={styles.bestDealText}>BEST DEAL</Text>
+                <Text style={styles.bestDealText}>{i18n.t('exchange.bestDeal')}</Text>
               </View>
               
               <View style={styles.optionHeader}>
                 <View style={[styles.optionIconContainer, styles.brokerIconContainer]}>
                   <Ionicons name="cash-outline" size={20} color="#fff" />
                 </View>
-                <Text style={styles.optionTitle}>Broker Exchange</Text>
+                <Text style={styles.optionTitle}>{i18n.t('exchange.broker')}</Text>
               </View>
               
               <View style={styles.optionContent}>
-                <Text style={styles.optionRate}>Rate: {EXCHANGE_RATES[selectedCurrency.code].broker.toFixed(2)} MAD</Text>
+                <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].broker.toFixed(2)} MAD</Text>
                 <Text style={styles.optionAmount}>
-                  You get: <Text style={styles.optionAmountHighlightedValue}>{exchangeResults.broker.toFixed(2)} MAD</Text>
+                  {i18n.t('exchange.youGet')} <Text style={styles.optionAmountHighlightedValue}>{exchangeResults.broker.toFixed(2)} MAD</Text>
                 </Text>
                 
                 <View style={styles.savingsContainer}>
                   <Ionicons name="trending-up" size={18} color="#008060" />
                   <View style={styles.savingsTextContainer}>
                     <Text style={styles.savingsText}>
-                      Save <Text style={styles.savingsValue}>{exchangeResults.savingsPercentage.toFixed(1)}%</Text> compared to airport rates
+                      {i18n.t('exchange.saveComparedTo').replace('{percent}', exchangeResults.savingsPercentage.toFixed(1))}
                     </Text>
                     <Text style={styles.savingsText}>
-                      That's <Text style={styles.savingsValue}>{exchangeResults.savings.toFixed(2)} MAD</Text> more in your pocket!
+                      {i18n.t('exchange.moreInPocket').replace('{amount}', exchangeResults.savings.toFixed(2))}
                     </Text>
                   </View>
                 </View>
@@ -270,20 +271,20 @@ const MoneyExchangeScreen: React.FC = () => {
                 <View style={styles.brokerBenefits}>
                   <View style={styles.benefitItem}>
                     <Ionicons name="checkmark-circle" size={16} color="#008060" />
-                    <Text style={styles.benefitText}>Better rates than banks & airports</Text>
+                    <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit1')}</Text>
                   </View>
                   <View style={styles.benefitItem}>
                     <Ionicons name="checkmark-circle" size={16} color="#008060" />
-                    <Text style={styles.benefitText}>No hidden fees or commissions</Text>
+                    <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit2')}</Text>
                   </View>
                   <View style={styles.benefitItem}>
                     <Ionicons name="checkmark-circle" size={16} color="#008060" />
-                    <Text style={styles.benefitText}>Trusted local exchange partners</Text>
+                    <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit3')}</Text>
                   </View>
                 </View>
                 
                 <Button 
-                  title="View Broker Locations" 
+                  title={i18n.t('exchange.viewBrokers')}
                   icon={<Ionicons name="location" size={18} color="#fff" style={{ marginRight: 8 }} />}
                   style={styles.brokerButton}
                   onPress={handleViewBrokers}

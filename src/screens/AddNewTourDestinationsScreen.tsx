@@ -1,17 +1,18 @@
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, SafeAreaView, StyleSheet, View, ActivityIndicator, Text } from 'react-native';
+import { ActivityIndicator, Alert, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
 import SearchBar from '../components/SearchBar';
 import StepProgress from '../components/StepProgress';
 import CitySelector from '../components/tour/CitySelector';
 import DaySelector from '../components/tour/DaySelector';
 import EmptyCity from '../components/tour/EmptyCity';
-import ItemList from '../containers/tour/ItemList';
-import { RootStackParamList } from '../types/navigation';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
+import ItemList from '../containers/tour/ItemList';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchBookmarksAsItems, setTourDestinations, TourItem } from '../store/tourSlice';
+import i18n from '../translations/i18n';
+import { RootStackParamList } from '../types/navigation';
 
 // Calculate the number of days between start and end dates (inclusive)
 export const calculateDaysInclusive = (startDate: string, endDate: string): number => {
@@ -209,9 +210,9 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   }, [availableItems]);
 
   const steps = [
-    { id: '01', label: 'Basic infos' },
-    { id: '02', label: 'Destinations' },
-    { id: '03', label: 'Organize' },
+    { id: '01', label: i18n.t('tours.basicInfos') },
+    { id: '02', label: i18n.t('tours.destinations') },
+    { id: '03', label: i18n.t('tours.organize') },
   ];
 
   useEffect(() => {
@@ -289,15 +290,15 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     // Check if there are already items selected for this day
     if (selectedItemsByDay[selectedDay]?.length > 0 && selectedCities[selectedDay] !== city) {
       Alert.alert(
-        "Change City?",
-        `Changing the city will remove all selected items for Day ${selectedDay}. Do you want to continue?`,
+        i18n.t('common.filter'),
+        i18n.t('tours.changeCityConfirmation', { day: selectedDay }),
         [
           {
-            text: "Cancel",
+            text: i18n.t('common.cancel'),
             style: "cancel"
           },
           {
-            text: "Change City",
+            text: i18n.t('tours.changeCity'),
             onPress: () => {
               setSelectedCities(prev => ({
                 ...prev,
@@ -327,8 +328,8 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     
     if (totalSelectedCount === 0) {
       Alert.alert(
-        "No Destinations Selected",
-        "Please select at least one destination for your tour."
+        i18n.t('tours.noDestinationsSelected'),
+        i18n.t('tours.pleaseSelectDestination')
       );
       return;
     }
@@ -395,7 +396,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TourFlowHeader title="Add New Tour" />
+        <TourFlowHeader title={i18n.t('tours.addNewTour')} />
       </View>
       
       <View style={styles.stepProgressContainer}>
@@ -437,12 +438,12 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#E53935" />
-            <Text style={styles.loadingText}>Loading destinations...</Text>
+            <Text style={styles.loadingText}>{i18n.t('tours.loadingDestinations')}</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Error loading destinations</Text>
-            <Button title="Retry" onPress={() => dispatch(fetchBookmarksAsItems())} />
+            <Text style={styles.errorText}>{i18n.t('tours.errorLoadingDestinations')}</Text>
+            <Button title={i18n.t('tours.retry')} onPress={() => dispatch(fetchBookmarksAsItems())} />
           </View>
         ) : (
           /* Item List or Empty State */
@@ -462,7 +463,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
 
       <View style={styles.footer}>
         <Button 
-          title="Next"
+          title={i18n.t('common.next')}
           onPress={handleNext}
           disabled={totalSelectedCount === 0 || loading}
         />

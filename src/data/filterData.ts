@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FilterCategory, FilterOption } from '../components/FilterPopup';
+import i18n from '../translations/i18n';
 import { ArtisanType } from '../types/Artisan';
 import { MonumentType } from '../types/Monument';
 
@@ -189,11 +190,11 @@ export const createArtisanFilterOptions = (): FilterOption[] => {
 export const matchFilterCategories: Record<string, FilterCategory> = {
     city: { 
         key: 'city', 
-        label: 'By City'
+        label: i18n.t('filters.byCity')
     },
     stadium: { 
         key: 'stadium', 
-        label: 'By Stadium'
+        label: i18n.t('filters.byStadium')
     }
 };
 
@@ -204,7 +205,7 @@ export const matchFilterCategories: Record<string, FilterCategory> = {
 export const pickupFilterCategories: Record<string, FilterCategory> = {
     pickup_type: { 
         key: 'pickup_type', 
-        label: 'By Pickup Type'
+        label: i18n.t('filters.byType')
     }
 };
 
@@ -215,11 +216,11 @@ export const pickupFilterCategories: Record<string, FilterCategory> = {
 export const brokerFilterCategories: Record<string, FilterCategory> = {
     broker_city: {
         key: 'broker_city',
-        label: 'By City'
+        label: i18n.t('filters.byCity')
     },
     broker_type: {
         key: 'broker_type',
-        label: 'By Service Type'
+        label: i18n.t('filters.byType')
     }
 };
 
@@ -230,11 +231,11 @@ export const brokerFilterCategories: Record<string, FilterCategory> = {
 export const monumentFilterCategories: Record<string, FilterCategory> = {
     monument_city: {
         key: 'monument_city',
-        label: 'By City'
+        label: i18n.t('filters.byCity')
     },
     monument_type: {
         key: 'monument_type',
-        label: 'By Type'
+        label: i18n.t('filters.byType')
     }
 };
 
@@ -245,10 +246,10 @@ export const monumentFilterCategories: Record<string, FilterCategory> = {
 export const artisanFilterCategories: Record<string, FilterCategory> = {
     artisan_city: {
         key: 'artisan_city',
-        label: 'By City'
+        label: i18n.t('filters.byCity')
     },
     artisan_type: {
         key: 'artisan_type',
-        label: 'By Type'
+        label: i18n.t('filters.byType')
     }
 }; 

@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
+import i18n from '../translations/i18n';
 
 // Import your SVG icons - replace these paths with your actual icon paths
-import HomeIcon from '../assets/navbarIcons/home-icon.svg';
+import AccountIcon from '../assets/navbarIcons/account-icon.svg';
 import BookmarkIcon from '../assets/navbarIcons/bookmark-icon.svg';
+import HomeIcon from '../assets/navbarIcons/home-icon.svg';
 import TicketsIcon from '../assets/navbarIcons/tickets-icon.svg';
 import ToursIcon from '../assets/navbarIcons/tours-icon.svg';
-import AccountIcon from '../assets/navbarIcons/account-icon.svg';
 
 const { width } = Dimensions.get('window');
 
@@ -43,6 +45,8 @@ interface BottomNavBarProps {
 }
 
 const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) => {
+  const { currentLanguage } = useLanguage();
+  
   return (
     <View style={styles.container}>
       <NavItem 
@@ -50,7 +54,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) 
         fill={activeRoute === 'Home' ? '#AE1913' : '#666'} 
         stroke={activeRoute === 'Home' ? '#AE1913' : '#666'} 
         color={activeRoute === 'Home' ? '#AE1913' : '#666'} />}
-        label="Home"
+        label={i18n.t('navigation.home')}
         isActive={activeRoute === 'Home'}
         onPress={() => onNavigate('Home')}
       />
@@ -59,7 +63,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) 
         fill={activeRoute === 'Bookmark' ? '#AE1913' : '#fff'}
         stroke={activeRoute === 'Bookmark' ? '#AE1913' : '#fff'}
         color={activeRoute === 'Bookmark' ? '#AE1913' : '#fff'} />}
-        label="Bookmark"
+        label={i18n.t('navigation.bookmark')}
         isActive={activeRoute === 'Bookmark'}
         onPress={() => onNavigate('Bookmark')}
       />
@@ -68,7 +72,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) 
         fill={activeRoute === 'Tickets' ? '#AE1913' : '#fff'}
         stroke={activeRoute === 'Tickets' ? '#AE1913' : '#fff'}
         color={activeRoute === 'Tickets' ? '#AE1913' : '#fff'} />}
-        label="Tickets"
+        label={i18n.t('navigation.tickets')}
         isActive={activeRoute === 'Tickets'}
         onPress={() => onNavigate('Tickets')}
       />
@@ -77,7 +81,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) 
         fill={activeRoute === 'Tours' ? '#AE1913' : '#fff'}
         stroke={activeRoute === 'Tours' ? '#AE1913' : '#fff'}
         color={activeRoute === 'Tours' ? '#AE1913' : '#fff'} />}
-        label="Tours"
+        label={i18n.t('navigation.tours')}
         isActive={activeRoute === 'Tours'}
         onPress={() => onNavigate('Tours')}
       />
@@ -86,7 +90,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) 
         fill={activeRoute === 'Account' ? '#AE1913' : '#fff'}
         stroke={activeRoute === 'Account' ? '#AE1913' : '#fff'}
         color={activeRoute === 'Account' ? '#AE1913' : '#fff'} />}
-        label="Account"
+        label={i18n.t('navigation.account')}
         isActive={activeRoute === 'Account'}
         onPress={() => onNavigate('Account')}
       />

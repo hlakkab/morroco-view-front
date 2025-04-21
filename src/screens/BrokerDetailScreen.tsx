@@ -2,13 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
 import { Dimensions, FlatList, Image, Linking, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import AboutSection from '../components/AboutSection';        
+import AboutSection from '../components/AboutSection';
 import Button from '../components/Button';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
-import { Broker } from '../types/exchange-broker';
 import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import i18n from '../translations/i18n';
+import { Broker } from '../types/exchange-broker';
 
 // Enhanced interface to align with transport card data structure
 interface RouteParams {
@@ -146,11 +147,11 @@ const BrokerDetailScreen: React.FC = () => {
         <View style={styles.content}>
           <View style={styles.brokerTypeContainer}>
             <Text style={styles.brokerType}>
-              {brokerDetails.isFeatured ? 'Featured Broker' : 'Broker'}
+              {brokerDetails.isFeatured ? i18n.t('broker.featuredBroker') : i18n.t('broker.broker')}
             </Text>
           </View>
 
-          <Text style={styles.sectionTitle}>Services</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('broker.services')}</Text>
           
           <View style={styles.servicesContainer}>
             {(brokerDetails.services && brokerDetails.services.length > 0 ? brokerDetails.services : [
@@ -188,8 +189,8 @@ const BrokerDetailScreen: React.FC = () => {
           </View>
 
           <AboutSection 
-            title="About" 
-            text={brokerDetails.description || 'No information available for this broker.'} 
+            title={i18n.t('broker.about')} 
+            text={brokerDetails.description || i18n.t('broker.noInformation')} 
           />
 
           <LocationSection address={brokerDetails.address} mapUrl={brokerDetails.mapId} />
@@ -198,7 +199,7 @@ const BrokerDetailScreen: React.FC = () => {
 
       <View style={styles.footer}>
         <Button 
-          title="Contact Broker" 
+          title={i18n.t('broker.contactBroker')}
           style={styles.contactButton}
           icon={<Ionicons name="call" size={20} color="#fff" style={{ marginRight: 8 }} />}
           onPress={handleContactPress}
@@ -214,7 +215,9 @@ const BrokerDetailScreen: React.FC = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Contact {brokerDetails.name}</Text>
+              <Text style={styles.modalTitle}>
+                {i18n.t('broker.contact')} {brokerDetails.name}
+              </Text>
               <TouchableOpacity onPress={handleCloseContactModal}>
                 <Ionicons name="close" size={24} color="#000" />
               </TouchableOpacity>
@@ -223,22 +226,22 @@ const BrokerDetailScreen: React.FC = () => {
             <View style={styles.contactOptions}>
               <TouchableOpacity style={styles.contactOption} onPress={handlePhoneCall}>
                 <Ionicons name="call" size={24} color="#008060" />
-                <Text style={styles.contactOptionText}>Call</Text>
+                <Text style={styles.contactOptionText}>{i18n.t('broker.call')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.contactOption} onPress={handleEmail}>
                 <Ionicons name="mail" size={24} color="#008060" />
-                <Text style={styles.contactOptionText}>Email</Text>
+                <Text style={styles.contactOptionText}>{i18n.t('broker.email')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.contactOption} onPress={handleWhatsApp}>
                 <Ionicons name="logo-whatsapp" size={24} color="#008060" />
-                <Text style={styles.contactOptionText}>WhatsApp</Text>
+                <Text style={styles.contactOptionText}>{i18n.t('broker.whatsapp')}</Text>
               </TouchableOpacity>
             </View>
             
             <Button 
-              title="Close" 
+              title={i18n.t('common.close')}
               style={styles.closeButton}
               onPress={handleCloseContactModal}
             />

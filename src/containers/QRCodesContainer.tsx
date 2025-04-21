@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import QRCodeCard from '../components/QRCodeCard';
 import QRCodeModal from '../components/QRCodeModal';
-import QRCode from '../types/qrcode'; 
 import { useAppSelector } from '../hooks/reduxHooks';
+import i18n from '../translations/i18n';
+import QRCode from '../types/qrcode';
 
 interface QRCodesContainerProps {
   searchQuery?: string;
