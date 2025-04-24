@@ -19,6 +19,7 @@ import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
 import { Destination, Tour } from '../types/tour';
 import { getFlagUrl } from '../utils/flagResolver';
+import { mapTourForDetailsModal } from '../utils/tourMapper';
 
 interface TourDetailsModalProps {
   visible: boolean;
@@ -113,24 +114,14 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const handleViewTimeline = () => {
     if (!currentTour) return;
     
-    const destinations = currentTour.destinations as Destination[];
+    const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
     
-    // Group destinations by date
-    const destinationsByDate = destinations.reduce((acc, dest) => {
-      const date = dest.date || 'unknown';
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(dest);
-      return acc;
-    }, {} as Record<string, Destination[]>);
-
     // Convert to the format expected by AddNewTourOrganizeScreen
     const selectedItemsByDay: Record<number, string[]> = {};
     const cities: Record<number, string> = {};
     const allSavedItems: SavedItem[] = [];
 
-    Object.entries(destinationsByDate).forEach(([date, dayDestinations], index) => {
+    Object.entries(mappedData.destinationsByDate).forEach(([date, dayDestinations], index) => {
       const dayNumber = index + 1;
       selectedItemsByDay[dayNumber] = dayDestinations.map(d => d.id);
       cities[dayNumber] = dayDestinations[0]?.city || 'Unknown';
@@ -139,7 +130,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
       dayDestinations.forEach(dest => {
         allSavedItems.push({
           ...dest,
-          coordinate: {
+          coordinate: dest.coordinate || {
             latitude: Number(dest.coordinates?.split(',')[0]) || 0,
             longitude: Number(dest.coordinates?.split(',')[1]) || 0
           }
@@ -164,45 +155,10 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const handleViewMap = () => {
     if (!currentTour) return;
     
-    const destinations = currentTour.destinations as Destination[];
+    const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
     
-    // Group destinations by date
-    const destinationsByDate = destinations.reduce((acc, dest) => {
-      const date = dest.date || 'unknown';
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(dest);
-      return acc;
-    }, {} as Record<string, Destination[]>);
-
-    // Convert destinations to SavedItems with coordinates and day information
-    const allSavedItems: SavedItem[] = destinations.map(dest => {
-      const date = dest.date || 'unknown';
-      const dayNumber = Object.keys(destinationsByDate).indexOf(date) + 1;
-      
-      return {
-        ...dest,
-        day: dayNumber,
-        coordinate: {
-          latitude: Number(dest.coordinates?.split(',')[0]) || 0,
-          longitude: Number(dest.coordinates?.split(',')[1]) || 0
-        }
-      };
-    });
-
-    // Sort items by day to ensure proper order
-    allSavedItems.sort((a, b) => (a.day || 1) - (b.day || 1));
-
     onClose();
-    navigation.navigate('TourMapScreen', {
-      tourItems: allSavedItems,
-      title: currentTour.title,
-      singleDayView: true,
-      selectedDay: 1,
-      totalDays: Object.keys(destinationsByDate).length,
-      destinationsByDate
-    });
+    navigation.navigate('TourMapScreen', mappedData);
   };
 
   // Select a day and close the picker
@@ -234,8 +190,15 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const formatDateRange = (startDate: string, endDate: string) => {
     if (!startDate || !endDate) return '';
     try {
+      // Handle both YYYY/MM/DD and YYYY-MM-DD formats
       const start = new Date(startDate.replace(/\//g, '-'));
       const end = new Date(endDate.replace(/\//g, '-'));
+      
+      // Check if dates are valid
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return `${startDate} - ${endDate}`;
+      }
+      
       return `${formatDate(start)} - ${formatDate(end)}`;
     } catch (e) {
       console.error("Error formatting date range:", e);
@@ -246,9 +209,22 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   // Function to get date for a specific day
   const getDateForDay = (day: number) => {
     if (!currentTour?.from) return '';
-    const date = new Date(currentTour.from.replace(/\//g, '-'));
-    date.setDate(date.getDate() + (day - 1));
-    return formatDate(date);
+    try {
+      // Handle both YYYY/MM/DD and YYYY-MM-DD formats
+      const startDate = new Date(currentTour.from.replace(/\//g, '-'));
+      
+      // Check if date is valid
+      if (isNaN(startDate.getTime())) {
+        return `Day ${day}`;
+      }
+      
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + (day - 1));
+      return formatDate(date);
+    } catch (e) {
+      console.error("Error getting date for day:", e);
+      return `Day ${day}`;
+    }
   };
 
   // Render destination item in list
