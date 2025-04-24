@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import i18n from '../translations/i18n';
 
 interface AboutSectionProps {
   title?: string; // Titre optionnel
@@ -51,7 +52,7 @@ const AboutSection: React.FC<AboutSectionProps> = ({
           style={styles.viewMoreText}
           onPress={() => setIsExpanded(!isExpanded)}
         >
-          {isExpanded ? 'View Less' : 'View More'}
+          {isExpanded ? i18n.t('aboutSec.viewLess') : i18n.t('aboutSec.viewMore')}
         </Text>
       )}
     </View>

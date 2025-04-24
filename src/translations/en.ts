@@ -50,6 +50,10 @@ export default {
     entertainment: 'Entertainment',
     artisans: 'Artisans',
   },
+  aboutSec: {
+    viewLess: 'View less',
+    viewMore: 'View more'
+  },
   matches: {
     africaCupOfNations: 'Africa Cup of Nations',
     searchMatches: 'Search matches...',
