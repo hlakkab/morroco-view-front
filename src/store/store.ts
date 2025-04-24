@@ -11,6 +11,7 @@ import qrCodeReducer from "./qrCodeSlice";
 import restaurantReducer from './restaurantSlice';
 import ticketReducer from './ticketSlice';
 import tourReducer from './tourSlice';
+import esimReducer from './slices/esimSlice';
 
 const store = configureStore({
   reducer: {
@@ -25,7 +26,8 @@ const store = configureStore({
     restaurant: restaurantReducer,
     monument: monumentReducer,
     artisan: artisanReducer,
-    tour: tourReducer
+    tour: tourReducer,
+    esim: esimReducer
   },
   middleware: (getDefaultMiddleware) => 
     getDefaultMiddleware({

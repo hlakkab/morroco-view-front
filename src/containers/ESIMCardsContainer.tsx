@@ -1,45 +1,26 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import QRCodeLargeSvg from '../assets/serviceIcons/qrcode-large.svg'; // Ensure this exists
 import ESIMCard from '../components/ESIMCard';
 import QRCodeModal from '../components/QRCodeModal';
 import i18n from '../translations/i18n';
+import Esim from '../types/esim';
 
 // SVG imports for different providers
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
 import OrangeSvg from '../assets/serviceIcons/orange-img.svg';
 
-// Sample data for multiple eSIM cards
-const esimData = [
-  {
-    id: '1',
-    logo: <InwiSvg width={70} height={50} />,
-    name: 'eSIM Inwi',
-    phoneNumber: '+212 689 907 879'
-  },
-  {
-    id: '2',
-    logo: <OrangeSvg width={70} height={50} />,
-    name: 'eSIM Orange',
-    phoneNumber: '+212 700 123 456'
-  },
-  {
-    id: '3',
-    logo: <InwiSvg width={70} height={50} />,
-    name: 'eSIM Inwi',
-    phoneNumber: '+212 661 789 012'
-  }
-];
-
 interface ESIMCardsContainerProps {
-  // You can add additional props if needed
+  esims: Esim[];
+  loading: boolean;
+  error: string | null;
 }
 
-const ESIMCardsContainer: React.FC<ESIMCardsContainerProps> = () => {
+const ESIMCardsContainer: React.FC<ESIMCardsContainerProps> = ({ esims, loading, error }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedESim, setSelectedESim] = useState<typeof esimData[0] | null>(null);
+  const [selectedESim, setSelectedESim] = useState<Esim | null>(null);
 
-  const handleESIMPress = (esim: typeof esimData[0]) => {
+  const handleESIMPress = (esim: Esim) => {
     setSelectedESim(esim);
     setModalVisible(true);
   };
@@ -48,16 +29,51 @@ const ESIMCardsContainer: React.FC<ESIMCardsContainerProps> = () => {
     setModalVisible(false);
   };
 
+  const getOperatorLogo = (operator: string) => {
+    switch (operator.toLowerCase()) {
+      case 'inwi':
+        return <InwiSvg width={70} height={50} />;
+      case 'orange':
+        return <OrangeSvg width={70} height={50} />;
+      default:
+        return <QRCodeLargeSvg width={70} height={50} />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (esims.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>No ESIMs available</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>{i18n.t('qrcode.eSIMFounds')}</Text>
       
-      {esimData.map(esim => (
+      {esims.map(esim => (
         <ESIMCard
           key={esim.id}
-          logo={esim.logo}
-          name={esim.name}
-          phoneNumber={esim.phoneNumber}
+          logo={getOperatorLogo(esim.operator)}
+          name={esim.operator}
+          phoneNumber={esim.simNumber}
           onPress={() => handleESIMPress(esim)}
         />
       ))}
@@ -66,9 +82,9 @@ const ESIMCardsContainer: React.FC<ESIMCardsContainerProps> = () => {
       {selectedESim && (
         <QRCodeModal
           visible={modalVisible}
-          title={selectedESim.name}
+          title={selectedESim.operator}
           onClose={handleCloseModal}
-          data={""}
+          data={selectedESim.offer}
         />
       )}
     </View>
@@ -83,7 +99,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
     marginBottom: 20,
-  }
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#666',
+  },
 });
 
 export default ESIMCardsContainer;

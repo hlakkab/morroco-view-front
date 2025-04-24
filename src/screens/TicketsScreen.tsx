@@ -89,7 +89,7 @@ const TicketsScreen: React.FC = () => {
               <Text style={styles.emptyText}>{i18n.t('tickets.noTickets')}</Text>
             </View>
           ) : (
-            filteredTickets.map(ticket => (
+            filteredTickets.filter(ticket => ticket.type !== 'E_SIM').map(ticket => (
               ticket.type === 'MATCH' 
                 ? <MatchTicketCard key={ticket.id} ticket={ticket} /> 
                 : <PickupTicketCard key={ticket.id} ticket={ticket} />

@@ -484,7 +484,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               </View>
               <View style={styles.transportDetails}>
                 <Text style={styles.transportTitle}>{title}</Text>
-                <Text style={styles.transportPrice}>{price} Dh {i18n.t('pickup.perGroup')}</Text>
+                <Text style={styles.transportPrice}>{price} € {i18n.t('pickup.perGroup')}</Text>
               </View>
             </View>
 
