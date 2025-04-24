@@ -12,6 +12,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../components/Button';
+import { useDispatch } from 'react-redux';
+import { createEsim } from '../store/slices/esimSlice';
+import { AppDispatch } from '../store';
 
 // SVG imports for different providers
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
@@ -42,6 +45,8 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
   onClose,
   onBuy
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+
   // Available operators
   const operators: OperatorOption[] = [
     {
@@ -122,10 +127,18 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
     setSelectedOffer(offerId);
   };
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (selectedOperator && selectedOffer) {
-      onBuy(selectedOperator);
-      handleClose();
+      try {
+        const selectedOfferData = offers.find(offer => offer.id === selectedOffer);
+        if (selectedOfferData) {
+          onBuy(selectedOperator);
+          handleClose();
+        }
+      } catch (error) {
+        console.error('Error creating ESIM:', error);
+        // You might want to show an error message to the user here
+      }
     }
   };
 

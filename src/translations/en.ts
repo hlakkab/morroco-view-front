@@ -94,7 +94,7 @@ export default {
     pickup: 'Pickup',
     privatePickup: 'Private Pickup',
     sharedPickup: 'Shared Pickup',
-    perGroup: 'per group',
+    perGroup: 'per group of 3 people',
     startFrom: 'Start from',
     reservePickup: 'Reserve Pickup',
     airportToHotel: 'Airport to Hotel',

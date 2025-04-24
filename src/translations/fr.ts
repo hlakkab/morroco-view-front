@@ -94,7 +94,7 @@ export default {
     pickup: 'Transport',
     privatePickup: 'Transport Privé',
     sharedPickup: 'Transport Partagé',
-    perGroup: 'par groupe',
+    perGroup: 'par groupe de 3 personnes',
     startFrom: 'À partir de',
     reservePickup: 'Réserver le Transport',
     airportToHotel: 'Aéroport vers Hôtel',

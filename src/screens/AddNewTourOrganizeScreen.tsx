@@ -283,13 +283,6 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     
     const itemsWithCoordinates = addCoordinatesToItems(allItems);
     
-    // Save to Redux store
-    dispatch(setTourItems({
-      tourItems: itemsWithCoordinates,
-      selectedItemsByDay,
-      cities
-    }));
-    
     // Transform date from yyyy/mm/dd to yyyy-mm-dd if needed
     const formatDate = (dateStr: string): string => {
       if (dateStr.includes('/')) {
