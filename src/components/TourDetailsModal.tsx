@@ -190,15 +190,8 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const formatDateRange = (startDate: string, endDate: string) => {
     if (!startDate || !endDate) return '';
     try {
-      // Handle both YYYY/MM/DD and YYYY-MM-DD formats
       const start = new Date(startDate.replace(/\//g, '-'));
       const end = new Date(endDate.replace(/\//g, '-'));
-      
-      // Check if dates are valid
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return `${startDate} - ${endDate}`;
-      }
-      
       return `${formatDate(start)} - ${formatDate(end)}`;
     } catch (e) {
       console.error("Error formatting date range:", e);
@@ -209,22 +202,9 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   // Function to get date for a specific day
   const getDateForDay = (day: number) => {
     if (!currentTour?.from) return '';
-    try {
-      // Handle both YYYY/MM/DD and YYYY-MM-DD formats
-      const startDate = new Date(currentTour.from.replace(/\//g, '-'));
-      
-      // Check if date is valid
-      if (isNaN(startDate.getTime())) {
-        return `Day ${day}`;
-      }
-      
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + (day - 1));
-      return formatDate(date);
-    } catch (e) {
-      console.error("Error getting date for day:", e);
-      return `Day ${day}`;
-    }
+    const date = new Date(currentTour.from.replace(/\//g, '-'));
+    date.setDate(date.getDate() + (day - 1));
+    return formatDate(date);
   };
 
   // Render destination item in list

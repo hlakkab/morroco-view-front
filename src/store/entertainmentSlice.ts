@@ -91,6 +91,20 @@ export const toggleEntertainmentBookmark = createAsyncThunk(
   }
 );
 
+// Async thunk for deleting an entertainment
+export const deleteEntertainment = createAsyncThunk(
+  'entertainment/deleteEntertainment',
+  async (productCode: string, { dispatch }) => {
+    try {
+      // First remove the bookmark if it exists
+      await dispatch(removeBookmark(productCode)).unwrap();
+      return productCode;
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to delete entertainment');
+    }
+  }
+);
+
 // Slice Redux
 const entertainmentSlice = createSlice({
   name: 'entertainment',
@@ -101,6 +115,14 @@ const entertainmentSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    removeEntertainment: (state, action: PayloadAction<string>) => {
+      state.entertainments = state.entertainments.filter(
+        ent => ent.productCode !== action.payload
+      );
+      if (state.selectedEntertainment?.productCode === action.payload) {
+        state.selectedEntertainment = null;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -164,9 +186,17 @@ const entertainmentSlice = createSlice({
           state.selectedEntertainment.saved = !state.selectedEntertainment.saved;
         }
         state.error = action.error.message || 'Failed to toggle bookmark';
+      })
+      .addCase(deleteEntertainment.fulfilled, (state, action) => {
+        state.entertainments = state.entertainments.filter(
+          ent => ent.productCode !== action.payload
+        );
+        if (state.selectedEntertainment?.productCode === action.payload) {
+          state.selectedEntertainment = null;
+        }
       });
   },
 });
 
-export const { setSelectedEntertainment, clearError } = entertainmentSlice.actions;
+export const { setSelectedEntertainment, clearError, removeEntertainment } = entertainmentSlice.actions;
 export default entertainmentSlice.reducer;
