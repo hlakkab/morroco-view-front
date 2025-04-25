@@ -80,9 +80,9 @@ export const toggleEntertainmentBookmark = createAsyncThunk(
   async (entertainment: Entertainment, { dispatch }) => {
     try {
       if (entertainment.saved) {
-        await dispatch(removeBookmark(entertainment.productCode)).unwrap();
+        await dispatch(removeBookmark(entertainment.id!)).unwrap();
       } else {
-        await dispatch(addBookmark({ elementId: entertainment.productCode, type: 'ENTERTAINMENT' })).unwrap();
+        await dispatch(addBookmark({ elementId: entertainment.id! , type: 'ENTERTAINMENT' })).unwrap();
       }
       return entertainment.productCode;
     } catch (error: any) {
