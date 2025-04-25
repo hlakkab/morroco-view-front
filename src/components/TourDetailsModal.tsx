@@ -19,6 +19,7 @@ import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
 import { Destination, Tour } from '../types/tour';
 import { getFlagUrl } from '../utils/flagResolver';
+import { mapTourForDetailsModal } from '../utils/tourMapper';
 
 interface TourDetailsModalProps {
   visible: boolean;
@@ -113,24 +114,14 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const handleViewTimeline = () => {
     if (!currentTour) return;
     
-    const destinations = currentTour.destinations as Destination[];
+    const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
     
-    // Group destinations by date
-    const destinationsByDate = destinations.reduce((acc, dest) => {
-      const date = dest.date || 'unknown';
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(dest);
-      return acc;
-    }, {} as Record<string, Destination[]>);
-
     // Convert to the format expected by AddNewTourOrganizeScreen
     const selectedItemsByDay: Record<number, string[]> = {};
     const cities: Record<number, string> = {};
     const allSavedItems: SavedItem[] = [];
 
-    Object.entries(destinationsByDate).forEach(([date, dayDestinations], index) => {
+    Object.entries(mappedData.destinationsByDate).forEach(([date, dayDestinations], index) => {
       const dayNumber = index + 1;
       selectedItemsByDay[dayNumber] = dayDestinations.map(d => d.id);
       cities[dayNumber] = dayDestinations[0]?.city || 'Unknown';
@@ -139,7 +130,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
       dayDestinations.forEach(dest => {
         allSavedItems.push({
           ...dest,
-          coordinate: {
+          coordinate: dest.coordinate || {
             latitude: Number(dest.coordinates?.split(',')[0]) || 0,
             longitude: Number(dest.coordinates?.split(',')[1]) || 0
           }
@@ -164,45 +155,10 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const handleViewMap = () => {
     if (!currentTour) return;
     
-    const destinations = currentTour.destinations as Destination[];
+    const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
     
-    // Group destinations by date
-    const destinationsByDate = destinations.reduce((acc, dest) => {
-      const date = dest.date || 'unknown';
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(dest);
-      return acc;
-    }, {} as Record<string, Destination[]>);
-
-    // Convert destinations to SavedItems with coordinates and day information
-    const allSavedItems: SavedItem[] = destinations.map(dest => {
-      const date = dest.date || 'unknown';
-      const dayNumber = Object.keys(destinationsByDate).indexOf(date) + 1;
-      
-      return {
-        ...dest,
-        day: dayNumber,
-        coordinate: {
-          latitude: Number(dest.coordinates?.split(',')[0]) || 0,
-          longitude: Number(dest.coordinates?.split(',')[1]) || 0
-        }
-      };
-    });
-
-    // Sort items by day to ensure proper order
-    allSavedItems.sort((a, b) => (a.day || 1) - (b.day || 1));
-
     onClose();
-    navigation.navigate('TourMapScreen', {
-      tourItems: allSavedItems,
-      title: currentTour.title,
-      singleDayView: true,
-      selectedDay: 1,
-      totalDays: Object.keys(destinationsByDate).length,
-      destinationsByDate
-    });
+    navigation.navigate('TourMapScreen', mappedData);
   };
 
   // Select a day and close the picker
