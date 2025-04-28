@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -11,14 +12,15 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  ActivityIndicator
+  View
 } from 'react-native';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import ReservationPopup from '../containers/ReservationPopup';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchPickupDetails, clearPickupDetails, toggleSavedStatus } from '../store/hotelPickupDetailsSlice';
+import { clearPickupDetails, fetchPickupDetails, toggleSavedStatus } from '../store/hotelPickupDetailsSlice';
+import i18n from '../translations/i18n';
 
 interface RouteParams {
   id: string;
@@ -37,6 +39,7 @@ const TransportDetailScreen: React.FC = () => {
   const { id, title, price } = route.params as RouteParams;
   const dispatch = useAppDispatch();
   const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
+  const { currentLanguage } = useLanguage();
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showReservation, setShowReservation] = useState(false);
@@ -148,49 +151,49 @@ const TransportDetailScreen: React.FC = () => {
         <View style={styles.content}>
           <View style={styles.transportTypeContainer}>
             <Text style={styles.transportType}>
-              {currentPickup.private ? 'Private Pickup' : 'Shared Pickup'}
+              {currentPickup.private ? i18n.t('pickup.privatePickup') : i18n.t('pickup.sharedPickup')}
             </Text>
           </View>
 
-          <Text style={styles.sectionTitle}>Specifications</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('transport.specifications')}</Text>
 
           <View style={styles.specificationsContainer}>
             <View style={styles.specItem}>
               <Ionicons name="people-outline" size={20} color="#666" />
-              <Text style={styles.specText}>{currentPickup.nbSeats} seats</Text>
+              <Text style={styles.specText}>{currentPickup.nbSeats} {i18n.t('transport.seats')}</Text>
             </View>
 
             <View style={styles.specItem}>
               <Ionicons name="briefcase-outline" size={20} color="#666" />
-              <Text style={styles.specText}>{currentPickup.bagCapacity} Large bags</Text>
+              <Text style={styles.specText}>{currentPickup.bagCapacity} {i18n.t('transport.largeBags')}</Text>
             </View>
 
             <View style={styles.specItem}>
               <Ionicons name="car-outline" size={20} color="#666" />
-              <Text style={styles.specText}>{currentPickup.nbDoors} Doors</Text>
+              <Text style={styles.specText}>{currentPickup.nbDoors} {i18n.t('transport.doors')}</Text>
             </View>
 
             <View style={styles.specItem}>
               <Ionicons name="snow-outline" size={20} color="#666" />
               <Text style={styles.specText}>
-                {currentPickup.airConditioning ? 'Air conditioning' : 'No air conditioning'}
+                {currentPickup.airConditioning ? i18n.t('transport.airConditioning') : i18n.t('transport.noAirConditioning')}
               </Text>
             </View>
 
             <View style={styles.specItem}>
               <Ionicons name="time-outline" size={20} color="#666" />
-              <Text style={styles.specText}>60 min</Text>
+              <Text style={styles.specText}>60 {i18n.t('transport.minutes')}</Text>
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('broker.about')}</Text>
           <Text style={styles.aboutText}>{currentPickup.about}</Text>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <Button
-          title="Reserve Pickup"
+          title={i18n.t('pickup.reservePickup')}
           style={styles.reserveButton}
           icon={<Ionicons name="car" size={20} color="#fff" style={{ marginRight: 8 }} />}
           onPress={handleReservePress}
@@ -278,20 +281,21 @@ const styles = StyleSheet.create({
   },
   pagination: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   paginationDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     marginHorizontal: 4,
   },
   activePaginationDot: {
     backgroundColor: '#fff',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   content: {
     borderTopLeftRadius: 40,

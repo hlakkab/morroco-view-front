@@ -1,20 +1,22 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import Fontisto from '@expo/vector-icons/Fontisto';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
-import CloseButton from '../assets/img/CloseButton.svg';
-import AboutSection from './AboutSection';
-import LocationSection from './LocationSection';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Match } from '../types/match';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, Alert, Animated, Dimensions, Image, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { buyTicket, resetTicketPurchaseStatus, toggleMatchBookmark } from '../store/matchSlice';
+import CloseButton from '../assets/img/CloseButton.svg';
+import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
+import { useLanguage } from '../contexts/LanguageContext';
 import { RootState } from '../store';
 import { useAppDispatch } from '../store/hooks';
-import TicketPurchaseStatus from './TicketPurchaseStatus';
-import ButtonFixe from "./ButtonFixe";
+import { buyTicket, resetTicketPurchaseStatus, toggleMatchBookmark } from '../store/matchSlice';
+import i18n from '../translations/i18n';
+import { Match } from '../types/match';
 import { getFlagUrl } from '../utils/flagResolver';
+import AboutSection from './AboutSection';
+import ButtonFixe from "./ButtonFixe";
+import LocationSection from './LocationSection';
+import TicketPurchaseStatus from './TicketPurchaseStatus';
 
 export interface MatchPopupProps {
   onClose: () => void;
@@ -22,6 +24,7 @@ export interface MatchPopupProps {
 
 const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
+  const { currentLanguage } = useLanguage();
   const { currentMatch, ticketPurchaseStatus, ticketPurchaseError } 
     = useSelector((state: RootState) => state.match);
 
@@ -160,7 +163,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
                   </View>
                 </View>
 
-                <Text style={styles.vsText}>VS</Text>
+                <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
 
                 <View style={styles.teamContainer}>
                   <View style={styles.flagContainer}>
@@ -177,7 +180,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
                 <View style={styles.detailItem}>
                   <View style={styles.iconTitleContainer}>
                     <Fontisto name="date" size={16} color="#656565" />
-                    <Text style={styles.detailTitle}>Date</Text>
+                    <Text style={styles.detailTitle}>{i18n.t('matches.date')}</Text>
                   </View>
                   <Text style={styles.detailValue}>
                     {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -191,7 +194,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
                 <View style={styles.detailItem}>
                   <View style={styles.iconTitleContainer}>
                     <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
-                    <Text style={styles.detailTitle}>Time</Text>
+                    <Text style={styles.detailTitle}>{i18n.t('matches.time')}</Text>
                   </View>
                   <Text style={styles.detailValue}>
                     {currentMatch.date.includes("T")
@@ -207,7 +210,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
                 <View style={styles.detailItem}>
                   <View style={styles.iconTitleContainer}>
                     <StadiumIconPopup width={16} height={16} />
-                    <Text style={styles.detailTitle}>Stadium</Text>
+                    <Text style={styles.detailTitle}>{i18n.t('matches.stadium')}</Text>
                   </View>
                   <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
                 </View>
@@ -235,7 +238,7 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
         </ScrollView>
 
         {/* Bottom Section: Boutons Add to Tour & Buy Tickets */}
-        <ButtonFixe title={'Buy Tickets'} onPress={handleBuyTicket} />
+        <ButtonFixe title={i18n.t('matches.buyTickets')} onPress={handleBuyTicket} />
       </View>
     </Animated.View>
   );

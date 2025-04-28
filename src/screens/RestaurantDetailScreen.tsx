@@ -1,34 +1,33 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useRef, useState } from 'react';
 import {
-  View,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  Image,
-  Text,
-  TouchableOpacity,
   Dimensions,
   FlatList,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
   ViewToken
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import i18n from '../translations/i18n';
 
-import ScreenHeader from '../components/ScreenHeader';
-import Button from '../components/Button';
-import { RootStackParamList } from '../types/navigation';
-import { Restaurant } from '../types/Restaurant';
-import HeaderContainer from '../containers/HeaderContainer';
 import AboutSection from '../components/AboutSection';
-import LocationSection from '../components/LocationSection';
+import Button from '../components/Button';
 import ButtonFixe from '../components/ButtonFixe';
+import LocationSection from '../components/LocationSection';
+import ScreenHeader from '../components/ScreenHeader';
+import HeaderContainer from '../containers/HeaderContainer';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleRestaurantBookmark } from '../store/restaurantSlice';
+import { RootStackParamList } from '../types/navigation';
+import { Restaurant } from '../types/Restaurant';
 
 const { width, height } = Dimensions.get('window');
-
-
 
 const RestaurantDetailScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -40,7 +39,6 @@ const RestaurantDetailScreen: React.FC = () => {
 
   const { selectedRestaurant } = useAppSelector((state) => state.restaurant);
 
-
   const handleBack = () => {
     navigation.goBack();
   };
@@ -50,7 +48,6 @@ const RestaurantDetailScreen: React.FC = () => {
       dispatch(toggleRestaurantBookmark(selectedRestaurant));
     }
   };
-
 
   const handleScroll = (event: any) => {
     const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / width);
@@ -68,7 +65,6 @@ const RestaurantDetailScreen: React.FC = () => {
     }
   }).current;
 
-
   const handleReservation = () => {
     console.log('Book a Reservation');
     // Implémentez la logique de réservation ici
@@ -76,79 +72,74 @@ const RestaurantDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-
-        <View style={styles.headerContainer}>
-          <ScreenHeader title={selectedRestaurant!.name} />
-        </View>
+      <View style={styles.headerContainer}>
+        <ScreenHeader title={selectedRestaurant!.name} />
+      </View>
         
-        
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.imageContainer}>
+          <View style={styles.imageSection}>
+            <FlatList
+              data={selectedRestaurant!.images}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item }) => (
+                <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
+              )}
+            />
 
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.imageContainer}>
-            <View style={styles.imageSection}>
-              <FlatList
-                data={selectedRestaurant!.images}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onScroll={handleScroll}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
-                )}
+            <TouchableOpacity style={[styles.saveButton, selectedRestaurant!.saved && styles.savedButton]} onPress={handleSave}>
+              <Ionicons
+                name={selectedRestaurant!.saved ? 'bookmark' : 'bookmark-outline'}
+                size={24}
+                color={selectedRestaurant!.saved ? '#fff' : '#000'}
               />
+            </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.saveButton, selectedRestaurant!.saved && styles.savedButton]} onPress={handleSave}>
-                <Ionicons
-                  name={selectedRestaurant!.saved ? 'bookmark' : 'bookmark-outline'}
-                  size={24}
-                  color={selectedRestaurant!.saved ? '#fff' : '#000'}
-                />
-              </TouchableOpacity>
-
-              <View style={styles.paginationContainer}>
-                <View style={styles.pagination}>
-                  {selectedRestaurant!.images?.map((_, index) => (
-                    <View
-                      key={index}
-                      style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
-                    />
-                  ))}
-                </View>
+            <View style={styles.paginationContainer}>
+              <View style={styles.pagination}>
+                {selectedRestaurant!.images?.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
+                  />
+                ))}
               </View>
-
             </View>
           </View>
+        </View>
 
-          <View style={styles.content}>
-
-            {/* Operating Hours Section */}
-            <View style={styles.operatingHoursContainer}>
-              <Ionicons name="time-outline" size={16} color="#137A08" />
-              <Text style={styles.operatingHoursText}>
-                Open until {selectedRestaurant!.endTime}    
-              </Text>
-            </View>
-
-            {/* About Section */}
-            <AboutSection
-              text={selectedRestaurant!.description || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
-            />
-
-            {/* Location Section */}
-
-            <LocationSection
-              address={selectedRestaurant!.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-              mapUrl={`https://maps.app.goo.gl/${selectedRestaurant!.mapId}`}
-            />
+        <View style={styles.content}>
+          {/* Operating Hours Section */}
+          <View style={styles.operatingHoursContainer}>
+            <Ionicons name="time-outline" size={16} color="#137A08" />
+            <Text style={styles.operatingHoursText}>
+              {i18n.t('restaurants.operatingHours')} {selectedRestaurant!.endTime}    
+            </Text>
           </View>
-        </ScrollView>
 
-      <ButtonFixe title="Book a Reservation" onPress={handleReservation} />
+          {/* About Section */}
+          <AboutSection
+            title={i18n.t('restaurants.about')}
+            text={selectedRestaurant!.description || i18n.t('restaurants.noInformation')}
+          />
+
+          {/* Location Section */}
+          <LocationSection
+            title={i18n.t('restaurants.location')}
+            address={selectedRestaurant!.address || ""}
+            mapUrl={`https://maps.app.goo.gl/${selectedRestaurant!.mapId}`}
+          />
+        </View>
+      </ScrollView>
+
+      <ButtonFixe title={i18n.t('restaurants.bookReservation')} onPress={handleReservation} />
     </SafeAreaView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -162,14 +153,12 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-
   imageSection: {
     position: 'relative',
     width: width,
     height: 240,
     backgroundColor: '#FFF7F7',
     overflow: 'hidden', // Pour s'assurer qu'aucun contenu ne déborde
-
   },
   image: {
     width: width,
@@ -232,7 +221,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#F0FFFA',
     padding: 10,
-
   },
   operatingHoursText: {
     fontFamily: 'Raleway',

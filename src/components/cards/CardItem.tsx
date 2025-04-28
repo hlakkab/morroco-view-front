@@ -1,6 +1,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import i18n from '../../translations/i18n';
 
 interface CardItemProps {
   imageUrl?: string | number;  // Updated to accept both string and number for require()
@@ -107,9 +108,9 @@ const CardItem: React.FC<CardItemProps> = ({
         {price && (
           <View style={[styles.priceContainer, customStyles.priceContainer]}>
             <Text style={[styles.priceText, customStyles.priceText]}>
-              {price.prefix || 'start from'}{' '}
+              {price.prefix || i18n.t('pickup.startFrom')}{' '}
               <Text style={[styles.priceValue, customStyles.priceValue]}>
-                {price.value} {price.currency || 'Dh'}
+                {price.value} {price.currency || '€'}
               </Text>
               {price.suffix && ` ${price.suffix}`}
             </Text>

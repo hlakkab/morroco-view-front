@@ -1,32 +1,35 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import HotelPickupListContainer from '../containers/HotelPickupListContainer';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   createPickupFilterOptions,
-  normalizeString,
-  pickupFilterCategories
+  getPickupFilterCategories,
+  normalizeString
 } from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchHotelPickups, setSearchQuery, setSelectedFromCity, setSelectedToCity } from '../store/hotelPickupSlice';
+import { fetchHotelPickups, setSearchQuery, setSelectedCity } from '../store/hotelPickupSlice';
+import i18n from '../translations/i18n';
 
 const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fez', 'Tangier'];
 
 const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
+  const { currentLanguage } = useLanguage();
   const {
     hotelPickups,
-    selectedFromCity,
-    selectedToCity,
+    selectedCity,
     searchQuery,
     loading,
-    error
+    error,
+    pickupDirection
   } = useAppSelector((state) => state.hotelPickup);
 
   const [useSampleData, setUseSampleData] = useState(false);
@@ -35,9 +38,8 @@ const HotelPickupScreen: React.FC = () => {
 
   // Add icons to filter categories
   const categoriesWithIcons = {
-    ...pickupFilterCategories,
     pickup_type: {
-      ...pickupFilterCategories.pickup_type,
+      ...getPickupFilterCategories().pickup_type,
       icon: <Ionicons name="car" size={20} color="#CE1126" />
     }
   };
@@ -52,7 +54,7 @@ const HotelPickupScreen: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await dispatch(fetchHotelPickups(selectedFromCity)).unwrap();
+        await dispatch(fetchHotelPickups(selectedCity)).unwrap();
       } catch (error) {
         console.error('Failed to fetch hotel pickups:', error);
         setUseSampleData(true);
@@ -60,7 +62,7 @@ const HotelPickupScreen: React.FC = () => {
     };
 
     fetchData();
-  }, [dispatch, selectedFromCity]);
+  }, [dispatch, selectedCity]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -74,13 +76,11 @@ const HotelPickupScreen: React.FC = () => {
     setFilterPopupVisible(true);
   };
 
-  const handleSelectCity = (city: string, type: 'from' | 'to') => {
-    if (type === 'from') {
-      dispatch(setSelectedFromCity(city));
-    } else {
-      dispatch(setSelectedToCity(city));
-    }
+  const handleSelectCity = (city: string) => {
+    dispatch(setSelectedCity(city));
   };
+
+  
 
   // Function to apply selected filters
   const handleApplyFilters = (selectedOptions: FilterOption[]) => {
@@ -125,22 +125,23 @@ const HotelPickupScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Pickup" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('pickup.title')} onBack={handleBack} />
       </View>
 
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search for hotel..."
+          placeholder={i18n.t('pickup.searchHotel')}
           onChangeText={handleSearch}
           onFilterPress={handleFilter}
           value={searchQuery}
         />
+
+        
         
         <HotelPickupListContainer
           pickups={filteredPickups}
           cities={CITIES}
-          selectedFromCity={selectedFromCity}
-          selectedToCity={selectedToCity}
+          selectedCity={selectedCity}
           onSelectCity={handleSelectCity}
           isLoading={loading}
         />
@@ -152,7 +153,7 @@ const HotelPickupScreen: React.FC = () => {
         onClose={() => setFilterPopupVisible(false)}
         filterOptions={filterOptions}
         onApplyFilters={handleApplyFilters}
-        title="Filter Pickups"
+        title={i18n.t('pickup.filterPickups')}
         categories={categoriesWithIcons}
       />
     </SafeAreaView>

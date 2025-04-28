@@ -1,6 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Dimensions, ImageBackground, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
+import i18n from '../translations/i18n';
 
 // Example JPG imports - replace these with your actual paths
 const monumentsImage = require('../assets/exploreBgImgs/monuments.jpg');
@@ -12,12 +14,13 @@ const { width } = Dimensions.get('window');
 
 interface CategoryCardProps {
   title: string;
+  translationKey: string;
   imageSrc: any; // Image source
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
 }
 
-const CategoryCard: React.FC<CategoryCardProps> = ({ title, imageSrc, style, onPress }) => {
+const CategoryCard: React.FC<CategoryCardProps> = ({ title, translationKey, imageSrc, style, onPress }) => {
   return (
     <TouchableOpacity 
       style={[styles.categoryCard, style]} 
@@ -32,7 +35,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ title, imageSrc, style, onP
           colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.2)']}
           style={styles.categoryGradient}
         >
-          <Text style={styles.categoryText}>{title}</Text>
+          <Text style={styles.categoryText}>{i18n.t(`categories.${translationKey}`)}</Text>
         </LinearGradient>
       </ImageBackground>
     </TouchableOpacity>
@@ -44,19 +47,24 @@ interface ExploreCardsContainerProps {
 }
 
 const ExploreCardsContainer: React.FC<ExploreCardsContainerProps> = ({ onCategoryPress }) => {
+  // Use language context to force re-render on language change
+  const { currentLanguage } = useLanguage();
+
   return (
     <>
-      <Text style={styles.sectionTitle}>Explore Morocco</Text>
+      <Text style={styles.sectionTitle}>{i18n.t('home.exploreMorocco')}</Text>
       
       {/* First Row */}
       <View style={styles.categoryRow}>
         <CategoryCard 
           title="Monuments" 
+          translationKey="monuments"
           imageSrc={monumentsImage}
           onPress={() => onCategoryPress('Monuments')}
         />
         <CategoryCard 
           title="Restaurant" 
+          translationKey="restaurant"
           imageSrc={restaurantImage}
           style={styles.restaurantCard} 
           onPress={() => onCategoryPress('Restaurant')}
@@ -67,12 +75,14 @@ const ExploreCardsContainer: React.FC<ExploreCardsContainerProps> = ({ onCategor
       <View style={styles.categoryRow}>
         <CategoryCard 
           title="Entertainment" 
+          translationKey="entertainment"
           imageSrc={entertainmentImage}
           style={styles.entertainmentCard} 
           onPress={() => onCategoryPress('Entertainment')}
         />
         <CategoryCard 
           title="Artisans" 
+          translationKey="artisans"
           imageSrc={artisansImage}
           style={styles.artisansCard} 
           onPress={() => onCategoryPress('Artisans')}
@@ -111,7 +121,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   restaurantCard: {

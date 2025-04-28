@@ -1,6 +1,6 @@
-import {Image, Linking, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {Ionicons} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
+import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const ContactItem = ({ title, phone, email, address, logo }: { title: string, phone: string, email: string, address: string, logo: any }) => {
     const handleCall = () => {

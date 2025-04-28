@@ -12,15 +12,25 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../components/Button';
+import { useDispatch } from 'react-redux';
+import { createEsim } from '../store/slices/esimSlice';
+import { AppDispatch } from '../store';
 
 // SVG imports for different providers
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
 import OrangeSvg from '../assets/serviceIcons/orange-img.svg';
+import i18n from '../translations/i18n';
 
 interface OperatorOption {
   id: string;
   name: string;
   logo: React.ReactNode;
+  price: string;
+}
+
+interface Offer {
+  id: string;
+  data: string;
   price: string;
 }
 
@@ -35,24 +45,36 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
   onClose,
   onBuy
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+
   // Available operators
   const operators: OperatorOption[] = [
     {
       id: 'inwi',
       name: 'eSim Inwi',
       logo: <InwiSvg width={50} height={35} />,
-      price: '20DH'
+      price: '2€'
     },
     {
       id: 'orange',
       name: 'eSim Orange',
       logo: <OrangeSvg width={50} height={35} />,
-      price: '25DH'
+      price: '2€'
     }
   ];
 
-  // Selected operator
+  // Available offers
+  const offers: Offer[] = [
+    { id: '0', data: 'eSIM Only', price: '2' },
+    { id: '1', data: '3h + 5GO', price: '5' },
+    { id: '2', data: '5h + 10GO', price: '8' },
+    { id: '3', data: '10h + 20GO', price: '11' },
+    { id: '4', data: '20h + 50GO', price: '14' }
+  ];
+
+  // Selected operator and offer
   const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
+  const [selectedOffer, setSelectedOffer] = useState<string | null>(null);
 
   // Create animated value for drag gesture
   const pan = React.useRef(new Animated.ValueXY()).current;
@@ -101,11 +123,22 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
     setSelectedOperator(operatorId);
   };
 
-  const handleBuy = () => {
-    if (selectedOperator) {
-      const selectedOp = operators.find(op => op.id === selectedOperator);
-      onBuy(selectedOperator);
-      handleClose();
+  const handleSelectOffer = (offerId: string) => {
+    setSelectedOffer(offerId);
+  };
+
+  const handleBuy = async () => {
+    if (selectedOperator && selectedOffer) {
+      try {
+        const selectedOfferData = offers.find(offer => offer.id === selectedOffer);
+        if (selectedOfferData) {
+          onBuy(selectedOperator);
+          handleClose();
+        }
+      } catch (error) {
+        console.error('Error creating ESIM:', error);
+        // You might want to show an error message to the user here
+      }
     }
   };
 
@@ -130,7 +163,7 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
             </View>
             
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Buy New eSIm</Text>
+              <Text style={styles.modalTitle}>{i18n.t('qrcode.buyNew')}</Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={16} color="black" />
               </TouchableOpacity>
@@ -140,7 +173,7 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
           <View style={styles.modalContent}>
             {/* Operator Selection */}
             <View style={styles.formField}>
-              <Text style={styles.label}>Select Operator <Text style={styles.required}>*</Text></Text>
+              <Text style={styles.label}>{i18n.t('qrcode.selectOperator')} <Text style={styles.required}>*</Text></Text>
               
               <View style={styles.operatorList}>
                 {operators.map(operator => (
@@ -167,11 +200,49 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
               </View>
             </View>
 
+            {/* Offers Selection */}
+            <View style={styles.formField}>
+              <Text style={styles.label}>Select Offer <Text style={styles.required}>*</Text></Text>
+              <View style={styles.offersList}>
+                {offers.map((offer) => (
+                  <TouchableOpacity
+                    key={offer.id}
+                    style={[
+                      styles.offerOption,
+                      selectedOffer === offer.id && styles.offerOptionSelected
+                    ]}
+                    onPress={() => handleSelectOffer(offer.id)}
+                  >
+                    <Text style={styles.offerData}>{offer.data}</Text>
+                    <View style={styles.offerRightSection}>
+                      <Text style={[
+                        styles.offerPrice,
+                        selectedOffer === offer.id && styles.offerPriceSelected
+                      ]}>
+                        {`${offer.price}€`}
+                      </Text>
+                      {selectedOffer === offer.id && (
+                        <View style={styles.checkmarkContainer}>
+                          <Ionicons name="checkmark-circle" size={24} color="#D91A1A" />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
             {/* Buy Button */}
             <View style={styles.buttonContainer}>
-              {selectedOperator && (
+              {selectedOperator && selectedOffer && (
                 <Button 
-                  title={`Buy for ${operators.find(op => op.id === selectedOperator)?.price}`} 
+                  title={`${i18n.t('qrcode.buyFor')} ${(() => {
+                    const offerPrice = offers.find(o => o.id === selectedOffer)?.price;
+                    if (offerPrice) {
+                      return Math.round( parseFloat(offerPrice)) + '€';
+                    }
+                    return '0€';
+                  })()}`} 
                   onPress={handleBuy} 
                 />
               )}
@@ -219,7 +290,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     width: '100%',
-    height: height * 0.6,
+    height: height * 0.9,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -243,12 +314,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   modalContent: {
+    marginTop: 15,
     flex: 1,
+    gap: 10,
     width: '100%',
-    padding: 20,
+  
+    paddingHorizontal: 20,
+    paddingVertical: 0,
   },
   formField: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   label: {
     fontSize: 16,
@@ -288,9 +363,42 @@ const styles = StyleSheet.create({
     marginLeft: 10
   },
   buttonContainer: {
-    marginTop: 'auto',
     paddingVertical: 20,
-  }
+  },
+  offersList: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    overflow: 'hidden'
+  },
+  offerOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0'
+  },
+  offerOptionSelected: {
+    backgroundColor: 'rgba(217, 26, 26, 0.07)'
+  },
+  offerData: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333'
+  },
+  offerRightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  offerPrice: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500'
+  },
+  offerPriceSelected: {
+    color: '#D91A1A'
+  },
 });
 
 export default BuyESIMModal;

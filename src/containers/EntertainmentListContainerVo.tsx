@@ -6,10 +6,11 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import CardItem from '../components/cards/CardItem';
 import SaveButton from '../components/SaveButton';
+import { setSelectedEntertainment, toggleEntertainmentBookmark } from '../store/entertainmentSlice';
+import { useAppDispatch } from '../store/hooks';
+import i18n from '../translations/i18n';
 import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
-import { useAppDispatch } from '../store/hooks';
-import { toggleEntertainmentBookmark, setSelectedEntertainment } from '../store/entertainmentSlice';
 
 interface EntertainmentListContainerProps {
   entertainments: Entertainment[];
@@ -48,9 +49,9 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
   // Get appropriate message for empty state
   const getEmptyStateMessage = () => {
     if (!entertainments || entertainments.length === 0) {
-      return "No entertainment activities available for this city. Try selecting a different city.";
+      return i18n.t('entertainment.noEntertainmentAvailable');
     }
-    return "No entertainment options match your search or filter criteria. Try adjusting your filters.";
+    return i18n.t('entertainment.noEntertainmentFilters');
   };
 
   return (
@@ -123,7 +124,7 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
                   {
                     id: 'rating',
                     icon: renderStars(item),
-                    label: `(${item.reviews.totalReviews} reviews)`,
+                    label: `(${item.reviews.totalReviews} ${item.reviews.totalReviews === 1 ? i18n.t('entertainment.review') : i18n.t('entertainment.reviews')})`,
                   },
                 ]}
                 onCardPress={() => handleEntertainmentPress(item)}

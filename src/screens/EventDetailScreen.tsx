@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import ImageGallery from '../components/ImageGallery';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
+import i18n from '../translations/i18n';
 import { Event } from '../types/Event';
 
 const { width } = Dimensions.get('window');
@@ -83,7 +84,7 @@ const EventDetailScreen: React.FC = () => {
             {eventDetails.entryFee && (
               <View style={styles.infoItem}>
                 <Ionicons name="cash-outline" size={20} color="#666" />
-                <Text style={styles.infoText}>Entry Fee: {eventDetails.entryFee}</Text>
+                <Text style={styles.infoText}>{i18n.t('eventDetail.entryFee', { fee: eventDetails.entryFee })}</Text>
               </View>
             )}
             
@@ -97,14 +98,14 @@ const EventDetailScreen: React.FC = () => {
             {eventDetails.organizer && (
               <View style={styles.infoItem}>
                 <Ionicons name="people-outline" size={20} color="#666" />
-                <Text style={styles.infoText}>Organizer: {eventDetails.organizer}</Text>
+                <Text style={styles.infoText}>{i18n.t('eventDetail.organizer', { organizer: eventDetails.organizer })}</Text>
               </View>
             )}
           </View>
 
           <AboutSection 
-            title="About" 
-            text={eventDetails.description || 'No information available for this event.'} 
+            title={i18n.t('eventDetail.about')} 
+            text={eventDetails.description || i18n.t('eventDetail.noInfo')} 
           />
 
           <LocationSection 
@@ -116,7 +117,7 @@ const EventDetailScreen: React.FC = () => {
 
       <View style={styles.footer}>
         <Button 
-          title="Buy Tickets" 
+          title={i18n.t('eventDetail.buyTickets')} 
           style={styles.ticketButton}
           icon={<Ionicons name="ticket" size={20} color="#fff" style={{ marginRight: 8 }} />}
           onPress={handleBuyTicket}
@@ -134,7 +135,7 @@ const EventDetailScreen: React.FC = () => {
             <View style={styles.modalHeader}>
               <View style={styles.titleContainer}>
                 <Text style={styles.modalTitle} numberOfLines={1} ellipsizeMode="tail">
-                  Tickets for {eventDetails.name}
+                  {i18n.t('eventDetail.ticketsFor', { name: eventDetails.name })}
                 </Text>
               </View>
               <TouchableOpacity onPress={handleCloseTicketModal} style={styles.closeButton}>
@@ -145,37 +146,37 @@ const EventDetailScreen: React.FC = () => {
             <View style={styles.ticketOptions}>
               <View style={styles.ticketOption}>
                 <View style={styles.ticketDetails}>
-                  <Text style={styles.ticketType}>Standard Entry</Text>
-                  <Text style={styles.ticketPrice}>{eventDetails.entryFee || 'Free'}</Text>
+                  <Text style={styles.ticketType}>{i18n.t('eventDetail.standardEntry')}</Text>
+                  <Text style={styles.ticketPrice}>{eventDetails.entryFee || i18n.t('eventDetail.free')}</Text>
                 </View>
                 <TouchableOpacity style={styles.buyButton}>
-                  <Text style={styles.buyButtonText}>Buy</Text>
+                  <Text style={styles.buyButtonText}>{i18n.t('eventDetail.buy')}</Text>
                 </TouchableOpacity>
               </View>
               
               <View style={styles.ticketOption}>
                 <View style={styles.ticketDetails}>
-                  <Text style={styles.ticketType}>VIP Access</Text>
+                  <Text style={styles.ticketType}>{i18n.t('eventDetail.vipAccess')}</Text>
                   <Text style={styles.ticketPrice}>300 MAD</Text>
                 </View>
                 <TouchableOpacity style={styles.buyButton}>
-                  <Text style={styles.buyButtonText}>Buy</Text>
+                  <Text style={styles.buyButtonText}>{i18n.t('eventDetail.buy')}</Text>
                 </TouchableOpacity>
               </View>
               
               <View style={styles.ticketOption}>
                 <View style={styles.ticketDetails}>
-                  <Text style={styles.ticketType}>Group Pass (5 people)</Text>
+                  <Text style={styles.ticketType}>{i18n.t('eventDetail.groupPass')}</Text>
                   <Text style={styles.ticketPrice}>500 MAD</Text>
                 </View>
                 <TouchableOpacity style={styles.buyButton}>
-                  <Text style={styles.buyButtonText}>Buy</Text>
+                  <Text style={styles.buyButtonText}>{i18n.t('eventDetail.buy')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
             
             <Button 
-              title="Close" 
+              title={i18n.t('eventDetail.close')} 
               style={styles.closeModalButton}
               onPress={handleCloseTicketModal}
             />
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   closeModalButton: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#AE1913',
   },
 });
 

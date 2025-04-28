@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootState } from '../store/store';
 import { RootStackParamList } from '../types/navigation';
+import i18n from '../translations/i18n';
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -170,13 +171,14 @@ const calculateZoomLevel = (coordinates: Array<{latitude: number, longitude: num
 const TourMapScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'TourMapScreen'>>();
-  const { tourItems } = route.params || { tourItems: [] };
+  const { tourItems, selectedDay: initialSelectedDay = 1 } = route.params || { tourItems: [] };
   
   const [routes, setRoutes] = useState<Array<{points: any[], color: string}>>([]);
-  const [selectedDay, setSelectedDay] = useState<number>(1);
+  const [selectedDay, setSelectedDay] = useState<number>(initialSelectedDay);
   const [displayItems, setDisplayItems] = useState<Array<any>>([]);
   const [availableDays, setAvailableDays] = useState<number[]>([]);
   const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
+  const [currentCity, setCurrentCity] = useState<string>('');
   
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
@@ -189,8 +191,9 @@ const TourMapScreen: React.FC = () => {
     if (dayItems.length > 0 && dayItems[0].date) {
       const date = new Date(dayItems[0].date);
       const dayOfMonth = date.getDate();
-      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-      return `${dayOfMonth} ${month}`;
+      const month = date.toLocaleString('en-US', { month: 'long' });
+      const year = date.getFullYear();
+      return `${dayOfMonth} ${month} ${year}`;
     }
     return `Day ${day}`;
   };
@@ -250,25 +253,31 @@ const TourMapScreen: React.FC = () => {
   // Initialize available days and selected day
   useEffect(() => {
     if (!tourItems || tourItems.length === 0) {
-      alert('No tour items available');
+      alert(i18n.t('tours.noTourItemsAvailable'));
       navigation.goBack();
       return;
     }
     
+    // Get unique days from tour items
     const days = [...new Set(tourItems.map(item => item.day || 1))].sort((a, b) => a - b);
     setAvailableDays(days);
     
-    if (days.length > 0) {
+    // Set initial selected day if not already set
+    if (days.length > 0 && !initialSelectedDay) {
       setSelectedDay(days[0]);
     }
-  }, [tourItems, navigation]);
+  }, [tourItems, navigation, initialSelectedDay]);
 
   // Update display items and fetch routes when selected day changes
   useEffect(() => {
     if (selectedDay && tourItems.length > 0) {
       const dayItems = tourItems.filter(item => (item.day || 1) === selectedDay);
       if (dayItems.length > 0) {
+        // Get the city for the current day
         const city = dayItems[0].city;
+        setCurrentCity(city);
+        
+        // Get the hotel for the current city
         const cityHotel = HOTELS_BY_CITY[city as keyof typeof HOTELS_BY_CITY];
         const hotelItem = {
           id: `hotel-${city.toLowerCase()}`,
@@ -276,9 +285,10 @@ const TourMapScreen: React.FC = () => {
           city: city,
           type: 'hotel',
           coordinate: cityHotel.coordinate,
-          subtitle: 'Your Hotel'
+          subtitle: i18n.t('tours.yourHotel')
         };
 
+        // Combine hotel with day items
         const itemsWithHotel = [hotelItem, ...dayItems];
         setDisplayItems(itemsWithHotel);
         
@@ -359,7 +369,7 @@ const TourMapScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ScreenHeader title={selectedDay ? getDateForDay(selectedDay) : "Tour Map"} />
+        <ScreenHeader title={`${currentCity} - ${getDateForDay(selectedDay)}`} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -423,7 +433,7 @@ const TourMapScreen: React.FC = () => {
           <View style={styles.noticeContainer}>
             <View style={styles.noticeBox}>
               <Ionicons name="information-circle-outline" size={24} color="#FFF" style={{ marginRight: 8 }} />
-              <Text style={styles.noticeText}>Need at least 2 destinations to show routes.</Text>
+              <Text style={styles.noticeText}>{i18n.t('tours.needAtLeastTwoDestinations')}</Text>
             </View>
           </View>
         )}
@@ -443,7 +453,7 @@ const TourMapScreen: React.FC = () => {
           ]}>
             <Text style={styles.controlText}>{getDateForDay(selectedDay)}</Text>
             <Text style={styles.destinationCount}>
-              {displayItems.length} destination{displayItems.length !== 1 ? 's' : ''}
+              {displayItems.length} {i18n.t('tours.destination')}{displayItems.length !== 1 ? 's' : ''}
             </Text>
           </View>
           {availableDays.length > 1 && (

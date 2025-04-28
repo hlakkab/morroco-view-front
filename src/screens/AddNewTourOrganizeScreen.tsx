@@ -12,7 +12,6 @@ import {
   View
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useAppDispatch } from '../store';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import StepProgress from '../components/StepProgress';
@@ -24,9 +23,11 @@ import TourFlowHeader from '../components/tour/TourFlowHeader';
 import TourSummary from '../components/tour/TourSummary';
 import TrajectoryButton from '../components/tour/TrajectoryButton';
 import Timeline from '../containers/tour/Timeline';
-import { setTourItems, saveTour, saveTourThunk } from '../store/tourSlice';
-import { TourSavedItem } from '../types/tour';
+import { useAppDispatch } from '../store';
+import { saveTour, saveTourThunk, setTourItems } from '../store/tourSlice';
+import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
+import { TourSavedItem } from '../types/tour';
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -81,9 +82,9 @@ const AddNewTourOrganizeScreen: React.FC = () => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
   const steps = [
-    { id: '01', label: 'Basic infos' },
-    { id: '02', label: 'Destinations' },
-    { id: '03', label: 'Organize' },
+    { id: '01', label: i18n.t('tours.basicInfos') },
+    { id: '02', label: i18n.t('tours.destinations') },
+    { id: '03', label: i18n.t('tours.organize') },
   ];
 
   useEffect(() => {
@@ -282,13 +283,6 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     
     const itemsWithCoordinates = addCoordinatesToItems(allItems);
     
-    // Save to Redux store
-    dispatch(setTourItems({
-      tourItems: itemsWithCoordinates,
-      selectedItemsByDay,
-      cities
-    }));
-    
     // Transform date from yyyy/mm/dd to yyyy-mm-dd if needed
     const formatDate = (dateStr: string): string => {
       if (dateStr.includes('/')) {
@@ -404,11 +398,11 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         {!viewMode ? (
           <View style={styles.headerContainer}>
-            <TourFlowHeader title="Add New Tour" />
+            <TourFlowHeader title={i18n.t('tours.addNewTour')} />
           </View>
         ) : (
           <View style={styles.headerContainer}>
-            <ScreenHeader title="Tour Details" />
+            <ScreenHeader title={i18n.t('tours.tourDetails')} />
           </View>
         )}
         
@@ -426,7 +420,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
           <>
             <View style={styles.dayHeaderContainer}>
               <TourDayHeader
-                title={title || "My Tour"}
+                title={title || i18n.t('tours.myTour')}
                 days={dayOptions}
                 selectedDay={selectedDayIndex + 1}
                 onSelectDay={handleSelectDay}
@@ -468,9 +462,9 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         ) : (
           <View style={styles.noDataContainer}>
             <Ionicons name="calendar-outline" size={64} color="#E0E0E0" />
-            <Text style={styles.noDataText}>No schedule data available</Text>
+            <Text style={styles.noDataText}>{i18n.t('tours.noScheduleData')}</Text>
             <Text style={styles.noDataHint}>
-              Add some destinations in the previous step to see your tour schedule
+              {i18n.t('tours.addDestinationsHint')}
             </Text>
           </View>
         )}
@@ -478,7 +472,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         {!viewMode && (
           <View style={styles.footer}>
             <Button 
-              title="Save Tour"
+              title={i18n.t('tours.saveTour')}
               onPress={handleSaveTour}
             />
           </View>

@@ -2,23 +2,24 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    PanResponder,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  PanResponder,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { RootStackParamList } from '../types/navigation';
-import { RootState } from '../store/store';
 import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import i18n from '../translations/i18n';
+import { RootStackParamList, SavedItem } from '../types/navigation';
 import { Destination, Tour } from '../types/tour';
-import { SavedItem } from '../types/navigation';
 import { getFlagUrl } from '../utils/flagResolver';
+import { mapTourForDetailsModal } from '../utils/tourMapper';
 
 interface TourDetailsModalProps {
   visible: boolean;
@@ -113,24 +114,14 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const handleViewTimeline = () => {
     if (!currentTour) return;
     
-    const destinations = currentTour.destinations as Destination[];
+    const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
     
-    // Group destinations by date
-    const destinationsByDate = destinations.reduce((acc, dest) => {
-      const date = dest.date || 'unknown';
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(dest);
-      return acc;
-    }, {} as Record<string, Destination[]>);
-
     // Convert to the format expected by AddNewTourOrganizeScreen
     const selectedItemsByDay: Record<number, string[]> = {};
     const cities: Record<number, string> = {};
     const allSavedItems: SavedItem[] = [];
 
-    Object.entries(destinationsByDate).forEach(([date, dayDestinations], index) => {
+    Object.entries(mappedData.destinationsByDate).forEach(([date, dayDestinations], index) => {
       const dayNumber = index + 1;
       selectedItemsByDay[dayNumber] = dayDestinations.map(d => d.id);
       cities[dayNumber] = dayDestinations[0]?.city || 'Unknown';
@@ -139,7 +130,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
       dayDestinations.forEach(dest => {
         allSavedItems.push({
           ...dest,
-          coordinate: {
+          coordinate: dest.coordinate || {
             latitude: Number(dest.coordinates?.split(',')[0]) || 0,
             longitude: Number(dest.coordinates?.split(',')[1]) || 0
           }
@@ -164,45 +155,10 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const handleViewMap = () => {
     if (!currentTour) return;
     
-    const destinations = currentTour.destinations as Destination[];
+    const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
     
-    // Group destinations by date
-    const destinationsByDate = destinations.reduce((acc, dest) => {
-      const date = dest.date || 'unknown';
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(dest);
-      return acc;
-    }, {} as Record<string, Destination[]>);
-
-    // Convert destinations to SavedItems with coordinates and day information
-    const allSavedItems: SavedItem[] = destinations.map(dest => {
-      const date = dest.date || 'unknown';
-      const dayNumber = Object.keys(destinationsByDate).indexOf(date) + 1;
-      
-      return {
-        ...dest,
-        day: dayNumber,
-        coordinate: {
-          latitude: Number(dest.coordinates?.split(',')[0]) || 0,
-          longitude: Number(dest.coordinates?.split(',')[1]) || 0
-        }
-      };
-    });
-
-    // Sort items by day to ensure proper order
-    allSavedItems.sort((a, b) => (a.day || 1) - (b.day || 1));
-
     onClose();
-    navigation.navigate('TourMapScreen', {
-      tourItems: allSavedItems,
-      title: currentTour.title,
-      singleDayView: true,
-      selectedDay: 1,
-      totalDays: Object.keys(destinationsByDate).length,
-      destinationsByDate
-    });
+    navigation.navigate('TourMapScreen', mappedData);
   };
 
   // Select a day and close the picker
@@ -343,12 +299,12 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
             <View style={styles.tourInfoContainer}>
               <View style={styles.tourInfoItem}>
                 <Feather name="map-pin" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{destinations.length} destinations</Text>
+                <Text style={styles.infoText}>{destinations.length} {i18n.t('tours.destinations')}</Text>
               </View>
               <View style={styles.tourInfoDivider} />
               <View style={styles.tourInfoItem}>
                 <Feather name="calendar" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{days.length} {days.length === 1 ? 'day' : 'days'}</Text>
+                <Text style={styles.infoText}>{days.length} {days.length === 1 ? i18n.t('tours.day') : i18n.t('tours.days')}</Text>
               </View>
               <View style={styles.tourInfoDivider} />
               <View style={styles.tourInfoItem}>
@@ -361,7 +317,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
 
             {/* Day selector header */}
             <View style={styles.destinationsHeader}>
-              <Text style={styles.sectionTitle}>Selected Destinations</Text>
+              <Text style={styles.sectionTitle}>{i18n.t('tours.selectedDestinations')}</Text>
               
               {/* Day Selector Dropdown */}
               <View style={styles.dayDropdownContainer}>
@@ -401,7 +357,7 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
               ListEmptyComponent={
                 <View style={styles.emptyListContainer}>
                   <Ionicons name="location-outline" size={48} color="#E0E0E0" />
-                  <Text style={styles.emptyListText}>No destinations for this day</Text>
+                  <Text style={styles.emptyListText}>{i18n.t('tours.noDestinationsForDay')}</Text>
                 </View>
               }
             />
@@ -412,14 +368,14 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
               onPress={handleViewMap}
             >
               <Feather name="map" size={20} style={styles.buttonIcon} />
-              <Text style={styles.mapButtonText}>View on Map</Text>
+              <Text style={styles.mapButtonText}>{i18n.t('tours.viewOnMap')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.previewButton}
               onPress={handleViewTimeline}
             >
-              <Text style={styles.previewButtonText}>Preview Timeline</Text>
+              <Text style={styles.previewButtonText}>{i18n.t('tours.previewTimeline')}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

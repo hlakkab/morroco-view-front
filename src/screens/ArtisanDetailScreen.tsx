@@ -8,6 +8,7 @@ import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
 import { toggleArtisanBookmark } from '../store/artisanSlice';
 import { useAppDispatch } from '../store/hooks';
+import i18n from '../translations/i18n';
 import { Artisan } from '../types/Artisan';
 import { getRandomArtisanImages } from '../utils/imageUtils';
 
@@ -54,7 +55,7 @@ const ArtisanDetailScreen: React.FC = () => {
         <View style={styles.content}>
           <View style={styles.artisanTypeContainer}>
             <Text style={styles.artisanType}>
-              {artisanDetails.type} Souk
+              {artisanDetails.type} {i18n.t('artisans.souk')}
             </Text>
           </View>
 
@@ -62,20 +63,20 @@ const ArtisanDetailScreen: React.FC = () => {
             <View style={styles.infoItem}>
               <Ionicons name="time-outline" size={20} color="#666" />
               <Text style={styles.infoText}>
-                {artisanDetails.visitingHours || 'Typically 9:00 - 19:00 (varies by shop)'}
+                {artisanDetails.visitingHours || i18n.t('artisans.visitingHours')}
               </Text>
             </View>
             
             <View style={styles.infoItem}>
               <Ionicons name="cash-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>Entry: Free</Text>
+              <Text style={styles.infoText}>{i18n.t('artisans.entryFee')}</Text>
             </View>
             
             {artisanDetails.specialties && artisanDetails.specialties.length > 0 && (
               <View style={styles.infoItem}>
                 <Ionicons name="star-outline" size={20} color="#666" />
                 <Text style={styles.infoText}>
-                  Known for: {artisanDetails.specialties.join(', ')}
+                  {i18n.t('artisans.knownFor')} {artisanDetails.specialties.join(', ')}
                 </Text>
               </View>
             )}
@@ -89,28 +90,29 @@ const ArtisanDetailScreen: React.FC = () => {
           </View>
 
           <AboutSection 
-            title="About" 
-            text={artisanDetails.description || 'No information available for this artisan souk.'} 
+            title={i18n.t('artisans.about')} 
+            text={artisanDetails.description || i18n.t('artisans.noInformation')} 
           />
 
           <LocationSection 
             address={artisanDetails.address} 
             mapUrl={`https://maps.google.com/?q=${encodeURIComponent(artisanDetails.address)}`}
+            title={i18n.t('artisans.location')}
           />
 
           <View style={styles.tipsContainer}>
-            <Text style={styles.tipsTitle}>Visitor Tips</Text>
+            <Text style={styles.tipsTitle}>{i18n.t('artisans.visitorTips')}</Text>
             <View style={styles.tipItem}>
               <Ionicons name="chatbubble-outline" size={20} color="#CE1126" />
-              <Text style={styles.tipText}>Bargaining is expected and part of the experience.</Text>
+              <Text style={styles.tipText}>{i18n.t('artisans.bargainingTip')}</Text>
             </View>
             <View style={styles.tipItem}>
               <Ionicons name="wallet-outline" size={20} color="#CE1126" />
-              <Text style={styles.tipText}>Have cash ready, preferably small bills.</Text>
+              <Text style={styles.tipText}>{i18n.t('artisans.cashTip')}</Text>
             </View>
             <View style={styles.tipItem}>
               <Ionicons name="camera-outline" size={20} color="#CE1126" />
-              <Text style={styles.tipText}>Ask before taking photos of artisans or their work.</Text>
+              <Text style={styles.tipText}>{i18n.t('artisans.photoTip')}</Text>
             </View>
           </View>
         </View>

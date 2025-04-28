@@ -1,12 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import GoogleIcon from '../assets/img/icons8-google.svg';
 import LogoSvg from '../assets/img/morroco-view-logo.svg';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { login } from '../service';
+import i18n from '../translations/i18n';
 
 
 const LoginScreen = () => {
@@ -22,6 +23,7 @@ const LoginScreen = () => {
       })
       .catch(error => {
         console.error('Login failed:', error);
+        Alert.alert(i18n.t('login.failed'), error.message);
       });
   };
 
@@ -38,9 +40,9 @@ const LoginScreen = () => {
       <View style={styles.container}>
         <View style={styles.logoContainer}>
           <LogoSvg width={80} height={80} />
-          <Text style={styles.accessText}>Access my account</Text>
+          <Text style={styles.accessText}>{i18n.t('login.accessAccount')}</Text>
         </View>
-        <Text style={styles.connectText}>Connect with</Text>
+        <Text style={styles.connectText}>{i18n.t('login.connectWith')}</Text>
         <Button
           title="Google"
           onPress={handleGoogleAuth}
@@ -49,18 +51,18 @@ const LoginScreen = () => {
         />
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
-          <Text style={styles.orText}>or</Text>
+          <Text style={styles.orText}>{i18n.t('login.or')}</Text>
           <View style={styles.divider} />
         </View>
-        <Text style={styles.title}>Please enter your login</Text>
-        <Input placeholder="Email" style={styles.input} value={email} onChangeText={setEmail} />
-        <Input placeholder="Password" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
-        <Button title="Login" onPress={handleLogin} style={styles.button} />
+        <Text style={styles.title}>{i18n.t('login.enterCredentials')}</Text>
+        <Input placeholder={i18n.t('login.email')} style={styles.input} value={email} onChangeText={setEmail} />
+        <Input placeholder={i18n.t('login.password')} secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
+        <Button title={i18n.t('login.loginButton')} onPress={handleLogin} style={styles.button} />
         <Text style={styles.link}>
-          Forgot your password? <Text style={styles.linkText}>Recover</Text>
+          {i18n.t('login.forgotPassword')} <Text style={styles.linkText}>{i18n.t('login.recover')}</Text>
         </Text>
         <Text style={styles.link}>
-          Need an account? <Text style={styles.linkText}>Register</Text>
+          {i18n.t('login.needAccount')} <Text style={styles.linkText}>{i18n.t('login.register')}</Text>
         </Text>
       </View>
     </LinearGradient>

@@ -1,32 +1,33 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import ScreenHeader from "../components/ScreenHeader";
+import React from 'react';
+import { Image, Linking, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ContactItem from '../components/ContactItem';
+import ScreenHeader from "../components/ScreenHeader";
+import i18n from '../translations/i18n';
 
 
 const EmergencyContactsScreen = () => {
   const contacts = [
     {
-      title: 'Senegal - Ambassador',
+      title: i18n.t('emergency.senegalAmbassador'),
       phone: '05 22 30 00 43',
       email: 'info@consulsenecasa.gov.ma',
       address: '34 Avenue Idriss Slaoui, Quartier Anfa 20050 Casablanca, Maroc',
       logo: require('../assets/img/senegal-emblem.jpg'),
     },
     {
-      title: 'National Police',
+      title: i18n.t('emergency.nationalPolice'),
       phone: '19',
       logo: require('../assets/img/police-emblem.jpg'),
     },
     {
-      title: 'Firefighters',
+      title: i18n.t('emergency.firefighters'),
       phone: '15',
       logo: require('../assets/img/firefighters-emblem.jpg'),
     },
     {
-      title: 'Royal Gendarmerie',
+      title: i18n.t('emergency.royalGendarmerie'),
       phone: '177',
       logo: require('../assets/img/gendarmerie-emblem.png'),
     },
@@ -38,7 +39,7 @@ const EmergencyContactsScreen = () => {
     <SafeAreaView style={styles.container}>
       {/*   <StatusBar barStyle="dark-content" backgroundColor="#FFF" />  */}
       <View style={styles.headerContainer}>
-        <ScreenHeader title={'Emergency Contacts'} />
+        <ScreenHeader title={i18n.t('emergency.title')} />
       </View>
       <ScrollView style={styles.contactsContainer}>
         {contacts.map((contact, index) => (

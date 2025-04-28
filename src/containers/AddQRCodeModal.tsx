@@ -1,26 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  Modal, 
+import { Ionicons } from '@expo/vector-icons';
+import * as BarCodeScanner from 'expo-barcode-scanner';
+import { CameraView } from 'expo-camera';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Animated,
+  Dimensions,
+  Keyboard,
+  Modal,
+  PanResponder,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Dimensions,
-  Animated,
-  PanResponder,
-  TextInput,
-  Keyboard,
-  Platform,
-  Alert
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Button from '../components/Button';
-import { CameraView } from 'expo-camera';
-import { useCamera } from '../hooks/useCamera';
-import QRCode from '../types/qrcode';
-import * as BarCodeScanner from 'expo-barcode-scanner';
 import QRCodeSVG from 'react-native-qrcode-svg';
+import Button from '../components/Button';
+import { useCamera } from '../hooks/useCamera';
+import i18n from '../translations/i18n';
+import QRCode from '../types/qrcode';
 
 interface AddQRCodeModalProps {
   visible: boolean;
@@ -185,15 +186,15 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
   const handlePickImage = async () => {
     // Show options for camera or gallery
     Alert.alert(
-      'Select Option',
-      'Choose how to add a QR code',
+      i18n.t('qrcode.selectOption'),
+      '',
       [
         {
-          text: 'Scan QR Code',
+          text: i18n.t('qrcode.scan'),
           onPress: handleOpenScanner
         },
         {
-          text: 'Choose from Gallery',
+          text: i18n.t('qrcode.chooseFromGallery'),
           onPress: async () => {
             const result = await pickImageFromGallery();
             if (result) {
@@ -203,16 +204,16 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
                 
                 // Show confirmation dialog
                 Alert.alert(
-                  'QR Code Detected',
+                  i18n.t('qrcode.qrCodeDetected'),
                   `Found QR code in image: ${result.scannedData.data.substring(0, 30)}${result.scannedData.data.length > 30 ? '...' : ''}`,
-                  [{ text: 'OK' }]
+                  [{ text: i18n.t('common.close') }]
                 );
               }
             }
           }
         },
         {
-          text: 'Cancel',
+          text: i18n.t('qrcode.cancel'),
           style: 'cancel'
         }
       ]
@@ -232,11 +233,11 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
 
       // Show success message with option to view generated QR code
       Alert.alert(
-        'QR Code Scanned',
+        i18n.t('qrcode.qrCodeScanned'),
         `Successfully scanned QR code: ${result.data.substring(0, 30)}${result.data.length > 30 ? '...' : ''}`,
         [
           { 
-            text: 'OK',
+            text: i18n.t('common.close'),
             onPress: () => {
               // Set showQRCode to true to display the generated QR code
               setShowQRCode(true);
@@ -270,7 +271,7 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
             </View>
           ) : (
             <View style={styles.noCameraContainer}>
-              <Text style={styles.noCameraText}>Camera permission not granted</Text>
+              <Text style={styles.noCameraText}>{i18n.t('qrcode.cameraPermission')}</Text>
             </View>
           )}
           
@@ -291,7 +292,7 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
                 style={styles.scannerRescanButton}
                 onPress={resetScanner}
               >
-                <Text style={styles.scannerRescanText}>Scan Again</Text>
+                <Text style={styles.scannerRescanText}>{i18n.t('qrcode.scanAgain')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -321,7 +322,7 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
             </View>
             
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add QR Code</Text>
+              <Text style={styles.modalTitle}>{i18n.t('qrcode.modalTitle')}</Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={16} color="black" />
               </TouchableOpacity>
@@ -331,33 +332,33 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
           <View style={styles.modalContent}>
             {/* Form Fields */}
             <View style={styles.formField}>
-              <Text style={styles.label}>Title <Text style={styles.required}>*</Text></Text>
+              <Text style={styles.label}>{i18n.t('qrcode.titleField')} <Text style={styles.required}>*</Text></Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter title"
+                placeholder={i18n.t('qrcode.enterTitle')}
                 value={title}
                 onChangeText={setTitle}
               />
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.label}>{i18n.t('qrcode.descriptionField')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter description"
+                placeholder={i18n.t('qrcode.enterDescription')}
                 value={description}
                 onChangeText={setDescription}
               />
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.label}>Pick QR Code image <Text style={styles.required}>*</Text></Text>
+              <Text style={styles.label}>{i18n.t('qrcode.pickImage')} <Text style={styles.required}>*</Text></Text>
               <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
                
                 {!data ? (
                   <>
                     <Ionicons name="image-outline" size={48} color="#777" />
-                    <Text style={styles.imagePickerText}>Pick QR Code image</Text>
+                    <Text style={styles.imagePickerText}>{i18n.t('qrcode.pickQrCodeImage')}</Text>
                   </>
                 ) : (
                   <View style={styles.qrCodeWrapper}>
@@ -375,7 +376,7 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
             {/* Save Button */}
             <View style={styles.buttonContainer}>
               <Button 
-                title="Save" 
+                title={i18n.t('qrcode.save')}
                 onPress={handleSave} 
                 disabled={!title.trim() || !data}
                 style={(!title.trim() || !data) ? styles.disabledButton : styles.button}

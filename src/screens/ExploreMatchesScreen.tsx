@@ -7,15 +7,17 @@ import FilterSelector from '../components/FilterSelector';
 import MatchPopup from '../components/MatchPopup';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   cities,
   createFilterOptions,
+  matchCities,
   matchFilterCategories,
-  normalizeString,
-  matchCities
+  normalizeString
 } from '../data/filterData';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMatches, setCurrentMatch, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
+import i18n from '../translations/i18n';
 import { Match } from '../types/match';
 
 const ExploreMatchesScreen: React.FC = () => {
@@ -25,6 +27,7 @@ const ExploreMatchesScreen: React.FC = () => {
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const [selectedCityId, setSelectedCityId] = useState('all');
+  const { currentLanguage } = useLanguage();
 
   // Add icons to filter categories
   const categoriesWithIcons = {
@@ -36,7 +39,7 @@ const ExploreMatchesScreen: React.FC = () => {
 
   // Create city options for the FilterSelector component
   const cityOptions = [
-    { id: 'all', label: 'All Cities', icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> },
+    { id: 'all', label: i18n.t('matches.allCities'), icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> },
     ...matchCities.map(city => ({
       id: normalizeString(city.id),
       label: city.label,
@@ -131,13 +134,13 @@ const ExploreMatchesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Africa Cup of Nations" />
+        <ScreenHeader title={i18n.t('matches.africaCupOfNations')} />
       </View>
 
       <View style={styles.content}>
         <View style={styles.searchBarContainer}>
           <SearchBar
-            placeholder="Search matches..."
+            placeholder={i18n.t('matches.searchMatches')}
             onChangeText={handleSearch}
             onFilterPress={handleFilterPress}
             value={searchQuery}
@@ -149,7 +152,7 @@ const ExploreMatchesScreen: React.FC = () => {
             options={cityOptions}
             selectedOptionId={selectedCityId}
             onSelectOption={handleCitySelect}
-            title="City :"
+            title={i18n.t('matches.city')}
           />
         </View>
 
@@ -169,7 +172,7 @@ const ExploreMatchesScreen: React.FC = () => {
           />
         ) : (
           <View style={styles.noMatchesContainer}>
-            <Text style={styles.noMatchesText}>No matches found for the selected filters.</Text>
+            <Text style={styles.noMatchesText}>{i18n.t('matches.noMatchesFound')}</Text>
           </View>
         )}
       </View>
@@ -190,7 +193,7 @@ const ExploreMatchesScreen: React.FC = () => {
         onClose={() => setFilterPopupVisible(false)}
         filterOptions={filterOptions}
         onApplyFilters={handleApplyFilters}
-        title="Filter Matches"
+        title={i18n.t('matches.filterMatches')}
         categories={categoriesWithIcons}
       />
     </SafeAreaView>

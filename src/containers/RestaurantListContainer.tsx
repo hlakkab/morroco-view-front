@@ -8,6 +8,7 @@ import RestaurantCard from '../components/cards/RestaurantCard';
 import FilterSelector from '../components/FilterSelector';
 import { useAppDispatch } from '../store/hooks';
 import { setSelectedRestaurant, toggleRestaurantBookmark } from '../store/restaurantSlice';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { Restaurant, RestaurantType } from '../types/Restaurant';
 
@@ -40,7 +41,7 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
   const typeOptions = [
     {
       id: 'All Types',
-      label: 'All Types',
+      label: i18n.t('restaurants.allTypes'),
       icon: <Ionicons name="restaurant-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
     },
     ...Object.values(RestaurantType).map(type => ({
@@ -64,11 +65,11 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
   // Determine the empty state message based on filter conditions
   const getEmptyStateMessage = () => {
     if (restaurants.length === 0) {
-      return "No restaurants available";
+      return i18n.t('restaurants.noRestaurantsAvailable');
     } else if (filteredRestaurants.length === 0 && selectedType !== 'All Types') {
-      return `No restaurants found with type: ${selectedType}`;
+      return `${i18n.t('restaurants.noRestaurantsType')} ${selectedType}`;
     } else {
-      return "No restaurants found for the selected filters";
+      return i18n.t('restaurants.noRestaurantsFilters');
     }
   };
 
@@ -77,7 +78,7 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
       {showTypeFilter && (
         <View style={styles.filtersContainer}>
           <FilterSelector
-           title="Restaurant Type:"
+            title={i18n.t('restaurants.restaurantType')}
             options={typeOptions}
             selectedOptionId={selectedType}
             onSelectOption={(optionId) => onSelectType(optionId as RestaurantType | "All Types")}

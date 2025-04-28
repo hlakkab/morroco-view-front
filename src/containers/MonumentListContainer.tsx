@@ -7,6 +7,7 @@ import MonumentCard from '../components/cards/MonumentCard';
 import FilterSelector from '../components/FilterSelector';
 import { useAppDispatch } from '../store/hooks';
 import { setSelectedMonument, toggleMonumentBookmark } from '../store/monumentSlice';
+import i18n from '../translations/i18n';
 import { Monument, MonumentType } from '../types/Monument';
 import { RootStackParamList } from '../types/navigation';
 
@@ -39,7 +40,7 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
   const typeOptions = [
     {
       id: 'All Types',
-      label: 'All Types',
+      label: i18n.t('monuments.allTypes'),
       icon: <Ionicons name="business-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
     },
     ...Object.values(MonumentType).map(type => ({
@@ -63,11 +64,11 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
   // Determine the empty state message based on filter conditions
   const getEmptyStateMessage = () => {
     if (monuments.length === 0) {
-      return "No monuments available";
+      return i18n.t('monuments.noMonumentsAvailable');
     } else if (filteredMonuments.length === 0 && selectedType !== 'All Types') {
-      return `No monuments found with type: ${selectedType}`;
+      return `${i18n.t('monuments.noMonumentsType')} ${selectedType}`;
     } else {
-      return "No monuments found for the selected filters";
+      return i18n.t('monuments.noMonumentsFilters');
     }
   };
 
@@ -76,7 +77,7 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
       {showTypeFilter && (
         <View style={styles.filtersContainer}>
           <FilterSelector
-            title="Monument Type:"
+            title={i18n.t('monuments.monumentType')}
             options={typeOptions}
             selectedOptionId={selectedType}
             onSelectOption={(optionId) => onSelectType(optionId as MonumentType | "All Types")}

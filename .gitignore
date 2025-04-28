@@ -3,6 +3,12 @@
 #work
 workspace.xml
 
+
+
+# IDE config (IntelliJ / WebStorm / PhpStorm / Android Studio)
+.idea/
+
+
 #package.json
 package.json
 

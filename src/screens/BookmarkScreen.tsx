@@ -11,6 +11,7 @@ import BottomNavBar from '../containers/BottomNavBar';
 import { cities, normalizeString } from '../data/filterData';
 import { fetchBookmarks } from '../store/bookmarkSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
 // Define all possible service types
@@ -38,7 +39,7 @@ const BookmarkScreen: React.FC = () => {
   const cityOptions = [
     { 
       id: 'all', 
-      label: 'All Cities', 
+      label: i18n.t('bookmark.allCities'), 
       icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
     },
     ...cities
@@ -53,7 +54,7 @@ const BookmarkScreen: React.FC = () => {
   const categoriesWithIcons = {
     bookmark_type: {
       key: 'bookmark_type',
-      label: 'By Service Type',
+      label: i18n.t('bookmark.byServiceType'),
       icon: <Ionicons name="apps" size={20} color="#CE1126" />
     }
   };
@@ -157,11 +158,11 @@ const BookmarkScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title="Bookmarks" onBack={handleBack} />
+        <ScreenHeader title={i18n.t('bookmark.title')} onBack={handleBack} />
       </View>
       <View style={styles.content}>
         <SearchBar
-          placeholder="Search bookmarks..."
+          placeholder={i18n.t('bookmark.searchPlaceholder')}
           onChangeText={handleSearch}
           value={searchQuery}
           onFilterPress={handleFilterPress}
@@ -171,7 +172,7 @@ const BookmarkScreen: React.FC = () => {
             options={cityOptions}
             selectedOptionId={selectedCityId}
             onSelectOption={handleCitySelect}
-            title="City :"
+            title={i18n.t('bookmark.city')}
           />
         </View>
         <BookmarkListContainer 
@@ -186,7 +187,7 @@ const BookmarkScreen: React.FC = () => {
         onClose={handleCloseFilter}
         filterOptions={filterOptions}
         onApplyFilters={handleApplyFilters}
-        title="Filter Bookmarks"
+        title={i18n.t('bookmark.filterTitle')}
         categories={categoriesWithIcons}
       />
 
