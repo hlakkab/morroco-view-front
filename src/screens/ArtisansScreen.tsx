@@ -19,10 +19,10 @@ import ArtisanListContainer from '../containers/ArtisanListContainer';
 import ButtonFixe from '../components/ButtonFixe';
 import ScreenHeader from '../components/ScreenHeader';
 import {
-  artisanFilterCategories,
-  cities,
-  createArtisanFilterOptions,
-  normalizeString
+    cities,
+    createArtisanFilterOptions,
+    getArtisanFilterCategories,
+    normalizeString
 } from '../data/filterData';
 import { Artisan, ArtisanType } from '../types/Artisan';
 import { RootStackParamList } from '../types/navigation';
@@ -49,7 +49,7 @@ const ArtisansScreen: React.FC = () => {
   // Add icons to filter categories - only include artisan_type for FilterPopup
   const categoriesWithIcons = {
     artisan_type: {
-      ...artisanFilterCategories.artisan_type,
+      ...getArtisanFilterCategories().artisan_type,
       icon: <Ionicons name="hand-left" size={20} color="#CE1126" />
     }
   };

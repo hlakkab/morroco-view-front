@@ -1,6 +1,7 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 import ESIMCardsContainer from '../containers/ESIMCardsContainer';
 import BuyESIMModal from '../containers/BuyESIMModal';
@@ -9,18 +10,25 @@ import ScreenHeader from '../components/ScreenHeader';
 import { RootStackParamList } from '../types/navigation';
 import Button from '../components/Button';
 import i18n from '../translations/i18n';
+import { fetchEsims, createEsim } from '../store/slices/esimSlice';
+import { AppDispatch, RootState } from '../store';
 
 const ESIMScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch<AppDispatch>();
+  const { esims, loading, error } = useSelector((state: RootState) => state.esim);
   const [buyModalVisible, setBuyModalVisible] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchEsims());
+  }, [dispatch]);
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleBuyOne = () => {
-    // Show the buy eSIM modal
     setBuyModalVisible(true);
   };
 
@@ -32,13 +40,21 @@ const ESIMScreen: React.FC = () => {
     setQrModalVisible(false);
   };
 
-  const handlePurchaseESIM = (operatorId: string) => {
-    // This would handle the actual purchase logic
-    console.log(`Purchased eSIM from operator: ${operatorId}`);
-    // You could add more logic here, like adding the eSIM to your list
-    // or navigating to a confirmation screen
-    setBuyModalVisible(false);
-    setQrModalVisible(true);
+  const handlePurchaseESIM = async (operatorId: string) => {
+    try {
+      const newEsim = {
+        operator: operatorId,
+        offer: 'Standard Plan',
+        price: 10.99,
+        simNumber: `SIM-${Date.now()}`
+      };
+      
+      await dispatch(createEsim(newEsim)).unwrap();
+      setBuyModalVisible(false);
+      setQrModalVisible(true);
+    } catch (error) {
+      console.error('Failed to purchase ESIM:', error);
+    }
   };
 
   return (
@@ -49,7 +65,7 @@ const ESIMScreen: React.FC = () => {
 
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.content}>
-          <ESIMCardsContainer />
+          <ESIMCardsContainer esims={esims} loading={loading} error={error} />
         </View>
       </ScrollView>
 
@@ -57,7 +73,6 @@ const ESIMScreen: React.FC = () => {
         <Button title={i18n.t('qrcode.buyOne')} onPress={handleBuyOne} />
       </View>
 
-      {/* Buy eSIM Modal */}
       <BuyESIMModal
         visible={buyModalVisible}
         onClose={handleCloseBuyModal}

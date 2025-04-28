@@ -8,6 +8,7 @@ import DatePickerModal from '../components/DatePickerModal';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
+import { togglePickupDirection } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
 
 interface ReservationPopupProps {
@@ -75,6 +76,10 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
     console.log('ReservationPopup - Current pickup direction:', pickupDirection);
     console.log('ReservationPopup - City:', selectedCity);
   }, [pickupDirection, selectedCity]);
+
+  const handleToggleDirection = () => {
+    dispatch(togglePickupDirection());
+  };
 
   // Custom date picker implementation
   const renderCustomDatePicker = () => {
@@ -274,7 +279,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               <View style={styles.timePickerRow}>
                 {/* Hour Selector */}
                 <View style={styles.timePickerColumn}>
-                  <Text style={styles.pickerLabel}>Hour</Text>
+                  <Text style={styles.pickerLabel}>{i18n.t('reservation.hour')}</Text>
                   <View style={styles.timePickerScrollWrapper}>
                     <ScrollView
                       showsVerticalScrollIndicator={true}
@@ -310,7 +315,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
                 {/* Minute Selector */}
                 <View style={styles.timePickerColumn}>
-                  <Text style={styles.pickerLabel}>Minute</Text>
+                  <Text style={styles.pickerLabel}>{i18n.t('reservation.minute')}</Text>
                   <View style={styles.timePickerScrollWrapper}>
                     <ScrollView
                       showsVerticalScrollIndicator={true}
@@ -345,7 +350,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
                 {/* AM/PM Selector */}
                 <View style={styles.timePickerColumn}>
-                  <Text style={styles.pickerLabel}>AM/PM</Text>
+                  <Text style={styles.pickerLabel}>{i18n.t('reservation.amPm')}</Text>
                   <View style={styles.amPmContainer}>
                     {periods.map((period) => (
                       <TouchableOpacity
@@ -382,7 +387,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
             <View style={styles.pickerActions}>
               <Button
-                title="Confirm"
+                title={i18n.t('reservation.confirm')}
                 style={styles.confirmPickerButton}
                 onPress={() => setShowTimePicker(false)}
               />
@@ -479,7 +484,68 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               </View>
               <View style={styles.transportDetails}>
                 <Text style={styles.transportTitle}>{title}</Text>
-                <Text style={styles.transportPrice}>{price} {i18n.t('pickup.perGroup')}</Text>
+                <Text style={styles.transportPrice}>{price} € {i18n.t('pickup.perGroup')}</Text>
+              </View>
+            </View>
+
+            {/* Direction switch control */}
+            <View style={styles.directionSwitchWrapper}>
+              <View style={styles.directionControls}>
+                {pickupDirection === 'a2h' ? (
+                  // Airport to Hotel layout
+                  <>
+                    <View style={styles.endpointWithLabel}>
+                      <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                        <MaterialIcons name="flight" size={16} color="#CE1126" />
+                      </View>
+                      <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                    </View>
+                    
+                    <View style={styles.directionMiddle}>
+                      <TouchableOpacity 
+                        style={styles.switchButton}
+                        onPress={handleToggleDirection}
+                      >
+                        <Ionicons name="arrow-forward" size={14} color="#666" />
+                      </TouchableOpacity>
+                      <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                    </View>
+                    
+                    <View style={styles.endpointWithLabel}>
+                      <View style={styles.directionEndpoint}>
+                        <MaterialIcons name="hotel" size={16} color="#777" />
+                      </View>
+                      <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                    </View>
+                  </>
+                ) : (
+                  // Hotel to Airport layout
+                  <>
+                    <View style={styles.endpointWithLabel}>
+                      <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                        <MaterialIcons name="hotel" size={16} color="#CE1126" />
+                      </View>
+                      <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                    </View>
+                    
+                    <View style={styles.directionMiddle}>
+                      <TouchableOpacity 
+                        style={styles.switchButton}
+                        onPress={handleToggleDirection}
+                      >
+                        <Ionicons name="arrow-forward" size={14} color="#666" />
+                      </TouchableOpacity>
+                      <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                    </View>
+                    
+                    <View style={styles.endpointWithLabel}>
+                      <View style={styles.directionEndpoint}>
+                        <MaterialIcons name="flight" size={16} color="#777" />
+                      </View>
+                      <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                    </View>
+                  </>
+                )}
               </View>
             </View>
 
@@ -490,7 +556,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                     <View style={styles.routeIconContainer}>
                       <MaterialIcons name="flight" size={20} color="#fff" />
                     </View>
-                    <Text style={styles.routeText}>{selectedCity} Airport</Text>
+                    <Text style={styles.routeText}>{selectedCity} {i18n.t('pickup.airport')}</Text>
                   </View>
                   <View style={styles.routeLine}>
                     <View style={styles.routeDash}></View>
@@ -502,7 +568,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                     <View style={[styles.routeIconContainer, styles.destinationIconContainer]}>
                       <MaterialIcons name="hotel" size={20} color="#fff" />
                     </View>
-                    <Text style={styles.routeText}>Your Hotel in {selectedCity}</Text>
+                    <Text style={styles.routeText}>{i18n.t('pickup.hotel')} {i18n.t('pickup.in')} {selectedCity}</Text>
                   </View>
                 </>
               ) : (
@@ -511,7 +577,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                     <View style={[styles.routeIconContainer, styles.destinationIconContainer]}>
                       <MaterialIcons name="hotel" size={20} color="#fff" />
                     </View>
-                    <Text style={styles.routeText}>Your Hotel in {selectedCity}</Text>
+                    <Text style={styles.routeText}>{i18n.t('pickup.hotel')} {i18n.t('pickup.in')} {selectedCity}</Text>
                   </View>
                   <View style={styles.routeLine}>
                     <View style={styles.routeDash}></View>
@@ -523,7 +589,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                     <View style={styles.routeIconContainer}>
                       <MaterialIcons name="flight" size={20} color="#fff" />
                     </View>
-                    <Text style={styles.routeText}>{selectedCity} Airport</Text>
+                    <Text style={styles.routeText}>{selectedCity} {i18n.t('pickup.airport')}</Text>
                   </View>
                 </>
               )}
@@ -682,7 +748,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   iconContainer: {
     width: 50,
@@ -734,7 +800,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#008060',
   },
   routeLine: {
-    height: 40,
+    height: 34,
     width: 2,
     marginLeft: 17,
     flexDirection: 'column',
@@ -1002,6 +1068,68 @@ const styles = StyleSheet.create({
   },
   inputPlaceholder: {
     color: '#999',
+  },
+  directionSwitchWrapper: {
+    marginBottom: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 10,
+  },
+  directionControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  endpointWithLabel: {
+    alignItems: 'center',
+    width: 70,
+  },
+  directionEndpoint: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    marginBottom: 4,
+  },
+  activeEndpoint: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  directionMiddle: {
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  switchButton: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#eee',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  endpointLabel: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '500',
+  },
+  toLabel: {
+    fontSize: 10,
+    color: '#666',
   },
 });
 

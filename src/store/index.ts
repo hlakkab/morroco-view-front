@@ -1,6 +1,6 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector } from './hooks';
-import { AppDispatch, RootState } from './store';
+import store, { AppDispatch, RootState } from './store';
+import esimReducer from './slices/esimSlice';
 
 import MatchState, {
   fetchMatches,
@@ -32,17 +32,25 @@ import {
 } from './artisanSlice';
 
 export {
-  AppDispatch, clearError,
-  // Artisan exports
-  fetchArtisans, fetchMatches,
-  // Monument exports
+  AppDispatch,
+  clearError,
+  fetchArtisans,
+  fetchMatches,
   fetchMonuments,
-  // Restaurant exports
-  fetchRestaurants, fetchTicketById, fetchTickets,
-  // Match exports
-  MatchState, RootState, saveMatchBookmark, setSelectedArtisanType, setSelectedMonument, setSelectedMonumentType, setSelectedRestaurant, setSelectedRestaurantType,
-  // Ticket exports
-  TicketState, toggleMatchBookmark, useAppDispatch,
+  fetchRestaurants,
+  fetchTicketById,
+  fetchTickets,
+  MatchState,
+  RootState,
+  saveMatchBookmark,
+  setSelectedArtisanType,
+  setSelectedMonument,
+  setSelectedMonumentType,
+  setSelectedRestaurant,
+  setSelectedRestaurantType,
+  TicketState,
+  toggleMatchBookmark,
+  useAppDispatch,
   useAppSelector
 };
 

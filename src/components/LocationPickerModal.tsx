@@ -3,6 +3,7 @@ import { Modal, StyleSheet, View, Text, TouchableOpacity, Dimensions, Platform }
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import i18n from '../translations/i18n';
 
 interface LocationPickerModalProps {
 
@@ -100,7 +101,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           onPress={(e) => e.stopPropagation()}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Select Location</Text>
+            <Text style={styles.title}>{i18n.t('reservation.selectLocation')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#666" />
             </TouchableOpacity>
@@ -108,7 +109,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
           <View style={styles.searchContainer}>
             <GooglePlacesAutocomplete
-              placeholder="Search for a location"
+              placeholder={i18n.t('reservation.searchForLocation')}
               onPress={handleLocationSelect}
               query={{
                 key: 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY', // Replace with your API key
@@ -161,7 +162,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                       latitude: selectedLocation.latitude,
                       longitude: selectedLocation.longitude,
                     }}
-                    title="Selected Location"
+                    title={i18n.t('reservation.selectedLocation')}
                     description={selectedLocation.address}
                   />
                 </MapView>
@@ -180,7 +181,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               <View style={styles.mapPlaceholder}>
                 <Ionicons name="map-outline" size={48} color="#ccc" />
                 <Text style={styles.mapPlaceholderText}>
-                  Search for a location to display on the map
+                  {i18n.t('reservation.searchForLocationToDisplayOnTheMap')}
                 </Text>
               </View>
             )}
@@ -194,7 +195,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             onPress={handleConfirm}
             disabled={!selectedLocation}
           >
-            <Text style={styles.confirmButtonText}>Confirm Location</Text>
+            <Text style={styles.confirmButtonText}>{i18n.t('reservation.confirmLocation')}</Text>
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>

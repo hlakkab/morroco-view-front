@@ -6,7 +6,7 @@ export type Ticket = {
   matchId: string;
   createdAt: string;
   updatedAt: string;
-  type: "MATCH" | "PICKUP";
+  type: "MATCH" | "PICKUP" | "E_SIM";
   object: Match | HotelPickup;
 };
 
