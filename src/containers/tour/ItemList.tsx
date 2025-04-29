@@ -13,6 +13,7 @@ interface ItemListProps {
   selectedCity: string;
   selectedItems: string[];
   totalSelectedCount: number;
+  previouslySelectedItemIds: string[];   // ← ajoute ceci
   onSelectItem: (itemId: string, itemCity: string) => void;
 }
 
@@ -21,7 +22,8 @@ const ItemList: React.FC<ItemListProps> = ({
   selectedCity,
   selectedItems,
   totalSelectedCount,
-  onSelectItem,
+  previouslySelectedItemIds,
+  onSelectItem,   // ← ici  onSelectItem,
 }) => {
 
   const getIconForType = (type: string) => {
@@ -45,6 +47,7 @@ const ItemList: React.FC<ItemListProps> = ({
 
   const renderSavedItem = ({ item }: { item: TourSavedItem }) => {
     const isSelected = selectedItems.includes(item.id);
+    const isPreviouslySelected = previouslySelectedItemIds.includes(item.id);
     const isDisabled = selectedCity && item.city !== selectedCity;
 
     const renderMatchContent = () => {
@@ -61,45 +64,50 @@ const ItemList: React.FC<ItemListProps> = ({
     };
 
     return (
-      <View style={styles.cardContainer}>
-        <CardItem
-          images={item.type === 'match' ? [] : item.images}
-          title={item.title}
-          subtitle={item.subtitle}
-          tags={[
-            {
-              id: item.type,
-              label: item.type.charAt(0).toUpperCase() + item.type.slice(1),
-              icon: getIconForType(item.type)
-            },
-            {
-              id: `city-${item.city}`,
-              label: item.city,
-              icon: <Ionicons name="location" size={14} color="#008060" style={{ marginRight: 4 }} />
-            }
-          ]}
-          actionIcon={
-            <Ionicons
-              name={isSelected ? "checkmark-circle" : "checkmark-circle-outline"}
-              size={32}
-              color={isSelected ? "#E53935" : isDisabled ? "#ccc" : "#666"}
-            />
-          }
-          onActionPress={() => {
-            if (!isDisabled) {
-              onSelectItem(item.id, item.city);
-            }
-          }}
-          containerStyle={[
-            styles.card,
-            isDisabled && styles.disabledCard
-          ]}
-          imageStyle={styles.cardImage}
-          contentStyle={isDisabled ? styles.disabledCardContent : {}}
-          svgImage={item.type === 'match' ? renderMatchContent() : undefined}
-        />
-      </View>
+        <View style={styles.cardWrapper}>
+          <CardItem
+              images={item.type === 'match' ? [] : item.images}
+              title={item.title}
+              subtitle={item.subtitle}
+              tags={[
+                {
+                  id: item.type,
+                  label: item.type.charAt(0).toUpperCase() + item.type.slice(1),
+                  icon: getIconForType(item.type)
+                },
+                {
+                  id: `city-${item.city}`,
+                  label: item.city,
+                  icon: <Ionicons name="location" size={14} color="#008060" style={{ marginRight: 4 }} />
+                }
+              ]}
+              actionIcon={
+                <Ionicons
+                    name={isSelected ? "checkmark-circle" : "checkmark-circle-outline"}
+                    size={32}
+                    color={isSelected ? "#E53935" : isDisabled ? "#ccc" : "#666"}
+                />
+              }
+              onActionPress={() => {
+                if (!isDisabled) {
+                  onSelectItem(item.id, item.city);
+                }
+              }}
+              containerStyle={[styles.card, isDisabled && styles.disabledCard]}
+              imageStyle={styles.cardImage}
+              contentStyle={isDisabled ? styles.disabledCardContent : {}}
+              svgImage={item.type === 'match' ? renderMatchContent() : undefined}
+          />
+
+          {isPreviouslySelected && (
+              <View style={styles.alreadyBadge}>
+                <Ionicons name="checkmark-circle" size={14} color="#E53935" />
+                <Text style={styles.badgeText}>{i18n.t('tours.alreadySelected')}</Text>
+              </View>
+          )}
+        </View>
     );
+
   };
 
   return (
@@ -201,6 +209,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: "#555",
+  },
+  cardWrapper: {
+    position: 'relative',
+  },
+  alreadyBadge: {
+    position: 'absolute',
+    //bottom: 20,
+    top: 5,
+    right: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8D7DA',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: '#E53935',
+    marginLeft: 4,
   },
 });
 

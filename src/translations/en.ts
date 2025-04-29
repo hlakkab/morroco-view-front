@@ -39,6 +39,7 @@ export default {
     emergencyContacts: 'Emergency Contacts',
   },
   services: {
+    title: 'Services',
     hotelPickup: 'Hotel Pickup',
     moneyExchange: 'Money Exchange',
     eSIM: 'eSIM',
@@ -400,6 +401,7 @@ export default {
   tours: {
     addNewTour: 'Add New Tour',
     availableTours: 'Available Tours',
+    alreadySelected: 'Already selected',
     basicInfos: 'Basic infos',
     destinations: 'Destinations',
     destination: 'Destination',

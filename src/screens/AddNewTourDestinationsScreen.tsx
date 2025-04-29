@@ -13,6 +13,9 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchBookmarksAsItems, setTourDestinations, TourItem } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
+import { Dimensions } from 'react-native';
+
+
 
 // Calculate the number of days between start and end dates (inclusive)
 export const calculateDaysInclusive = (startDate: string, endDate: string): number => {
@@ -385,13 +388,27 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     return addCoordinatesToItems(filtered);
   }, [availableItems, selectedCities, selectedDay, searchQuery]);
 
-  const totalSelectedCount = useMemo(() => {
-    return Object.values(selectedItemsByDay).reduce(
-      (count, items) => count + items.length, 0
-    );
-  }, [selectedItemsByDay]);
+  // const totalSelectedCount = useMemo(() => {
+  //   return Object.values(selectedItemsByDay).reduce(
+  //     (count, items) => count + items.length, 0
+  //   );
+  // }, [selectedItemsByDay]);
 
-  
+
+  // Nombre d'items sélectionnés pour la ville du jour actuellement sélectionné
+  const currentCitySelectedCount = useMemo(
+      () => selectedItemsByDay[selectedDay]?.length || 0,
+      [selectedItemsByDay, selectedDay]
+  );
+
+  //  Calcule les IDs déjà choisis hors du jour courant
+  const previouslySelectedItemIds = useMemo(
+      () =>
+          Object.entries(selectedItemsByDay)
+              .filter(([day]) => Number(day) !== selectedDay) // tous les jours sauf le jour actif
+              .flatMap(([, items]) => items),                // puis on « aplati » la liste
+      [selectedItemsByDay, selectedDay]
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -448,13 +465,15 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         ) : (
           /* Item List or Empty State */
           selectedCities[selectedDay] ? (
-            <ItemList
-              items={filteredItems}
-              selectedCity={selectedCities[selectedDay]}
-              selectedItems={selectedItemsByDay[selectedDay] || []}
-              totalSelectedCount={totalSelectedCount}
-              onSelectItem={handleItemSelect}
-            />
+              <ItemList
+                  items={filteredItems}
+                  selectedCity={selectedCities[selectedDay]}
+                  selectedItems={selectedItemsByDay[selectedDay] || []}
+                  totalSelectedCount={currentCitySelectedCount}  // <— OK
+                  previouslySelectedItemIds={previouslySelectedItemIds}  // ← nouvel prop
+                  onSelectItem={handleItemSelect}
+
+              />
           ) : (
             <EmptyCity selectedDay={selectedDay} />
           )
@@ -465,12 +484,14 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         <Button 
           title={i18n.t('common.next')}
           onPress={handleNext}
-          disabled={totalSelectedCount === 0 || loading}
+          disabled={currentCitySelectedCount === 0 || loading}
         />
       </View>
     </SafeAreaView>
   );
 };
+
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {

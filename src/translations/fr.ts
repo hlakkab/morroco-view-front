@@ -34,11 +34,12 @@ export default {
   },
   home: {
     exploreMatches: 'Explorer les Matchs',
-    exploreEvent: 'Explorer l\'Événement',
+    exploreEvent: 'Explorer l\'événement',
     exploreMorocco: 'Explorer le Maroc',
-    emergencyContacts: 'Contacts d\'Urgence',
+    emergencyContacts: 'Contacts d\'urgence',
   },
   services: {
+    title : 'Services',
     hotelPickup: 'Transport Hôtel',
     moneyExchange: 'Change de Monnaie',
     eSIM: 'eSIM',
@@ -409,6 +410,7 @@ export default {
   tours: {
     addNewTour: 'Ajouter un nouveau tour',
     availableTours: 'Tours disponibles',
+    alreadySelected: 'Déjà choisi',
     basicInfos: 'Infos de base',
     destinations: 'Destinations',
     destination: 'Destination',

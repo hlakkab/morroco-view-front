@@ -5,10 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/EventBannerContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/EventBannerContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/ExploreCardsContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/ExploreCardsContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/SearchBarContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/SearchBarContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/ServiceCardsContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/ServiceCardsContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AccountScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AccountScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translations/en.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/translations/en.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translations/fr.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/translations/fr.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +46,6 @@
     &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;oussamaTasks&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/MP40/Desktop/Avant Stage PFE/vd360-test&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -81,6 +87,8 @@
       <workItem from="1745312843847" duration="570000" />
       <workItem from="1745327509534" duration="6143000" />
       <workItem from="1745483564950" duration="600000" />
+      <workItem from="1745840719986" duration="14449000" />
+      <workItem from="1745914557903" duration="4130000" />
     </task>
     <servers />
   </component>

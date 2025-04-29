@@ -157,6 +157,7 @@ const AccountScreen: React.FC = () => {
           <TouchableOpacity 
             style={[styles.editProfileButton, editing ? styles.saveProfileButton : {}]} 
             onPress={handleEditProfile}
+            disabled={true}          // empêche toute interaction
           >
             <Text style={[styles.editProfileText, editing ? styles.saveProfileText : {}]}>
               {editing ? i18n.t('account.saveProfile') : i18n.t('account.editProfile')}

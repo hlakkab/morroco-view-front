@@ -3,7 +3,6 @@ import React from 'react';
 import { Dimensions, ImageBackground, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useLanguage } from '../contexts/LanguageContext';
 import i18n from '../translations/i18n';
-
 // Example JPG imports - replace these with your actual paths
 const monumentsImage = require('../assets/exploreBgImgs/monuments.jpg');
 const restaurantImage = require('../assets/exploreBgImgs/restaurant.jpg');
@@ -94,9 +93,9 @@ const ExploreCardsContainer: React.FC<ExploreCardsContainerProps> = ({ onCategor
 
 const styles = StyleSheet.create({
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 8,
   },
   categoryRow: {
     flexDirection: 'row',
