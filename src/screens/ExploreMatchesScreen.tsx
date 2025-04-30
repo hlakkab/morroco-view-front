@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Modal, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import MatchCard from '../components/cards/MatchCard';
 import FilterPopup, { FilterCategory, FilterOption } from "../components/FilterPopup";
 import FilterSelector from '../components/FilterSelector';
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   content: {
     flex: 1,

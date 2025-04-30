@@ -62,6 +62,7 @@ const QRCodesContainer: React.FC<QRCodesContainerProps> = ({ searchQuery = '' })
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
+    paddingHorizontal: 16
   }
 });
 

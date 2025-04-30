@@ -1,6 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 // Import components and containers
 import Button from '../components/Button';
@@ -114,10 +114,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF7F7',
-    padding: 16,
   },
   footer: {
     paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   loadingContainer: {
     position: 'absolute',
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   errorContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
     backgroundColor: '#ffeeee',
     marginHorizontal: 16,
     marginVertical: 8,
@@ -141,8 +141,11 @@ const styles = StyleSheet.create({
     color: '#ff0000',
   },
   headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   content: {
+    paddingHorizontal: 16,
   },
 });
 

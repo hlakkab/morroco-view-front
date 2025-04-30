@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
 
   },
   headerContainer: {
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
     paddingHorizontal: 16,
   },
   converterCard: {
