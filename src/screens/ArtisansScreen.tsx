@@ -26,6 +26,7 @@ import {
 } from '../data/filterData';
 import { Artisan, ArtisanType } from '../types/Artisan';
 import { RootStackParamList } from '../types/navigation';
+import Pagination from "../components/Pagination";
 
 type ArtisansScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Artisans'>;
 
@@ -45,6 +46,15 @@ const ArtisansScreen: React.FC = () => {
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const [selectedCity, setSelectedCity] = useState('all');
+
+  // ─── Hooks pagination ─────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  // reset page on search / filters / city change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [ searchQuery, selectedCity, filterOptions]);
+  // ────────────────────────────────────────────────────
 
   // Add icons to filter categories - only include artisan_type for FilterPopup
   const categoriesWithIcons = {
@@ -165,6 +175,14 @@ const ArtisansScreen: React.FC = () => {
     return searchMatch && cityFilter;
   });
 
+
+  // === PAGINATION : découpage des data pour la page courante ===
+  const totalPages = Math.ceil(filteredArtisans.length / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const currentArtisans = filteredArtisans.slice(start, start + itemsPerPage);
+  // === FIN PAGINATION ===
+
+
   // Render loading state
   if (loading) {
     return (
@@ -218,11 +236,22 @@ const ArtisansScreen: React.FC = () => {
         </View>
 
         <ArtisanListContainer
-          artisans={filteredArtisans}
+          artisans={currentArtisans}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
           showTypeFilter={false}
         />
+
+        {/* === Pagination : afficher si plus d’une page === */}
+        {totalPages > 0 && (
+            <Pagination
+                totalItems={filteredArtisans.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+            />
+        )}
+        {/* === Fin Pagination === */}
 
         <FilterPopup
           visible={filterPopupVisible}

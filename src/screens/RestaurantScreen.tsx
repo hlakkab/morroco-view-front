@@ -21,6 +21,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import { cities, normalizeString } from '../data/filterData';
 import { RootStackParamList } from '../types/navigation';
 import { Restaurant, RestaurantType } from '../types/Restaurant';
+import Pagination from "../components/Pagination";
 
 type RestaurantScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Restaurant'>;
 
@@ -40,6 +41,15 @@ const RestaurantScreen: React.FC = () => {
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const [selectedCity, setSelectedCity] = useState('all');
+
+  // ─── Hooks pagination ─────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  // reset page on search / filters / city change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [ searchQuery, selectedCity, filterOptions]);
+  // ────────────────────────────────────────────────────
 
   // Add icons to filter categories - only for restaurant type
   const categoriesWithIcons = {
@@ -171,6 +181,13 @@ const RestaurantScreen: React.FC = () => {
     return searchMatch && cityFilter;
   });
 
+  // === PAGINATION : découpage des data pour la page courante ===
+  const totalPages = Math.ceil(filteredRestaurants.length / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const currentRestaurants = filteredRestaurants.slice(start, start + itemsPerPage);
+  // === FIN PAGINATION ===
+
+
   // Render loading state
   if (loading) {
     return (
@@ -224,12 +241,21 @@ const RestaurantScreen: React.FC = () => {
         </View>
 
         <RestaurantListContainer
-          restaurants={filteredRestaurants}
+          restaurants={currentRestaurants}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
           showTypeFilter={false}
         />
-
+        {/* === Pagination : afficher si plus d’une page === */}
+        {totalPages > 0 && (
+            <Pagination
+                totalItems={filteredRestaurants.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+            />
+        )}
+        {/* === Fin Pagination === */}
         <FilterPopup
           visible={filterPopupVisible}
           onClose={handleCloseFilter}

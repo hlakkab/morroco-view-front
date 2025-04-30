@@ -6,6 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Pagination.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Pagination.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ArtisansScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ArtisansScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/MonumentsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentsScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +86,7 @@
       <workItem from="1745483564950" duration="600000" />
       <workItem from="1745840719986" duration="14449000" />
       <workItem from="1745914557903" duration="4130000" />
-      <workItem from="1746001456018" duration="10012000" />
+      <workItem from="1746001456018" duration="20319000" />
     </task>
     <servers />
   </component>

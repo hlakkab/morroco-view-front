@@ -27,6 +27,7 @@ import {
 } from '../data/filterData';
 import { Monument, MonumentType } from '../types/Monument';
 import { RootStackParamList } from '../types/navigation';
+import Pagination from "../components/Pagination";
 
 type MonumentsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Monuments'>;
 
@@ -46,6 +47,15 @@ const MonumentsScreen: React.FC = () => {
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const [selectedCity, setSelectedCity] = useState('all');
+
+  // ─── Hooks pagination ─────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  // reset page on search / filters / city change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [ searchQuery, selectedCity, filterOptions]);
+  // ────────────────────────────────────────────────────
 
   // Add icons to filter categories - only include monument_type for FilterPopup
   const categoriesWithIcons = {
@@ -166,6 +176,13 @@ const MonumentsScreen: React.FC = () => {
     return searchMatch && cityFilter;
   });
 
+
+  // === PAGINATION : découpage des data pour la page courante ===
+  const totalPages = Math.ceil(filteredMonuments.length / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const currentMonuments = filteredMonuments.slice(start, start + itemsPerPage);
+  // === FIN PAGINATION ===
+
   // Render loading state
   if (loading) {
     return (
@@ -219,12 +236,22 @@ const MonumentsScreen: React.FC = () => {
         </View>
 
         <MonumentListContainer
-          monuments={filteredMonuments}
+          monuments={currentMonuments}
           selectedType={selectedType === 'All' ? 'All Types' : selectedType}
           onSelectType={handleTypeSelection}
           showTypeFilter={false}
         />
 
+        {/* === Pagination : afficher si plus d’une page === */}
+        {totalPages > 0 && (
+            <Pagination
+                totalItems={filteredMonuments.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+            />
+        )}
+        {/* === Fin Pagination === */}
         <FilterPopup
           visible={filterPopupVisible}
           onClose={handleCloseFilter}
