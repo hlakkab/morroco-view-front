@@ -3,13 +3,11 @@ import React from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLanguage } from '../contexts/LanguageContext';
 import i18n from '../translations/i18n';
-
 // Example of SVG imports - replace these with your actual paths
 import HotelSvg from '../assets/serviceIcons/hotelPick-icon.svg';
 import MoneySvg from '../assets/serviceIcons/money-icon.svg';
 import QrCodeSvg from '../assets/serviceIcons/qrcode-icon.svg';
 import SimCardSvg from '../assets/serviceIcons/sim-card-icon.svg';
-
 // Import navigation types
 import { RootStackParamList } from '../types/navigation';
 
@@ -59,39 +57,49 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
   };
 
   return (
-    <View style={styles.serviceIconsContainer}>
-      <ServiceCard 
-        icon={<HotelSvg width={28} height={28} />}
-        title={i18n.t('services.hotelPickup')}
-        onPress={handleHotelPickupPress}
-      />
-      <ServiceCard 
-        icon={<MoneySvg width={28} height={28} />}
-        title={i18n.t('services.moneyExchange')}
-        onPress={handleMoneyExchangePress}
-      />
-      <ServiceCard 
-        icon={<SimCardSvg width={28} height={28} />}
-        title={i18n.t('services.eSIM')}
-        onPress={handleESIMPress}
-      />
-      <ServiceCard 
-        icon={<QrCodeSvg width={28} height={28} />}
-        title={i18n.t('services.qrCodes')}
-        onPress={handleQRCodesPress}
-      />
-    </View>
+      <View>
+        <Text style={styles.sectionTitle}>{i18n.t('services.title')}</Text>
+
+        <View style={styles.serviceIconsContainer}>
+          <ServiceCard
+              icon={<HotelSvg width={28} height={28} />}
+              title={i18n.t('services.hotelPickup')}
+              onPress={handleHotelPickupPress}
+          />
+          <ServiceCard
+              icon={<MoneySvg width={28} height={28} />}
+              title={i18n.t('services.moneyExchange')}
+              onPress={handleMoneyExchangePress}
+          />
+          <ServiceCard
+              icon={<SimCardSvg width={28} height={28} />}
+              title={i18n.t('services.eSIM')}
+              onPress={handleESIMPress}
+          />
+          <ServiceCard
+              icon={<QrCodeSvg width={28} height={28} />}
+              title={i18n.t('services.qrCodes')}
+              onPress={handleQRCodesPress}
+          />
+        </View>
+      </View>
   );
+
 };
 
 const styles = StyleSheet.create({
   serviceIconsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    marginBottom: 15,
   },
   serviceItem: {
     width: (width - 75) / 4,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
   serviceCardContainer: {
     backgroundColor: '#FFFFFF',

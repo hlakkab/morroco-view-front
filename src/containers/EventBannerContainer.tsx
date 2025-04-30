@@ -7,9 +7,10 @@ import { Dimensions, FlatList, Image, ImageBackground, StyleSheet, Text, Touchab
 import CafCupSvg from '../assets/img/caf-cup-img.svg';
 import GitexAfrica from '../assets/img/gitex-africa.svg';
 import { useLanguage } from '../contexts/LanguageContext';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../types/navigation';
 import i18n from '../translations/i18n';
 import { Event } from '../types/Event';
+
 
 // Import the JPG as a require statement instead of importing it as a component
 
@@ -28,7 +29,7 @@ interface EventBannerProps extends Event {
 
 const EventBanner: React.FC<EventBannerProps> = (props) => {
   // Use language context to force re-render on language change
-  const { currentLanguage } = useLanguage();
+  const { currentLanguage } = useLanguage(); // ← on récupère la langue en contexte
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { name, images, logo, backgroundColor, type} = props;
@@ -99,13 +100,23 @@ const EventBanner: React.FC<EventBannerProps> = (props) => {
 const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }) => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { currentLanguage } = useLanguage();    // ← ← ←
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 
-  const handleScroll = (event: any) => {
-    const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / (width - 24));
-    setCurrentIndex(slideIndex);
+  // const handleScroll = (event: any) => {
+  //   const slideIndex = Math.floor(event.nativeEvent.contentOffset.x / (width - 24));
+  //   setCurrentIndex(slideIndex);
+  // };
+
+  const handleScroll = ({ nativeEvent }: { nativeEvent: any }) => {
+    const { contentOffset, layoutMeasurement } = nativeEvent;
+    // round au lieu de floor pour mieux coller au snapping
+    const index = Math.round(contentOffset.x / layoutMeasurement.width);
+    setCurrentIndex(index);
   };
+
+
 
   const events: EventBannerProps[] = [
     {
@@ -140,21 +151,28 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
   ]
 
   return (
-    <View style={styles.container}>
+    <View>
+      <Text style={styles.sectionTitle}>
+           {i18n.t('home.exploreEvent')}
+      </Text>
+      <View style={styles.container}>
       <View style={styles.imageSection}>
 
         <FlatList
-          data={events}
-          renderItem={({ item }) => <EventBanner {...item} />}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          pagingEnabled
-          onScroll={handleScroll}
-          style={{
-            borderRadius: 20,
-          }}
+            data={events}
+            renderItem={({ item }) => <EventBanner {...item} />}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            onScroll={handleScroll}  // Tu peux garder ça ou remplacer par onMomentumScrollEnd
+            //scrollEventThrottle={16}      // pour recevoir assez d’événements
+            onMomentumScrollEnd={(event) => handleScroll(event)} // Remplacer onScroll par celui-ci
+            style={{
+              borderRadius: 20,
+            }}
         />
+
 
         <View style={styles.paginationContainer}>
           <View style={styles.pagination}>
@@ -172,6 +190,7 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
 
       </View>
     </View>
+   </View>
   );
 };
 
@@ -181,8 +200,13 @@ const styles = StyleSheet.create({
     width: width,
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
     paddingHorizontal: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
 
   imageSection: {

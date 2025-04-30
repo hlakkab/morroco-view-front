@@ -1,5 +1,18 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+#work
+workspace.xml
+
+
+
+# IDE config (IntelliJ / WebStorm / PhpStorm / Android Studio)
+.idea/
+
+
+#package.json
+package.json
+
+
 # dependencies
 node_modules/
 

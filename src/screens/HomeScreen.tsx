@@ -1,7 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
 // Import Container Components
 import BottomNavBar from '../containers/BottomNavBar';
 import EmergencyContactsButton from '../containers/EmergencyContactsButton';
