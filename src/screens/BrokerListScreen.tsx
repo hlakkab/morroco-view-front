@@ -17,6 +17,7 @@ import { fetchBrokers } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import i18n from '../translations/i18n';
 import { Broker } from '../types/exchange-broker';
+import Pagination from "../components/Pagination";
 
 const BrokerListScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -26,7 +27,18 @@ const BrokerListScreen: React.FC = () => {
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const [selectedCity, setSelectedCity] = useState('all');
   const [allBrokers, setAllBrokers] = useState<Broker[]>([]);
-  
+
+  // === PAGINATION ===
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  // Réinitialiser la page quand recherche, ville ou filtres changent
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCity, filterOptions]);
+  // === FIN PAGINATION ===
+
+
+
   // Add icons to filter categories - only include broker_type
   const categoriesWithIcons = {
     broker_type: {
@@ -165,6 +177,15 @@ const BrokerListScreen: React.FC = () => {
     }
   };
 
+  // === PAGINATION : découpage des data pour la page courante ===
+  const totalPages = Math.ceil(filteredBrokers.length / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const currentBrokers = filteredBrokers.slice(start, start + itemsPerPage);
+  // === FIN PAGINATION ===
+
+
+
+
   // Render loading state
   if (loading) {
     return (
@@ -199,41 +220,48 @@ const BrokerListScreen: React.FC = () => {
 
       <View style={styles.content}>
         <SearchBar
-          placeholder={i18n.t('exchange.searchBrokers')}
-          onChangeText={handleSearch}
-          onFilterPress={handleFilterPress}
-          value={searchQuery}
+            placeholder={i18n.t('exchange.searchBrokers')}
+            onChangeText={handleSearch}
+            onFilterPress={handleFilterPress}
+            value={searchQuery}
         />
-        
+
         <View style={styles.cityFilterContainer}>
           <FilterSelector
-            options={cityOptions}
-            selectedOptionId={selectedCity}
-            onSelectOption={handleCitySelect}
-            title={i18n.t('matches.city')}
+              options={cityOptions}
+              selectedOptionId={selectedCity}
+              onSelectOption={handleCitySelect}
+              title={i18n.t('matches.city')}
           />
         </View>
 
-        <Text style={styles.sectionTitle}>{i18n.t('exchange.availableBrokers')}</Text>
-
-        {filteredBrokers.length > 0 ? (
-          <BrokerListContainer
-            brokers={filteredBrokers}
-          />
+        {currentBrokers.length > 0 ? (
+            <BrokerListContainer brokers={currentBrokers} />
         ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="search-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>{i18n.t('exchange.noBrokersFound')}</Text>
-          </View>
+            <View style={styles.emptyContainer}>
+              <Ionicons name="search-outline" size={48} color="#ccc" />
+              <Text style={styles.emptyText}>{i18n.t('exchange.noBrokersFound')}</Text>
+            </View>
         )}
 
+        {/* === Pagination : afficher si plus d’une page === */}
+        {totalPages > 0 && (
+            <Pagination
+                totalItems={filteredBrokers.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+            />
+        )}
+        {/* === Fin Pagination === */}
+
         <FilterPopup
-          visible={filterVisible}
-          onClose={handleCloseFilter}
-          filterOptions={filterOptions}
-          onApplyFilters={handleApplyFilters}
-          title={i18n.t('exchange.filterBrokers')}
-          categories={categoriesWithIcons}
+            visible={filterVisible}
+            onClose={() => setFilterVisible(false)}
+            filterOptions={filterOptions}
+            onApplyFilters={handleApplyFilters}
+            title={i18n.t('exchange.filterBrokers')}
+            categories={categoriesWithIcons}
         />
       </View>
     </SafeAreaView>

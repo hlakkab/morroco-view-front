@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
+
 
 export interface PaginationProps {
     totalItems: number;
@@ -8,11 +11,7 @@ export interface PaginationProps {
     onPageChange: (page: number) => void;
 }
 
-const Pagination: React.FC<PaginationProps> = ({
-                                                   totalItems,
-                                                   itemsPerPage,
-                                                   currentPage,
-                                                   onPageChange,
+const Pagination: React.FC<PaginationProps> = ({totalItems, itemsPerPage, currentPage, onPageChange,
                                                }) => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -47,7 +46,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 onPress={() => currentPage > 1 && onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
             >
-                <Text style={styles.arrowText}>{'<'}</Text>
+                <MaterialCommunityIcons name="chevron-double-left" size={24} color="#E63946" />
             </TouchableOpacity>
 
             {getPages().map((page, idx) => (
@@ -66,7 +65,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 onPress={() => currentPage < totalPages && onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
             >
-                <Text style={styles.arrowText}>{'>'}</Text>
+                <MaterialCommunityIcons name="chevron-double-right" size={24} color="#E63946" />
             </TouchableOpacity>
         </View>
     );

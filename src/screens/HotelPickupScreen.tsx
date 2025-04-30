@@ -16,6 +16,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchHotelPickups, setSearchQuery, setSelectedCity } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
+import Pagination from "../components/Pagination";
 
 const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fez', 'Tangier'];
 
@@ -23,18 +24,20 @@ const HotelPickupScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const { currentLanguage } = useLanguage();
-  const {
-    hotelPickups,
-    selectedCity,
-    searchQuery,
-    loading,
-    error,
-    pickupDirection
-  } = useAppSelector((state) => state.hotelPickup);
+  const {hotelPickups, selectedCity, searchQuery, loading, error,
+    pickupDirection} = useAppSelector((state) => state.hotelPickup);
 
   const [useSampleData, setUseSampleData] = useState(false);
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
+
+
+  // Pagination hooks déplacés ici, avant tout return conditionnel
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCity, filterOptions]);
 
   // Add icons to filter categories
   const categoriesWithIcons = {
@@ -106,6 +109,12 @@ const HotelPickupScreen: React.FC = () => {
     return searchMatch && pickupTypeFilter;
   });
 
+  // === PAGINATION : découpage des data pour la page courante ===
+  const totalPages = Math.ceil(filteredPickups.length / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const currentPickups = filteredPickups.slice(start, start + itemsPerPage);
+  // === FIN PAGINATION ===
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -122,6 +131,8 @@ const HotelPickupScreen: React.FC = () => {
     );
   }
 
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -130,20 +141,33 @@ const HotelPickupScreen: React.FC = () => {
 
       <View style={styles.content}>
         <SearchBar
-          placeholder={i18n.t('pickup.searchHotel')}
-          onChangeText={handleSearch}
-          onFilterPress={handleFilter}
-          value={searchQuery}
+            placeholder={i18n.t('pickup.searchHotel')}
+            onChangeText={handleSearch}
+            onFilterPress={handleFilter}
+            value={searchQuery}
         />
 
         <HotelPickupListContainer
-          pickups={filteredPickups}
-          cities={CITIES}
-          selectedCity={selectedCity}
-          onSelectCity={handleSelectCity}
-          isLoading={loading}
+            pickups={currentPickups} // ← on injecte ici les données paginées
+            cities={CITIES}
+            selectedCity={selectedCity}
+            onSelectCity={handleSelectCity}
+            isLoading={loading}
         />
+
+        {/* === Pagination : afficher si plus d’une page === */}
+        {totalPages > 0 && (
+            <Pagination
+                totalItems={filteredPickups.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+            />
+        )}
+        {/* === Fin Pagination === */}
       </View>
+
+
 
       {/* FilterPopup with pickup type filters */}
       <FilterPopup
