@@ -500,20 +500,16 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                       </View>
                       <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
                     </View>
-                    
+
                     <View style={styles.directionMiddle}>
-                      <TouchableOpacity 
-                        style={styles.switchButton}
-                        onPress={handleToggleDirection}
-                      >
-                        <Ionicons name="arrow-forward" size={14} color="#666" />
-                      </TouchableOpacity>
+                      <Ionicons name="arrow-forward" size={20} color="#666" />
                       <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
                     </View>
-                    
+
+
                     <View style={styles.endpointWithLabel}>
                       <View style={styles.directionEndpoint}>
-                        <MaterialIcons name="hotel" size={16} color="#777" />
+                        <MaterialIcons name="hotel" size={16} color="#008060" />
                       </View>
                       <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
                     </View>
@@ -523,24 +519,20 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                   <>
                     <View style={styles.endpointWithLabel}>
                       <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
-                        <MaterialIcons name="hotel" size={16} color="#CE1126" />
+                        <MaterialIcons name="hotel" size={16} color="#008060" />
                       </View>
                       <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
                     </View>
-                    
+
                     <View style={styles.directionMiddle}>
-                      <TouchableOpacity 
-                        style={styles.switchButton}
-                        onPress={handleToggleDirection}
-                      >
-                        <Ionicons name="arrow-forward" size={14} color="#666" />
-                      </TouchableOpacity>
+                      <Ionicons name="arrow-forward" size={20} color="#666" />
                       <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
                     </View>
-                    
+
+
                     <View style={styles.endpointWithLabel}>
                       <View style={styles.directionEndpoint}>
-                        <MaterialIcons name="flight" size={16} color="#777" />
+                        <MaterialIcons name="flight" size={16} color="#CE1126" />
                       </View>
                       <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
                     </View>
@@ -1079,7 +1071,7 @@ const styles = StyleSheet.create({
   directionControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
   },
   endpointWithLabel: {
     alignItems: 'center',
@@ -1112,11 +1104,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 14,
-    backgroundColor: '#fff',
+   // backgroundColor: '#fff',
     marginBottom: 4,
-    borderWidth: 1,
-    borderColor: '#eee',
-    shadowColor: '#000',
+    //borderWidth: 1,
+    //borderColor: '#eee',
+    //shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 1,
@@ -1128,7 +1120,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   toLabel: {
-    fontSize: 10,
+    fontSize: 13,
     color: '#666',
   },
 });

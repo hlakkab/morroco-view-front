@@ -12,11 +12,14 @@ interface TourCardProps {
   item: Tour;
   handleSaveTour?: (item: Tour) => void;
   handleCardPress?: (item: Tour) => void;
+  onDeleteTour?: (item: Tour) => void; // ➕ Nouvelle prop
+
 }
 
 const TourCard: FC<TourCardProps> = ({
   item,
-  handleCardPress = () => { }
+  handleCardPress = () => { },
+  onDeleteTour = () => {} // ➕ handler par défaut
 }) => {
   // Format the destinations text based on type
   const formatDestinationText = () => {
@@ -54,6 +57,11 @@ const TourCard: FC<TourCardProps> = ({
 
 
   return (
+    <View style={styles.wrapper}>
+        {/* 🔥 Icône delete en haut à droite */}
+        <TouchableOpacity style={styles.deleteIcon} onPress={() => onDeleteTour(item)}>
+          <Feather name="trash-2" size={25} color="#FF4C4C" />
+        </TouchableOpacity>
       <CardItem
         imageUrl={item.imageUrl || defaultTourImage}
         title={item.title}
@@ -83,14 +91,31 @@ const TourCard: FC<TourCardProps> = ({
         containerStyle={styles.cardContainer}
         onCardPress={() => handleCardPress(item)}
       />
-   
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   cardContainer: {
     marginBottom: 16,
-  }
+  },
+   wrapper: {
+      position: 'relative',
+     justifyContent: 'center',
+    },
+  deleteIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -24 }], // Pour centrer verticalement un icon de 25px
+    zIndex: 2,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#777',
+    padding: 2,
+    elevation: 3,
+  },
 });
 
 export default TourCard; 

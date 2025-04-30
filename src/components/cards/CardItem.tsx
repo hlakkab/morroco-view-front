@@ -102,19 +102,28 @@ const CardItem: React.FC<CardItemProps> = ({
         </Text>
         
         {subtitle && (
-          <Text style={[styles.cardSubtitle, customStyles.subtitle]}>{subtitle}</Text>
-        )}
-        
+            <Text
+                style={[styles.cardSubtitle, customStyles.subtitle]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+            >
+              {subtitle}
+            </Text>        )}
+
         {price && (
-          <View style={[styles.priceContainer, customStyles.priceContainer]}>
-            <Text style={[styles.priceText, customStyles.priceText]}>
-              {price.prefix || i18n.t('pickup.startFrom')}{' '}
-              <Text style={[styles.priceValue, customStyles.priceValue]}>
-                {price.value} {price.currency || '€'}
+            <View style={[styles.priceContainer, customStyles.priceContainer]}>
+              <Text
+                  style={[styles.priceText, customStyles.priceText]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+              >
+                {(price.prefix || i18n.t('pickup.startFrom')) + ' '}
+                <Text style={[styles.priceValue, customStyles.priceValue]}>
+                  {price.value} {price.currency || '€'}
+                </Text>
+                {price.suffix ? ` ${price.suffix}` : ''}
               </Text>
-              {price.suffix && ` ${price.suffix}`}
-            </Text>
-          </View>
+            </View>
         )}
       </View>
       

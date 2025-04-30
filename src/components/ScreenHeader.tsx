@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 25,
     paddingBottom: 20,
+    //paddingLeft: 15,
   },
   headerTitle: {
     paddingHorizontal:6,
@@ -30,10 +31,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway', 
     fontWeight: '700',
     fontSize: 18,
-    lineHeight: 26,  
+    lineHeight: 26,
     letterSpacing: 0,
-    color: '#000000'
-    ,
+    color: '#000000',
 
   },
 });

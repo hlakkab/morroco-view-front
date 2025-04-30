@@ -15,7 +15,7 @@ interface MatchCardProps {
 const MatchCard: React.FC<MatchCardProps> = ({
   match,
   handleCardPress,
-  handleSaveMatch
+  handleSaveMatch,
 }) => {
   const isSaved = match.saved
   const { currentLanguage } = useLanguage();

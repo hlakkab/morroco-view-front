@@ -136,8 +136,6 @@ const HotelPickupScreen: React.FC = () => {
           value={searchQuery}
         />
 
-        
-        
         <HotelPickupListContainer
           pickups={filteredPickups}
           cities={CITIES}
