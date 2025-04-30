@@ -6,6 +6,7 @@ import MatchCard from '../components/cards/MatchCard';
 import FilterPopup, { FilterOption } from "../components/FilterPopup";
 import FilterSelector from '../components/FilterSelector';
 import MatchPopup from '../components/MatchPopup';
+import Pagination from '../components/Pagination';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -18,7 +19,6 @@ import {
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMatches, setCurrentMatch, setSelectedMatch, toggleMatchBookmark } from '../store/matchSlice';
 import i18n from '../translations/i18n';
-import Pagination from '../components/Pagination';
 import { Match } from '../types/match';
 
 const ExploreMatchesScreen: React.FC = () => {
@@ -73,7 +73,7 @@ const ExploreMatchesScreen: React.FC = () => {
   return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('matches.africaCupOfNations')} />
+          <ScreenHeader title={i18n.t('matches.africaCupOfNations')} />
         </View>
         <View style={styles.content}>
           <SearchBar
@@ -106,7 +106,13 @@ const ExploreMatchesScreen: React.FC = () => {
                               dispatch(setCurrentMatch(item));
                               setModalVisible(true);
                             }}
-                            handleSaveMatch={id => dispatch(toggleMatchBookmark(id))}
+                            handleSaveMatch={id => {
+                              // Find the match by id and pass the full match object
+                              const matchToToggle = matches.find(match => match.id === id);
+                              if (matchToToggle) {
+                                dispatch(toggleMatchBookmark(matchToToggle));
+                              }
+                            }}
                         />
                     )}
                     contentContainerStyle={styles.matchesList}
@@ -152,7 +158,6 @@ const ExploreMatchesScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop :25,
     flex: 1,
     backgroundColor: '#FFF7F7',
   },

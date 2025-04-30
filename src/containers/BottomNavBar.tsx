@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLanguage } from '../contexts/LanguageContext';
 import i18n from '../translations/i18n';
 
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginHorizontal: 10,
-    marginBottom: 8,
+    marginBottom: Platform.OS === 'ios' ? 20 : 8,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

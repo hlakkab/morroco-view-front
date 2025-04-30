@@ -7,6 +7,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF7F7',
   },
   headerContainer: {
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
     paddingHorizontal: 16,
   },
   centerContent: {

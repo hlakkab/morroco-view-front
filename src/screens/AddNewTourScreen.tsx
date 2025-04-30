@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Button from '../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
 import StepProgress from '../components/StepProgress';
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   content: {
     flex: 1,

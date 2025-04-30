@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Alert, SafeAreaView, StyleSheet, View } from 'react-native';
+import { Alert, Platform, SafeAreaView, StyleSheet, View } from 'react-native';
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerContainer: {
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
     paddingHorizontal: 16,
   },
   cityFilterContainer: {

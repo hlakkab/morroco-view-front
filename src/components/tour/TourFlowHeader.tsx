@@ -46,7 +46,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 25,
     paddingBottom: 20,
   },
   backButton: {

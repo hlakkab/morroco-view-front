@@ -6,6 +6,7 @@ import {
   Image,
   Linking,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -360,7 +361,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 25,
+    paddingTop: 40,
   },
   profileCard: {
     backgroundColor: '#fff',
@@ -506,7 +507,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 20,
     marginHorizontal: 4,
-    marginTop: 30,
+    marginTop: 20,
     marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -524,8 +525,7 @@ const styles = StyleSheet.create({
   },
   versionContainer: {
     alignItems: 'center',
-    marginVertical: 10,
-    marginBottom: 35,
+    marginBottom: Platform.OS ==='ios' ? 10 : 45,
   },
   versionText: {
     fontSize: 14,

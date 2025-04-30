@@ -87,8 +87,8 @@ const styles = StyleSheet.create({
         color: '#E63946',
     },
     page: {
-        paddingVertical: 3,      // même que les flèches
-        paddingHorizontal: 5,   // valeur horizontale équilibrée
+        paddingVertical: 2,      // même que les flèches
+        paddingHorizontal: 8,   // valeur horizontale équilibrée
         marginHorizontal: 10,
         borderRadius: 5,
     },
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     },
 
     disabledArrow: {
-        opacity: 0.3,
+        opacity: 0.5,
     },
 });
 

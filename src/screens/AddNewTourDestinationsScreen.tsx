@@ -1,6 +1,6 @@
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
 import SearchBar from '../components/SearchBar';
 import StepProgress from '../components/StepProgress';
@@ -491,8 +491,6 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   );
 };
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -500,7 +498,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   content: {
     flex: 1,

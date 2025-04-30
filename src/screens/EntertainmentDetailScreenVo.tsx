@@ -3,7 +3,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import i18n from '../translations/i18n';
 
 import AboutSection from '../components/AboutSection';
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   headerContainer: {
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
     paddingHorizontal: 16,
   },
   imageSection: {

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNavBar from '../containers/BottomNavBar';
 import TourListContainer from '../containers/TourListContainer';
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   content: {
     flex: 1,

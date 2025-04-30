@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -111,8 +112,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF7F7',
   },
   headerContainer: {
-    paddingHorizontal: 15,
-    paddingTop: 15,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   searchContainer: {
     flexDirection: 'row',

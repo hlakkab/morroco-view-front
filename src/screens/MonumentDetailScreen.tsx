@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Dimensions, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AboutSection from '../components/AboutSection';
 import Button from '../components/Button';
 import ImageGallery from '../components/ImageGallery';
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
     paddingHorizontal: 16,
   },
   content: {
