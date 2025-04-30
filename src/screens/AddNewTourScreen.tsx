@@ -101,7 +101,7 @@ const AddNewTourScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TourFlowHeader title={i18n.t('tours.addNewTour')} />
+      <TourFlowHeader title={i18n.t('tours.addNewTour')} />
       </View>
       
       <View style={styles.content}>

@@ -5,15 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/components/Pagination.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/containers/EventBannerContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/EventBannerContainer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/containers/ExploreCardsContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/ExploreCardsContainer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/containers/SearchBarContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/SearchBarContainer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/containers/ServiceCardsContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/ServiceCardsContainer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ScreenHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ScreenHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/CardItem.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/MatchCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/cards/TourCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/cards/TourCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/HotelPickupListContainer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/HotelPickupListContainer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/ReservationPopup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/ReservationPopup.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/AccountScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AccountScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HomeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/translations/en.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/translations/en.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/translations/fr.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/translations/fr.ts" afterDir="false" />
     </list>
@@ -45,7 +48,7 @@
     &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
     &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;oussamaTasks&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/MP40/Desktop/Avant Stage PFE/vd360-test&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -89,6 +92,7 @@
       <workItem from="1745483564950" duration="600000" />
       <workItem from="1745840719986" duration="14449000" />
       <workItem from="1745914557903" duration="4130000" />
+      <workItem from="1746001456018" duration="8005000" />
     </task>
     <servers />
   </component>

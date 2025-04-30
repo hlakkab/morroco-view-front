@@ -85,6 +85,7 @@ export default {
     account: 'Account',
   },
   pickup: {
+    chooseDirection : 'Choose Direction :' ,
     title: 'Pickup',
     searchHotel: 'Search for hotel...',
     filterPickups: 'Filter Pickups',

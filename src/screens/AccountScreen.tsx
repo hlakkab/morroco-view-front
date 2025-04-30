@@ -154,21 +154,21 @@ const AccountScreen: React.FC = () => {
             {i18n.t('account.welcome').replace('{name}', user.firstName)}
           </Text>
           
-          <TouchableOpacity 
-            style={[styles.editProfileButton, editing ? styles.saveProfileButton : {}]} 
-            onPress={handleEditProfile}
-            disabled={true}          // empêche toute interaction
-          >
-            <Text style={[styles.editProfileText, editing ? styles.saveProfileText : {}]}>
-              {editing ? i18n.t('account.saveProfile') : i18n.t('account.editProfile')}
-            </Text>
-            <Ionicons 
-              name={editing ? "checkmark-circle" : "create-outline"} 
-              size={20} 
-              color={editing ? "#fff" : "#CE1126"} 
-              style={styles.editIcon} 
-            />
-          </TouchableOpacity>
+          {/*<TouchableOpacity */}
+          {/*  style={[styles.editProfileButton, editing ? styles.saveProfileButton : {}]} */}
+          {/*  onPress={handleEditProfile}*/}
+          {/*  disabled={true}          // empêche toute interaction*/}
+          {/*>*/}
+          {/*  <Text style={[styles.editProfileText, editing ? styles.saveProfileText : {}]}>*/}
+          {/*    {editing ? i18n.t('account.saveProfile') : i18n.t('account.editProfile')}*/}
+          {/*  </Text>*/}
+          {/*  <Ionicons */}
+          {/*    name={editing ? "checkmark-circle" : "create-outline"} */}
+          {/*    size={20} */}
+          {/*    color={editing ? "#fff" : "#CE1126"} */}
+          {/*    style={styles.editIcon} */}
+          {/*  />*/}
+          {/*</TouchableOpacity>*/}
         </View>
 
         {/* Personal Information Section */}
