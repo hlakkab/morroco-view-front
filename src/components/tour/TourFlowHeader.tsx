@@ -1,34 +1,43 @@
 import { AntDesign, Ionicons } from '@expo/vector-icons';
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions, NavigationProp, ParamListBase, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RootStackParamList } from '../../types/navigation';
 
 interface TourFlowHeaderProps {
   title: string;
 }
 
 const TourFlowHeader: React.FC<TourFlowHeaderProps> = ({ title }) => {
-  const navigation = useNavigation();
-  const route = useRoute();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, keyof RootStackParamList>>();
 
   const handleBack = () => {
     // Get the current route name
     const currentRouteName = route.name;
 
-    if (currentRouteName === 'Tours') {
-      // If we're on the Tours screen, just go back using the regular navigation
-      navigation.goBack();
-    } else {
-      // For tour creation flow, reset navigation stack to Tours
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [
-            { name: 'Home' }, // First go to Home
-            { name: 'Tours' }, // Then go to Tours
-          ],
-        })
-      );
+    // Implement proper back navigation flow
+    switch (currentRouteName) {
+      case 'AddNewTour':
+        // From AddNewTour go back to Tours
+        navigation.navigate('Tours');
+        break;
+      case 'AddNewTourDestinations':
+        // From AddNewTourDestinations go back to AddNewTour
+        navigation.navigate('AddNewTour');
+        break;
+      case 'AddNewTourOrganize':
+        // From AddNewTourOrganize go back to AddNewTourDestinations
+        const params = route.params as { title?: string; startDate?: string; endDate?: string };
+        navigation.navigate('AddNewTourDestinations', {
+          title: params?.title || '',
+          startDate: params?.startDate || '',
+          endDate: params?.endDate || ''
+        });
+        break;
+      default:
+        // For other screens, use standard back navigation
+        navigation.goBack();
     }
   };
 

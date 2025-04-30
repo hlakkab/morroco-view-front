@@ -197,6 +197,7 @@ export default {
     selectedLocation: 'Selected Location',
     searchForLocationToDisplayOnTheMap: 'Search for a location to display on the map',
     confirmLocation: 'Confirm Location',
+    searchToSeeMapLocation: 'Search for a location to see it on the map',
   },
   qrcode: {
     title: 'My QR Codes',
@@ -469,5 +470,12 @@ export default {
     yourHotel: 'Your Hotel',
     noTourItemsAvailable: 'No tour items available',
     noTourItemsAvailableHint: 'Add some destinations in the previous step to see your tour schedule',
+    incompleteSchedule: 'Incomplete Schedule',
+    emptyDaysWarning: 'Days: {days} have no activities planned. Do you want to continue anyway?',
+    continue: 'Continue',
+    stayAndFill: 'Stay and Fill',
+    deleteTour: 'Delete Tour',
+    delete: 'Delete',
+    deleteTourConfirmation: 'Are you sure you want to delete "{title}"? This action cannot be undone.',
   },
 }; 

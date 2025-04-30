@@ -197,6 +197,7 @@ export default {
     selectedLocation: 'Emplacement Sélectionné',
     searchForLocationToDisplayOnTheMap: 'Rechercher un emplacement pour afficher sur la carte',
     confirmLocation: 'Confirmer l\'Emplacement',
+    searchToSeeMapLocation: 'Recherchez un lieu pour le voir sur la carte'
   },
   qrcode: {
     title: 'Codes QR',
@@ -478,6 +479,12 @@ export default {
     yourHotel: 'Votre Hôtel',
     noTourItemsAvailable: 'Aucun élément de tour disponible',
     noTourItemsAvailableHint: 'Ajoutez des destinations à l\'étape précédente pour voir votre planning de tour',
-
+    incompleteSchedule: 'Programme Incomplet',
+    emptyDaysWarning: 'Les jours {days} n\'ont pas d\'activités prévues. Voulez-vous continuer quand même?',
+    continue: 'Continuer',
+    stayAndFill: 'Rester et Compléter',
+    deleteTour: 'Supprimer le Tour',
+    delete: 'Supprimer',
+    deleteTourConfirmation: 'Êtes-vous sûr de vouloir supprimer "{title}"? Cette action ne peut pas être annulée.',
   },
 }; 
