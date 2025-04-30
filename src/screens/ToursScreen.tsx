@@ -20,7 +20,9 @@ const ToursScreen: React.FC = () => {
   }, [dispatch]);
 
   const handleBack = () => {
-    // Handle back navigation if needed
+    // Simply navigate to Home screen when back button is pressed
+    // This avoids the circular navigation issue
+    navigation.navigate('Home');
   };
 
   const handleAddTour = () => {

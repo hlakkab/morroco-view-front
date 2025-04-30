@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8D7DA',
     paddingHorizontal: 4,
-    paddingVertical: 0,
+    paddingVertical: 1.5,
     borderRadius: 8,
     borderTopRightRadius :8,
     borderBottomRightRadius :0,

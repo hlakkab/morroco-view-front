@@ -21,6 +21,7 @@ const TourListContainer: React.FC = () => {
   // For delete functionality
   const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isDeletingTour, setIsDeletingTour] = useState(false);
 
   useEffect(() => {
     dispatch(fetchTours());
@@ -52,15 +53,22 @@ const TourListContainer: React.FC = () => {
 
   // Handle delete confirmation
   const handleConfirmDelete = async () => {
-    if (tourToDelete) {
+    if (tourToDelete && !isDeletingTour) {
       try {
+        setIsDeletingTour(true);
         await dispatch(deleteTourThunk(tourToDelete.id)).unwrap();
+        
+        // Refresh the tours list after successful deletion
+        await dispatch(fetchTours()).unwrap();
+        
         // Close modal after successful deletion
         setDeleteModalVisible(false);
         setTourToDelete(null);
       } catch (error) {
         console.error('Error deleting tour:', error);
         // We could show an error message here if needed
+      } finally {
+        setIsDeletingTour(false);
       }
     }
   };
@@ -79,7 +87,7 @@ const TourListContainer: React.FC = () => {
     />
   );
 
-  if (loading) {
+  if (loading && !isDeletingTour) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#AE1913" />
@@ -87,7 +95,7 @@ const TourListContainer: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !isDeletingTour) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
@@ -115,7 +123,7 @@ const TourListContainer: React.FC = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      {isLoadingDetails && (
+      {(isLoadingDetails || isDeletingTour) && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#AE1913" />
         </View>
