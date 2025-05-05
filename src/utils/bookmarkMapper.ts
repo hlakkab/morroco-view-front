@@ -93,7 +93,8 @@ const mapMatchToSavedItem = (match: Match, images?: string[]): TourSavedItem => 
     subtitle: match.spot.name,
     images: ['https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg'],
     city: capitalizeCity(match.spot.city),
-    coordinate: parseCoordinates(match.spot.coordinates)
+    coordinate: parseCoordinates(match.spot.coordinates),
+    date: match.date.split('T')[0]
   };
 };
 

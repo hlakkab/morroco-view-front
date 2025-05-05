@@ -2,8 +2,10 @@
   "expo": {
     "name": "morroco-view-front",
     "slug": "morroco-view-front",
-    "version": "1.0.0",
+    "version": "1.0.2",
+    "versionCode": 2,
     "orientation": "portrait",
+    "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "morrocoview",
@@ -16,8 +18,10 @@
       "bundleIdentifier": "com.moroccoview.app",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to scan QR codes and take photos.",
-        "NSPhotoLibraryUsageDescription": "This app uses the photo library to select QR code images."
-      }
+        "NSPhotoLibraryUsageDescription": "This app uses the photo library to select QR code images.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {}
     },
     "android": {
       "adaptiveIcon": {
@@ -63,7 +67,7 @@
         "projectId": "8d74160a-3a1f-4cb7-8bfd-08d7119ae6b7"
       }
     },
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": "1.0.2",
     "updates": {
       "url": "https://u.expo.dev/8d74160a-3a1f-4cb7-8bfd-08d7119ae6b7",
       "enabled": true,

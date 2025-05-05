@@ -717,7 +717,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                   placeholder={i18n.t('reservation.searchForLocation')}
                   onPress={handleLocationSelect}
                   query={{
-                    key: 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY',
+                    key: 'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek',
                     language: 'en',
                     components: 'country:ma',
                   }}

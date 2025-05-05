@@ -23,7 +23,7 @@ import TourFlowHeader from '../components/tour/TourFlowHeader';
 import TourSummary from '../components/tour/TourSummary';
 import TrajectoryButton from '../components/tour/TrajectoryButton';
 import Timeline from '../containers/tour/Timeline';
-import { useAppDispatch } from '../store';
+import { useAppDispatch, useAppSelector } from '../store';
 import { saveTour, saveTourThunk, setTourItems } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
@@ -41,20 +41,14 @@ const CITY_COORDINATES = {
   'Essaouira': { latitude: 31.513056, longitude: -9.77 },
 };
 
-// Extend TourSavedItem to include tour-specific properties
-interface TourItem extends TourSavedItem {
-  duration?: string;
-  timeSlot?: string;
-}
-
 interface DailySchedule {
   date: string;
   city: string;
-  items: TourItem[];
+  items: TourSavedItem[];
 }
 
-// Map TourItem to SavedItem for Timeline compatibility
-const mapTourItemToSavedItem = (item: TourItem): SavedItem => {
+// Map TourSavedItem to SavedItem for Timeline compatibility
+const mapTourItemToSavedItem = (item: TourSavedItem): SavedItem => {
   return {
     id: item.id,
     type: item.type,
@@ -70,8 +64,16 @@ const mapTourItemToSavedItem = (item: TourItem): SavedItem => {
 const AddNewTourOrganizeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'AddNewTourOrganize'>>();
-  const { title, startDate, endDate, selectedItemsByDay, cities, savedItems, viewMode } = route.params;
+  // Only read viewMode from route params
+  const { viewMode } = route.params;
+  
+  // Get the rest from Redux store
   const dispatch = useAppDispatch();
+  // Read tour data from Redux store
+  const { title, startDate, endDate } = useAppSelector(state => state.tour.currentTour);
+  const selectedItemsByDay = useAppSelector(state => state.tour.currentTour.selectedItemsByDay) || {};
+  const cities = useAppSelector(state => state.tour.currentTour.cities) || {};
+  const savedItems = useAppSelector(state => state.tour.currentTour.tourItems) || [];
   
   const [schedule, setSchedule] = useState<DailySchedule[]>([]);
   const [showDurationModal, setShowDurationModal] = useState(false);
@@ -210,7 +212,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     setSchedule(prevSchedule => {
       return prevSchedule.map((day, idx) => {
         if (idx === dayIndex) {
-          // Map SavedItem back to TourItem
+          // Map SavedItem back to TourSavedItem
           const tourItems = newItems.map(item => {
             const originalItem = day.items.find(original => original.id === item.id);
             if (!originalItem) return null;
@@ -219,7 +221,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
               duration: item.duration,
               timeSlot: item.timeSlot
             };
-          }).filter(Boolean) as TourItem[];
+          }).filter(Boolean) as TourSavedItem[];
           
           return {
             ...day,
@@ -233,10 +235,6 @@ const AddNewTourOrganizeScreen: React.FC = () => {
 
   // Add coordinates to items based on city
   const addCoordinatesToItems = (items: TourSavedItem[]): TourSavedItem[] => {
-
-    console.log('items', items);
-
-
     return items.map(item => {
       // If item already has coordinates, use them
       if (item.coordinate) {
@@ -256,7 +254,35 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         ...item,
         coordinate: { latitude: 31.628674, longitude: -7.992047 }
       };
-    });
+    })
+  };
+
+  // Transform date from "Tuesday, March 25, 2025" to "yyyy-mm-dd"
+  const transformDateString = (dateStr: string): string => {
+    const months: { [key: string]: number } = {
+      'January': 0, 'February': 1, 'March': 2, 'April': 3,
+      'May': 4, 'June': 5, 'July': 6, 'August': 7,
+      'September': 8, 'October': 9, 'November': 10, 'December': 11
+    };
+
+    // Split the date string into parts
+    const parts = dateStr.split(', ');
+    if (parts.length !== 3) return dateStr;
+
+    const monthDay = parts[1].split(' ');
+    if (monthDay.length !== 2) return dateStr;
+
+    const month = monthDay[0];
+    const day = parseInt(monthDay[1]);
+    const year = parseInt(parts[2]);
+
+    if (isNaN(day) || isNaN(year) || !months[month]) return dateStr;
+
+    // Create date object (months are 0-based in JavaScript Date)
+    const date = new Date(year, months[month], day);
+    
+    // Format as yyyy-mm-dd
+    return `${year}-${String(months[month] + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
   const handleSaveTour = () => {
@@ -279,35 +305,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       return dateStr;
     };
 
-    // Transform date from "Tuesday, March 25, 2025" to "yyyy-mm-dd"
-    const transformDateString = (dateStr: string): string => {
-      const months: { [key: string]: number } = {
-        'January': 0, 'February': 1, 'March': 2, 'April': 3,
-        'May': 4, 'June': 5, 'July': 6, 'August': 7,
-        'September': 8, 'October': 9, 'November': 10, 'December': 11
-      };
-
-      // Split the date string into parts
-      const parts = dateStr.split(', ');
-      if (parts.length !== 3) return dateStr;
-
-      const monthDay = parts[1].split(' ');
-      if (monthDay.length !== 2) return dateStr;
-
-      const month = monthDay[0];
-      const day = parseInt(monthDay[1]);
-      const year = parseInt(parts[2]);
-
-      if (isNaN(day) || isNaN(year) || !months[month]) return dateStr;
-
-      // Create date object (months are 0-based in JavaScript Date)
-      const date = new Date(year, months[month], day);
-      
-      // Format as yyyy-mm-dd
-      return `${year}-${String(months[month] + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    };
-
-    // Transform items to use coordinates instead of coordinate
+    // Transform items to use coordinates instead of coordinate and include date
     const transformedItems = itemsWithCoordinates.map(item => {
       const { coordinate, images, ...rest } = item;
       // Find the day this item belongs to in the schedule
@@ -365,18 +363,41 @@ const AddNewTourOrganizeScreen: React.FC = () => {
 
   // Handle preview trajectory button press
   const handleViewTrajectory = useCallback(() => {
+
+    console.log('selectedDayIndex', selectedDayIndex);
     if (schedule[selectedDayIndex]) {
-      const dayItems = schedule[selectedDayIndex].items;
-      const itemsWithCoordinates = addCoordinatesToItems(dayItems);
-
-
-      console.log('itemsWithCoordinates', itemsWithCoordinates.map(item => item.title));
+      // Process all items from the schedule and add coordinates
+      const allItems: TourSavedItem[] = [];
       
+      schedule.forEach(day => {
+        day.items.forEach(item => {
+          allItems.push(item);
+        });
+      });
+      
+      const itemsWithCoordinates = addCoordinatesToItems(allItems);
+      
+      // Transform items to use coordinates instead of coordinate and include date
+      const transformedItems = itemsWithCoordinates.map(item => {
+        // Find the day this item belongs to in the schedule
+        const daySchedule = schedule.find(day => 
+          day.items.some(dayItem => dayItem.id === item.id)
+        );
+
+        
+        
+        return {
+          ...item,
+          date: daySchedule?.date ? transformDateString(daySchedule.date) : undefined,
+          day: schedule.findIndex(day => day.items.some(dayItem => dayItem.id === item.id)) + 1,
+          //selectedDay: selectedDayIndex + 1
+        };
+      });
+
       // Navigate to map view with the items for this day
       navigation.navigate('TourMapScreen', {
-        tourItems: itemsWithCoordinates,
-        title: `Day ${selectedDayIndex + 1} - ${schedule[selectedDayIndex].city}`,
-        singleDayView: true
+        tourItems: transformedItems,
+        selectedDay: selectedDayIndex + 1
       });
     }
   }, [schedule, selectedDayIndex, navigation]);

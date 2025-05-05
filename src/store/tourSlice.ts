@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../service';
 import { Tour, TourSavedItem } from '../types/tour';
 import { mapBookmarksToTourSavedItems } from '../utils/bookmarkMapper';
+import { RootState } from './store';
 // Define interfaces for tour items
 export interface TourItem {
   id: string;
@@ -43,72 +44,7 @@ const initialState: TourState = {
     from: '',
     to: '',
   },
-  savedTours: [],
-  // availableItems: [
-  //   {
-  //     id: '1',
-  //     type: 'hotel',
-  //     title: 'Four Seasons Hotel',
-  //     subtitle: 'Anfa Place Living Resort, Boulevard de la...',
-  //     images: ['https://cf.bstatic.com/xdata/images/hotel/max1024x768/223648290.jpg?k=d7042c5905373d5f217992f67cfb1a1a5a5559a0a2ad4b3ce7536e2848a1bc37&o=&hp=1'],
-  //     city: 'Casablanca',
-  //     coordinate: { latitude: 33.594910, longitude: -7.634450 }
-  //   },
-  //   {
-  //     id: '2',
-  //     type: 'restaurant',
-  //     title: 'Kōya Restaurant Lounge',
-  //     subtitle: '408 Bd Driss Slaoui, Casablanca',
-  //     images: ['https://media-cdn.tripadvisor.com/media/photo-p/1c/cc/51/db/koya.jpg'],
-  //     city: 'Casablanca',
-  //     coordinate: { latitude: 33.591850, longitude: -7.631180 }
-  //   },
-  //   {
-  //     id: '3',
-  //     type: 'match',
-  //     title: 'Morocco Vs. Comoros',
-  //     subtitle: 'Stade Moulay Abdallah',
-  //     images: ['https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg'],
-  //     city: 'Rabat',
-  //     coordinate: { latitude: 33.960390, longitude: -6.844232 }
-  //   },
-  //   {
-  //     id: '4',
-  //     type: 'entertainment',
-  //     title: 'Chellah Jazz Festival',
-  //     subtitle: 'Chellah Necropolis',
-  //     images: ['https://images.pexels.com/photos/4062561/pexels-photo-4062561.jpeg'],
-  //     city: 'Rabat',
-  //     coordinate: { latitude: 33.954750, longitude: -6.814180 }
-  //   },
-  //   {
-  //     id: '5',
-  //     type: 'hotel',
-  //     title: 'Sofitel Agadir Royal Bay',
-  //     subtitle: 'Baie des Palmiers, Agadir',
-  //     images: ['https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg'],
-  //     city: 'Agadir',
-  //     coordinate: { latitude: 30.3924542, longitude: -9.6000566 }
-  //   },
-  //   {
-  //     id: '6',
-  //     type: 'restaurant',
-  //     title: 'Le Jardin d\'Eau',
-  //     subtitle: 'Marina, Agadir',
-  //     images: ['https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg'],
-  //     city: 'Agadir',
-  //     coordinate: { latitude: 30.415830, longitude: -9.600680 }
-  //   },
-  //   {
-  //     id: '7',
-  //     type: 'match',
-  //     title: 'Egypt Vs. Ghana',
-  //     subtitle: 'Stade Adrar',
-  //     images: ['https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg'],
-  //     city: 'Agadir',
-  //     coordinate: { latitude: 30.372240, longitude: -9.532750 }
-  //   }
-  // ],
+  savedTours: [], 
   loading: false,
   availableItems: [],
   error: null,
@@ -117,9 +53,52 @@ const initialState: TourState = {
 // Async thunk to fetch bookmarks and convert to available items
 export const fetchBookmarksAsItems = createAsyncThunk(
   'tour/fetchBookmarksAsItems',
-  async (_, { dispatch }) => {
+  async ({ startDate, endDate }: { startDate?: string, endDate?: string } = {}, { dispatch, getState }) => {
     try {
-      const response = await api.get('/bookmarks');
+      let datesFromParams = { startDate, endDate };
+      
+      // If dates weren't provided as parameters, try to get them from the store
+      if (!startDate || !endDate) {
+        const state = getState() as RootState;
+        datesFromParams = {
+          startDate: state.tour.currentTour.startDate,
+          endDate: state.tour.currentTour.endDate
+        };
+      }
+      
+      console.log("Raw tour dates:", datesFromParams.startDate, datesFromParams.endDate);
+      
+      // Check if dates exist before formatting
+      let queryParams = '';
+      if (datesFromParams.startDate && datesFromParams.endDate) {
+        // Make sure dates are in the correct format before processing
+        // First, standardize the format by replacing both / and - with /
+        const normalizedStartDate = datesFromParams.startDate.replace(/\//g, '-');
+        const normalizedEndDate = datesFromParams.endDate.replace(/\//g, '-');
+        
+        console.log("Normalized dates:", normalizedStartDate, normalizedEndDate);
+        
+        try {
+          // Format dates as YYYY-MM-DD
+          const startDateObj = new Date(normalizedStartDate);
+          const endDateObj = new Date(normalizedEndDate);
+          
+          const formattedStartDate = startDateObj.toISOString().slice(0, 19);
+          const formattedEndDate = endDateObj.toISOString().slice(0, 19);
+          
+          console.log("Date objects:", startDateObj, endDateObj);
+          console.log("Formatted dates:", formattedStartDate, formattedEndDate);
+          
+          if (formattedStartDate !== "Invalid Date" && formattedEndDate !== "Invalid Date") {
+            queryParams = `?startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+          }
+        } catch (e) {
+          console.error("Error formatting dates:", e);
+        }
+      }
+      
+      console.log("Final query params:", queryParams);
+      const response = await api.get(`/bookmarks${queryParams}`);
       const bookmarks = response.data;
       
       // Map bookmarks to saved items format
@@ -238,7 +217,7 @@ const tourSlice = createSlice({
     
     // Set tour items with their coordinates
     setTourItems: (state, action: PayloadAction<{
-      tourItems: TourItem[],
+      tourItems: TourSavedItem[],
       selectedItemsByDay: Record<number, string[]>,
       cities: Record<number, string>
     }>) => {
@@ -248,12 +227,12 @@ const tourSlice = createSlice({
     },
     
     // Add a new available item
-    addAvailableItem: (state, action: PayloadAction<TourItem>) => {
+    addAvailableItem: (state, action: PayloadAction<TourSavedItem>) => {
       state.availableItems.push(action.payload);
     },
     
     // Update an existing available item
-    updateAvailableItem: (state, action: PayloadAction<TourItem>) => {
+    updateAvailableItem: (state, action: PayloadAction<TourSavedItem>) => {
       const index = state.availableItems.findIndex(item => item.id === action.payload.id);
       if (index !== -1) {
         state.availableItems[index] = action.payload;
@@ -267,6 +246,8 @@ const tourSlice = createSlice({
         state.savedTours.push({ ...state.currentTour });
         
         // Reset current tour
+
+        // call the resetCurrentTour action
         state.currentTour = {
           id: '',
           title: '',

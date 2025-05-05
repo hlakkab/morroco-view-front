@@ -7,7 +7,7 @@ import DatePickerModal from '../components/DatePickerModal';
 import StepProgress from '../components/StepProgress';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setTourInfo } from '../store/tourSlice';
+import { fetchBookmarksAsItems, setTourInfo } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
@@ -72,11 +72,19 @@ const AddNewTourScreen: React.FC = () => {
   };
 
   const handleNext = () => {
+    console.log("Tour dates before saving to Redux:", formData.startDate, formData.endDate);
+    
     // Save tour info to Redux store
     dispatch(setTourInfo({
       title: formData.title,
       startDate: formData.startDate,
       endDate: formData.endDate,
+    }));
+    
+    // Preload bookmarks for the next screen with explicit dates
+    dispatch(fetchBookmarksAsItems({
+      startDate: formData.startDate,
+      endDate: formData.endDate
     }));
     
     // Navigate to next screen
@@ -106,6 +114,7 @@ const AddNewTourScreen: React.FC = () => {
     // Close the picker after selection
     
   };
+
 
   return (
     <SafeAreaView style={styles.container}>

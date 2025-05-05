@@ -12,6 +12,7 @@ import Button from '../components/Button';
 import i18n from '../translations/i18n';
 import { fetchEsims, createEsim } from '../store/slices/esimSlice';
 import { AppDispatch, RootState } from '../store';
+import { trackEvent } from '../service/Mixpanel';
 
 const ESIMScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -29,6 +30,7 @@ const ESIMScreen: React.FC = () => {
   };
 
   const handleBuyOne = () => {
+    trackEvent('BuyEsimModal_Opened');
     setBuyModalVisible(true);
   };
 
@@ -40,19 +42,31 @@ const ESIMScreen: React.FC = () => {
     setQrModalVisible(false);
   };
 
-  const handlePurchaseESIM = async (operatorId: string) => {
+  const handlePurchaseESIM = async (operatorId: string, price: number, offer: string = 'Standard Plan') => {
     try {
       const newEsim = {
         operator: operatorId,
-        offer: 'Standard Plan',
-        price: 10.99,
+        offer: offer,
+        price: price,
         simNumber: `SIM-${Date.now()}`
       };
       
       await dispatch(createEsim(newEsim)).unwrap();
+      
+      trackEvent('BuyEsimPurchased', {
+        operator: operatorId,
+        offer: newEsim.offer,
+        price: newEsim.price
+      });
+      
       setBuyModalVisible(false);
       setQrModalVisible(true);
     } catch (error) {
+      trackEvent('BuyEsimPurchase_Failed', {
+        operator: operatorId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
       console.error('Failed to purchase ESIM:', error);
     }
   };

@@ -17,6 +17,7 @@ import AboutSection from './AboutSection';
 import ButtonFixe from "./ButtonFixe";
 import LocationSection from './LocationSection';
 import TicketPurchaseStatus from './TicketPurchaseStatus';
+import { trackEvent } from '../service/Mixpanel';
 
 export interface MatchPopupProps {
   onClose: () => void;
@@ -41,10 +42,20 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
       Alert.alert('Success', 'Ticket purchased successfully!');
       dispatch(resetTicketPurchaseStatus());
     } else if (ticketPurchaseStatus === 'failed' && ticketPurchaseError) {
+      // Track the ticket purchase failure event with Mixpanel
+      if (currentMatch) {
+        trackEvent('Ticket_Purchase_Failed', {
+          matchId: currentMatch.id,
+          homeTeam: currentMatch.homeTeam,
+          awayTeam: currentMatch.awayTeam,
+          error: ticketPurchaseError
+        });
+      }
+      
       Alert.alert('Error', ticketPurchaseError);
       dispatch(resetTicketPurchaseStatus());
     }
-  }, [ticketPurchaseStatus, ticketPurchaseError, dispatch]);
+  }, [ticketPurchaseStatus, ticketPurchaseError, dispatch, currentMatch]);
 
   // Créer une valeur animée pour le geste de glissement
   const pan = React.useRef(new Animated.ValueXY()).current;
@@ -83,7 +94,17 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
   const handleBuyTicket = () => {
     if (currentMatch && currentMatch.id) {
       dispatch(buyTicket(currentMatch.id));
-      onClose();
+      
+      // Track the ticket purchase event with Mixpanel
+      trackEvent('Ticket_Purchased', {
+        matchId: currentMatch.id,
+        homeTeam: currentMatch.homeTeam,
+        awayTeam: currentMatch.awayTeam,
+        date: currentMatch.date,
+        stadium: currentMatch.spot?.name || 'Unknown'
+      }).then(() => {
+        onClose();
+      });
     } else {
       Alert.alert('Error', 'Cannot purchase ticket for this match');
     }

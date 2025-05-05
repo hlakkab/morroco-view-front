@@ -3,7 +3,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSelector } from 'react-redux';
 import ScreenHeader from '../components/ScreenHeader';
@@ -34,15 +34,7 @@ const ROUTE_COLORS = [
   '#2B6CB0', // Ocean Blue
 ];
 
-// Function to shuffle array
-const shuffleArray = <T,>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
+
 
 // Function to get a color for a route
 const getRouteColor = (index: number): string => {
@@ -57,7 +49,7 @@ const HOTELS_BY_CITY = {
   },
   'Casablanca': {
     title: 'Four Seasons Casablanca',
-    coordinate: { latitude: 33.604437, longitude: -7.670120 }
+    coordinate: { latitude: 33.5996166, longitude: -7.6638331 }
   },
   'Rabat': {
     title: 'Sofitel Rabat Jardin des Roses',
@@ -169,6 +161,7 @@ const calculateZoomLevel = (coordinates: Array<{latitude: number, longitude: num
 };
 
 const TourMapScreen: React.FC = () => {
+
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'TourMapScreen'>>();
   const { tourItems, selectedDay: initialSelectedDay = 1 } = route.params || { tourItems: [] };
@@ -179,11 +172,12 @@ const TourMapScreen: React.FC = () => {
   const [availableDays, setAvailableDays] = useState<number[]>([]);
   const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
   const [currentCity, setCurrentCity] = useState<string>('');
+  const [mapKey, setMapKey] = useState(0);
   
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
 
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY';
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek';
 
   // Function to get date for a day
   const getDateForDay = (day: number): string => {
@@ -247,7 +241,9 @@ const TourMapScreen: React.FC = () => {
       }
     }
     setRoutes(newRoutes);
+    setMapKey(prev => prev + 1); 
     setIsLoadingRoutes(false);
+    console.log('routes fetched ', newRoutes.length);
   };
 
   // Initialize available days and selected day
@@ -314,6 +310,7 @@ const TourMapScreen: React.FC = () => {
       }
     }
   }, [selectedDay, tourItems]);
+  
 
   const handleChangeDay = (direction: 'next' | 'prev') => {
     const days = [...availableDays];
@@ -366,6 +363,12 @@ const TourMapScreen: React.FC = () => {
     
   const zoomLevel = calculateZoomLevel(validCoordinates);
 
+  // ############ CONSOLE LOG ############
+  //console.log('availableDays', availableDays);
+  // ############ CONSOLE LOG ############
+
+
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -374,6 +377,7 @@ const TourMapScreen: React.FC = () => {
 
       <View style={styles.mapContainer}>
         <MapView
+          key={mapKey}
           ref={mapRef}
           provider={PROVIDER_DEFAULT}
           style={styles.map}
@@ -416,7 +420,6 @@ const TourMapScreen: React.FC = () => {
             </Marker>
           ))}
 
-          {/* Draw path between spots with different colors */}
           {routes.map((route, index) => (
             <Polyline 
               key={index} 
@@ -428,6 +431,15 @@ const TourMapScreen: React.FC = () => {
             />
           ))}
         </MapView>
+
+        {isLoadingRoutes && (
+          <View style={styles.loadingOverlay}>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#1E90FF" />
+              <Text style={styles.loadingText}>{i18n.t('tours.loadingRoutes')}</Text>
+            </View>
+          </View>
+        )}
 
         {displayItems.length < 2 && (
           <View style={styles.noticeContainer}>
@@ -544,13 +556,12 @@ const styles = StyleSheet.create({
   },
   markerIconContainer: {
     backgroundColor: '#E53935',
-    width: 40,
-    height: 40,
     borderRadius: 20,
+    padding: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    margin: 5,
+    borderWidth: 1,
+    margin: 6,
     borderColor: '#fff',
   },
   indexBadge: {
@@ -594,6 +605,29 @@ const styles = StyleSheet.create({
   },
   singleDayInfo: {
     marginHorizontal: 'auto',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
   },
 });
 

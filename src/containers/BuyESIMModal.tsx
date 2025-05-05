@@ -37,7 +37,7 @@ interface Offer {
 interface BuyESIMModalProps {
   visible: boolean;
   onClose: () => void;
-  onBuy: (operatorId: string) => void;
+  onBuy: (operatorId: string, price: number, offer?: string) => void | Promise<void>;
 }
 
 const BuyESIMModal: React.FC<BuyESIMModalProps> = ({ 
@@ -132,7 +132,8 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
       try {
         const selectedOfferData = offers.find(offer => offer.id === selectedOffer);
         if (selectedOfferData) {
-          onBuy(selectedOperator);
+          const price = parseFloat(selectedOfferData.price);
+          await onBuy(selectedOperator, price, selectedOfferData.data);
           handleClose();
         }
       } catch (error) {

@@ -156,6 +156,8 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
     if (!currentTour) return;
     
     const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
+
+    //console.log('mappedData', mappedData.destinationsByDate);
     
     onClose();
     navigation.navigate('TourMapScreen', mappedData);

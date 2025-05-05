@@ -1,4 +1,8 @@
-import { TourItem } from '../store/tourSlice';
+export interface TourItem extends TourSavedItem {
+  day?: number;
+  time?: string;
+  duration?: string;
+}
 
 export interface Destination extends TourSavedItem {
   id: string;
@@ -6,7 +10,6 @@ export interface Destination extends TourSavedItem {
   subtitle?: string;
   image?: string;
   city: string;
-  date?: string;
 
 }
 
@@ -42,4 +45,7 @@ export interface TourSavedItem {
     latitude: number;
     longitude: number;
   };
+  date?: string;
+  duration?: string;
+  timeSlot?: string;
 }

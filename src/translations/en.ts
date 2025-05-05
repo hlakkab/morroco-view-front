@@ -439,7 +439,7 @@ export default {
     chooseDay: 'Choose a Day:',
     cityForDay: 'City for {date}:',
     locked: 'Locked',
-    pleasSelectCity: 'Please select a city for Day {day}',
+    pleasSelectCity: 'Please select a city for {day}',
     itemsInCity: 'Items in {city}',
     selectedCount: '{count} selected',
     noItemsFound: 'No items found for this city',
@@ -477,5 +477,6 @@ export default {
     deleteTour: 'Delete Tour',
     delete: 'Delete',
     deleteTourConfirmation: 'Are you sure you want to delete "{title}"? This action cannot be undone.',
+    loadingRoutes: 'Loading routes...',
   },
 }; 

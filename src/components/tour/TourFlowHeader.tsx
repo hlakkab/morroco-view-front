@@ -3,6 +3,8 @@ import { CommonActions, NavigationProp, ParamListBase, RouteProp, useNavigation,
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { RootStackParamList } from '../../types/navigation';
+import { setTourInfo } from '../../store/tourSlice';
+import { useDispatch } from 'react-redux';
 
 interface TourFlowHeaderProps {
   title: string;
@@ -11,6 +13,7 @@ interface TourFlowHeaderProps {
 const TourFlowHeader: React.FC<TourFlowHeaderProps> = ({ title }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, keyof RootStackParamList>>();
+  const dispatch = useDispatch();
 
   const handleBack = () => {
     // Get the current route name

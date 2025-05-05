@@ -448,7 +448,7 @@ export default {
     chooseDay: 'Choisissez un jour:',
     cityForDay: 'Ville pour {date}:',
     locked: 'Verrouillé',
-    pleasSelectCity: 'Veuillez sélectionner une ville pour le jour {day}',
+    pleasSelectCity: 'Veuillez sélectionner une ville pour le {day}',
     itemsInCity: 'Éléments à {city}',
     selectedCount: '{count} sélectionné(s)',
     noItemsFound: 'Aucun élément trouvé pour cette ville',
@@ -486,5 +486,6 @@ export default {
     deleteTour: 'Supprimer le Tour',
     delete: 'Supprimer',
     deleteTourConfirmation: 'Êtes-vous sûr de vouloir supprimer "{title}"? Cette action ne peut pas être annulée.',
+    loadingRoutes: 'Chargement des itinéraires...',
   },
 }; 

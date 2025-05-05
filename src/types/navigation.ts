@@ -94,12 +94,12 @@ export type RootStackParamList = {
     destinationsByDate?: Record<string, Destination[]>;
   };
   AddNewTourOrganize: {
-    title: string;
-    startDate: string;
-    endDate: string;
-    selectedItemsByDay: Record<number, string[]>;
-    cities: Record<number, string>;
-    savedItems: SavedItem[];
+    title?: string;
+    startDate?: string;
+    endDate?: string;
+    selectedItemsByDay?: Record<number, string[]>;
+    cities?: Record<number, string>;
+    savedItems?: SavedItem[];
     viewMode?: boolean;
   };
 };

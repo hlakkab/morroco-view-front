@@ -1,5 +1,5 @@
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
 import SearchBar from '../components/SearchBar';
@@ -11,9 +11,10 @@ import EmptyDaysWarningModal from '../components/tour/EmptyDaysWarningModal';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
 import ItemList from '../containers/tour/ItemList';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchBookmarksAsItems, setTourDestinations, TourItem } from '../store/tourSlice';
+import { fetchBookmarksAsItems, setTourDestinations, setTourItems } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
+import { TourSavedItem } from '../types/tour';
 
 
 
@@ -60,7 +61,7 @@ const LOCATION_COORDINATES = {
 };
 
 // Helper function to ensure items have coordinates
-const addCoordinatesToItems = (items: TourItem[]): TourItem[] => {
+const addCoordinatesToItems = (items: TourSavedItem[]): TourSavedItem[] => {
   return items.map(item => {
     // If item already has coordinates, use them
     if (item.coordinate) {
@@ -191,7 +192,13 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   const availableItems = useAppSelector(state => state.tour.availableItems);
   const loading = useAppSelector(state => state.tour.loading);
   const error = useAppSelector(state => state.tour.error);
+  // Get existing tour items from Redux if they exist
+  const reduxItemsByDay = useAppSelector(state => state.tour.currentTour.selectedItemsByDay);
+  const reduxCities = useAppSelector(state => state.tour.currentTour.cities);
   const dispatch = useAppDispatch();
+  
+  // Track if we've already fetched data
+  const hasFetchedRef = useRef(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDay, setSelectedDay] = useState(1);
@@ -205,8 +212,16 @@ const AddNewTourDestinationsScreen: React.FC = () => {
 
   // Fetch bookmarks when component mounts
   useEffect(() => {
-    dispatch(fetchBookmarksAsItems());
-  }, [dispatch]);
+    console.log("Tour dates in destination screen:", startDate, endDate);
+    if (startDate && endDate && !hasFetchedRef.current && (!availableItems || availableItems.length === 0)) {
+      console.log("Fetching bookmarks...");
+      hasFetchedRef.current = true;
+      dispatch(fetchBookmarksAsItems({ 
+        startDate,
+        endDate
+      }));
+    }
+  }, [dispatch, startDate, endDate]);
 
   // Use availableItems from Redux store instead of local state
   const cities = useMemo(() => {
@@ -228,19 +243,26 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       const days = calculateDaysInclusive(startDate, endDate);
       setTotalDays(days);
       
-      // Initialize selected cities and items for all days
-      const initialCities: Record<number, string> = {};
-      const initialSelectedItems: Record<number, string[]> = {};
-      
-      for (let i = 1; i <= days; i++) {
-        initialCities[i] = ''; // Start with no selected city
-        initialSelectedItems[i] = [];
+      // Check if there are already items in Redux
+      if (reduxItemsByDay && Object.keys(reduxItemsByDay).length > 0) {
+        // If data exists in Redux, use it
+        setSelectedItemsByDay(reduxItemsByDay);
+        setSelectedCities(reduxCities || {});
+      } else {
+        // Otherwise initialize empty selections
+        const initialCities: Record<number, string> = {};
+        const initialSelectedItems: Record<number, string[]> = {};
+        
+        for (let i = 1; i <= days; i++) {
+          initialCities[i] = ''; // Start with no selected city
+          initialSelectedItems[i] = [];
+        }
+        
+        setSelectedCities(initialCities);
+        setSelectedItemsByDay(initialSelectedItems);
       }
-      
-      setSelectedCities(initialCities);
-      setSelectedItemsByDay(initialSelectedItems);
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, reduxItemsByDay, reduxCities]);
 
   // Check if a city is locked for the current day
   const isCityLockedForCurrentDay = useMemo(() => {
@@ -367,15 +389,23 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     // Ensure all items have coordinates
     const selectedItemsWithCoordinates = addCoordinatesToItems(selectedItems);
     
-    // Navigate to the third step
-    navigation.navigate('AddNewTourOrganize', {
+    // Log the items with coordinates for debugging
+    console.log('Items with specific coordinates:', 
+      selectedItemsWithCoordinates.map(item => ({
+        title: item.title,
+        hasSpecificCoordinates: item.coordinate !== CITY_COORDINATES[item.city as keyof typeof CITY_COORDINATES]
+      }))
+    );
+    
+    // Save selected items, cities, and other data to Redux
+    dispatch(setTourItems({
+      tourItems: selectedItemsWithCoordinates,
       selectedItemsByDay,
-      cities: selectedCities,
-      savedItems: selectedItemsWithCoordinates,
-      title,
-      startDate,
-      endDate
-    });
+      cities: selectedCities
+    }));
+    
+    // Navigate to the third step - all data is in Redux now
+    navigation.navigate('AddNewTourOrganize', { viewMode: false });
   };
 
   // Filter items by selected city and search query
@@ -388,13 +418,35 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       const matchesSearch = !searchQuery || 
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.subtitle && item.subtitle.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      // For match type items, check if the day matches the bookmark date
+      if (item.type === 'match' && item.date) {
+        // Convert the match date to the same format as our selected day
+        try {
+          const matchDate = new Date(item.date);
+          const startDateObj = new Date(startDate.replace(/\//g, '-'));
+          
+          // Calculate days difference to check if this match falls on the selected day
+          const diffTime = matchDate.getTime() - startDateObj.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          
+          console.log(`Match ${item.title} on day ${diffDays}, selected day: ${selectedDay}`);
+          
+          // If this is a match and the day doesn't match the selected day, filter it out
+          if (diffDays !== selectedDay) {
+            return false;
+          }
+        } catch (error) {
+          console.error("Error parsing match date:", error);
+        }
+      }
       
       return matchesCity && matchesSearch;
     });
     
     // Ensure all filtered items have coordinates
     return addCoordinatesToItems(filtered);
-  }, [availableItems, selectedCities, selectedDay, searchQuery]);
+  }, [availableItems, selectedCities, selectedDay, searchQuery, startDate]);
 
   // Nombre d'items sélectionnés pour la ville du jour actuellement sélectionné
   const currentCitySelectedCount = useMemo(
@@ -460,7 +512,13 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         ) : error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{i18n.t('tours.errorLoadingDestinations')}</Text>
-            <Button title={i18n.t('tours.retry')} onPress={() => dispatch(fetchBookmarksAsItems())} />
+            <Button title={i18n.t('tours.retry')} onPress={() => {
+              hasFetchedRef.current = false;
+              dispatch(fetchBookmarksAsItems({ 
+                startDate, 
+                endDate 
+              }));
+            }} />
           </View>
         ) : (
           /* Item List or Empty State */
@@ -475,7 +533,7 @@ const AddNewTourDestinationsScreen: React.FC = () => {
 
               />
           ) : (
-            <EmptyCity selectedDay={selectedDay} />
+            <EmptyCity selectedDay={selectedDay} startDate={startDate} />
           )
         )}
       </View>
