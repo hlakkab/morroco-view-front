@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { mapBookmarksToTourSavedItems } from '../utils/bookmarkMapper';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../service';
-import { TourSavedItem, Tour } from '../types/tour';
+import { Tour, TourSavedItem } from '../types/tour';
+import { mapBookmarksToTourSavedItems } from '../utils/bookmarkMapper';
 // Define interfaces for tour items
 export interface TourItem {
   id: string;
@@ -187,6 +187,21 @@ export const fetchTourDetails = createAsyncThunk(
   }
 );
 
+// Async thunk to delete a tour by ID
+export const deleteTourThunk = createAsyncThunk(
+  'tour/deleteTourThunk',
+  async (tourId: string, { rejectWithValue }) => {
+    try {
+      // Call the API to delete the tour
+      await api.delete(`/tours/${tourId}`);
+      return tourId; // Return the ID of the deleted tour
+    } catch (error) {
+      console.error('Error deleting tour:', error);
+      return rejectWithValue('Failed to delete tour');
+    }
+  }
+);
+
 // Create the slice
 const tourSlice = createSlice({
   name: 'tour',
@@ -356,6 +371,20 @@ const tourSlice = createSlice({
       .addCase(fetchTourDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch tour details';
+      })
+
+      .addCase(deleteTourThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteTourThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        // Remove the deleted tour from the savedTours array
+        state.savedTours = state.savedTours.filter(tour => tour.id !== action.payload);
+      })
+      .addCase(deleteTourThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to delete tour';
       });
   },
 });

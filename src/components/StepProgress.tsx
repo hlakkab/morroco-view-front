@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface Step {
   id: string;
@@ -9,17 +9,14 @@ interface Step {
 interface StepProgressProps {
   steps: Step[];
   currentStep: number;
-  onStepPress?: (stepIndex: number) => void;
 }
 
-const StepProgress: React.FC<StepProgressProps> = ({ steps, currentStep, onStepPress }) => {
+const StepProgress: React.FC<StepProgressProps> = ({ steps, currentStep }) => {
   return (
     <View style={styles.container}>
       {steps.map((step, index) => (
-        <TouchableOpacity 
+        <View 
           key={step.id}
-          onPress={() => onStepPress?.(index)}
-          disabled={index > currentStep}
           style={[
             styles.stepContainer,
             index < steps.length - 1 && styles.hasLine,
@@ -51,7 +48,7 @@ const StepProgress: React.FC<StepProgressProps> = ({ steps, currentStep, onStepP
               currentStep > index && styles.activeLine,
             ]} />
           )}
-        </TouchableOpacity>
+        </View>
       ))}
     </View>
   );

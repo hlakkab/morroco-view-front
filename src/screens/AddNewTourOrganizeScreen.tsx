@@ -170,18 +170,6 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     return `${dayName}, ${monthName} ${dayNum}, ${year}`;
   };
 
-  const handleStepPress = (stepIndex: number) => {
-    if (stepIndex === 0) {
-      navigation.navigate('AddNewTour');
-    } else if (stepIndex === 1) {
-      navigation.navigate('AddNewTourDestinations', { 
-        title, 
-        startDate, 
-        endDate 
-      });
-    }
-  };
-
   const handleSetDuration = useCallback((dayIndex: number, itemIndex: number) => {
     const item = schedule[dayIndex].items[itemIndex];
     setSelectedItem({ dayIndex, itemIndex });
@@ -411,7 +399,6 @@ const AddNewTourOrganizeScreen: React.FC = () => {
             <StepProgress 
               steps={steps} 
               currentStep={2}
-              onStepPress={handleStepPress}
             />
           </View>
         )}

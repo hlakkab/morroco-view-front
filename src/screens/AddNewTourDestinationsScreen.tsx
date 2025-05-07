@@ -1,19 +1,19 @@
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
 import SearchBar from '../components/SearchBar';
 import StepProgress from '../components/StepProgress';
 import CitySelector from '../components/tour/CitySelector';
 import DaySelector from '../components/tour/DaySelector';
 import EmptyCity from '../components/tour/EmptyCity';
+import EmptyDaysWarningModal from '../components/tour/EmptyDaysWarningModal';
 import TourFlowHeader from '../components/tour/TourFlowHeader';
 import ItemList from '../containers/tour/ItemList';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchBookmarksAsItems, setTourDestinations, TourItem } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
-import { Dimensions } from 'react-native';
 
 
 
@@ -199,6 +199,10 @@ const AddNewTourDestinationsScreen: React.FC = () => {
   const [selectedItemsByDay, setSelectedItemsByDay] = useState<Record<number, string[]>>({});
   const [totalDays, setTotalDays] = useState(4);
 
+  // Add new state for the warning modal
+  const [warningModalVisible, setWarningModalVisible] = useState(false);
+  const [emptyDaysFound, setEmptyDaysFound] = useState<number[]>([]);
+
   // Fetch bookmarks when component mounts
   useEffect(() => {
     dispatch(fetchBookmarksAsItems());
@@ -254,12 +258,6 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       return { status: 'selected' as const, city: selectedCities[day] };
     }
     return { status: 'empty' as const, city: '' };
-  };
-
-  const handleStepPress = (stepIndex: number) => {
-    if (stepIndex === 0) {
-      navigation.navigate('AddNewTour');
-    }
   };
 
   const handleItemSelect = (itemId: string, itemCity: string) => {
@@ -337,6 +335,24 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       return;
     }
     
+    // Check if all days have at least one selection
+    const emptyDays: number[] = [];
+    for (let day = 1; day <= totalDays; day++) {
+      if (!selectedItemsByDay[day] || selectedItemsByDay[day].length === 0) {
+        emptyDays.push(day);
+      }
+    }
+    
+    if (emptyDays.length > 0) {
+      // Show our custom modal instead of the basic Alert
+      setEmptyDaysFound(emptyDays);
+      setWarningModalVisible(true);
+    } else {
+      proceedToOrganize();
+    }
+  };
+  
+  const proceedToOrganize = () => {
     // Save destinations in Redux
     const destinationCities = Object.values(selectedCities).filter(city => city);
     dispatch(setTourDestinations(destinationCities));
@@ -350,14 +366,6 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     
     // Ensure all items have coordinates
     const selectedItemsWithCoordinates = addCoordinatesToItems(selectedItems);
-    
-    // Log the items with coordinates for debugging
-    console.log('Items with specific coordinates:', 
-      selectedItemsWithCoordinates.map(item => ({
-        title: item.title,
-        hasSpecificCoordinates: item.coordinate !== CITY_COORDINATES[item.city as keyof typeof CITY_COORDINATES]
-      }))
-    );
     
     // Navigate to the third step
     navigation.navigate('AddNewTourOrganize', {
@@ -388,13 +396,6 @@ const AddNewTourDestinationsScreen: React.FC = () => {
     return addCoordinatesToItems(filtered);
   }, [availableItems, selectedCities, selectedDay, searchQuery]);
 
-  // const totalSelectedCount = useMemo(() => {
-  //   return Object.values(selectedItemsByDay).reduce(
-  //     (count, items) => count + items.length, 0
-  //   );
-  // }, [selectedItemsByDay]);
-
-
   // Nombre d'items sélectionnés pour la ville du jour actuellement sélectionné
   const currentCitySelectedCount = useMemo(
       () => selectedItemsByDay[selectedDay]?.length || 0,
@@ -420,7 +421,6 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         <StepProgress 
           steps={steps} 
           currentStep={1}
-          onStepPress={handleStepPress}
         />
       </View>
 
@@ -487,6 +487,20 @@ const AddNewTourDestinationsScreen: React.FC = () => {
           disabled={currentCitySelectedCount === 0 || loading}
         />
       </View>
+      
+      {/* Add the custom warning modal */}
+      <EmptyDaysWarningModal
+        visible={warningModalVisible}
+        emptyDays={emptyDaysFound}
+        onContinue={() => {
+          setWarningModalVisible(false);
+          proceedToOrganize();
+        }}
+        onStayAndFill={() => {
+          setWarningModalVisible(false);
+          setSelectedDay(emptyDaysFound[0]);
+        }}
+      />
     </SafeAreaView>
   );
 };

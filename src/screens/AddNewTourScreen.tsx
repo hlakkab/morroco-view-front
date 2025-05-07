@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Button from '../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
@@ -34,6 +34,15 @@ const AddNewTourScreen: React.FC = () => {
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerMode, setPickerMode] = useState<DatePickerMode>('start');
+
+  // Update form data if Redux store changes
+  useEffect(() => {
+    setFormData({
+      title: tourData.title,
+      startDate: tourData.startDate,
+      endDate: tourData.endDate,
+    });
+  }, [tourData]);
 
   const steps = [
     { id: '01', label: i18n.t('tours.basicInfos') },

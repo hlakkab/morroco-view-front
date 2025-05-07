@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import TourDetailsModal from '../components/TourDetailsModal';
 import TourCard from '../components/cards/TourCard';
+import DeleteTourConfirmationModal from '../components/modals/DeleteTourConfirmationModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchTourDetails, fetchTours } from '../store/tourSlice';
+import { deleteTourThunk, fetchTourDetails, fetchTours } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { Tour } from '../types/tour';
 
@@ -16,6 +17,11 @@ const TourListContainer: React.FC = () => {
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  
+  // For delete functionality
+  const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isDeletingTour, setIsDeletingTour] = useState(false);
 
   useEffect(() => {
     dispatch(fetchTours());
@@ -39,14 +45,49 @@ const TourListContainer: React.FC = () => {
     setSelectedTour(null);
   };
 
+  // Handle delete button press - shows confirmation modal
+  const handleDeleteTour = (tour: Tour) => {
+    setTourToDelete(tour);
+    setDeleteModalVisible(true);
+  };
+
+  // Handle delete confirmation
+  const handleConfirmDelete = async () => {
+    if (tourToDelete && !isDeletingTour) {
+      try {
+        setIsDeletingTour(true);
+        await dispatch(deleteTourThunk(tourToDelete.id)).unwrap();
+        
+        // Refresh the tours list after successful deletion
+        await dispatch(fetchTours()).unwrap();
+        
+        // Close modal after successful deletion
+        setDeleteModalVisible(false);
+        setTourToDelete(null);
+      } catch (error) {
+        console.error('Error deleting tour:', error);
+        // We could show an error message here if needed
+      } finally {
+        setIsDeletingTour(false);
+      }
+    }
+  };
+
+  // Handle cancel delete
+  const handleCancelDelete = () => {
+    setDeleteModalVisible(false);
+    setTourToDelete(null);
+  };
+
   const renderTourCard = ({ item }: { item: Tour }) => (
     <TourCard
       item={item}
       handleCardPress={() => handleTourPress(item)}
+      onDeleteTour={handleDeleteTour}
     />
   );
 
-  if (loading) {
+  if (loading && !isDeletingTour) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#AE1913" />
@@ -54,7 +95,7 @@ const TourListContainer: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !isDeletingTour) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
@@ -82,7 +123,7 @@ const TourListContainer: React.FC = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      {isLoadingDetails && (
+      {(isLoadingDetails || isDeletingTour) && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#AE1913" />
         </View>
@@ -92,6 +133,15 @@ const TourListContainer: React.FC = () => {
         <TourDetailsModal
           visible={modalVisible}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {tourToDelete && (
+        <DeleteTourConfirmationModal
+          visible={deleteModalVisible}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          tourTitle={tourToDelete.title}
         />
       )}
     </View>

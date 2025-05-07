@@ -1,11 +1,12 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
-import React, { useEffect, useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Dimensions, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import "react-native-get-random-values";
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import Button from '../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
-import LocationPickerModal from '../components/LocationPickerModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
 import { togglePickupDirection } from '../store/hotelPickupSlice';
@@ -19,6 +20,7 @@ interface ReservationPopupProps {
 }
 
 const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupProps) => {
+  const mapRef = useRef<MapView | null>(null);
   const dispatch = useAppDispatch();
   const { bookingStatus, bookingError } = useAppSelector(
     (state) => state.hotelPickupDetails
@@ -35,7 +37,6 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [hotelLocation, setHotelLocation] = useState('');
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [showModernDatePicker, setShowModernDatePicker] = useState(false);
@@ -45,6 +46,13 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [specialRequests, setSpecialRequests] = useState('');
+  const [mapVisible, setMapVisible] = useState(false);
+  const [mapRegion, setMapRegion] = useState<Region | null>(null);
+  const [showLocationInput, setShowLocationInput] = useState(true);
+
+  // Replace isLocationSearchActive with a ref for GooglePlacesAutocomplete
+  const googlePlacesRef = useRef(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -433,6 +441,84 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
     setShowModernDatePicker(false);
   };
 
+  const handleLocationSelect = (data: any, details: any) => {
+    const newLocation = {
+      latitude: details.geometry.location.lat,
+      longitude: details.geometry.location.lng,
+      address: data.description,
+    };
+    
+    setDestination([newLocation.longitude, newLocation.latitude]);
+    setHotelLocation(newLocation.address);
+    
+    // Set the initial map region with appropriate deltas for zoom
+    const newRegion = {
+      latitude: newLocation.latitude,
+      longitude: newLocation.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    };
+    
+    setMapRegion(newRegion);
+    setMapVisible(true);
+    setShowLocationInput(false);
+    
+    // Dismiss keyboard and scroll to map
+    Keyboard.dismiss();
+    setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(newRegion, 1000);
+      }
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 400, animated: true });
+      }
+    }, 300);
+  };
+
+  const focusLocationSearch = () => {
+    // Focus the GooglePlacesAutocomplete input
+    if (googlePlacesRef.current) {
+      // @ts-ignore - textInputRef doesn't exist in the type definitions
+      googlePlacesRef.current.textInputRef?.focus();
+    }
+    setShowLocationInput(true);
+  };
+
+  // Zoom in function
+  const zoomIn = () => {
+    if (mapRef.current && mapRegion) {
+      const newRegion = {
+        ...mapRegion,
+        latitudeDelta: mapRegion.latitudeDelta / 2,
+        longitudeDelta: mapRegion.longitudeDelta / 2,
+      };
+      mapRef.current.animateToRegion(newRegion, 300);
+    }
+  };
+
+  // Zoom out function
+  const zoomOut = () => {
+    if (mapRef.current && mapRegion) {
+      const newRegion = {
+        ...mapRegion,
+        latitudeDelta: mapRegion.latitudeDelta * 2,
+        longitudeDelta: mapRegion.longitudeDelta * 2,
+      };
+      mapRef.current.animateToRegion(newRegion, 300);
+    }
+  };
+
+  const handleClearLocation = () => {
+    setHotelLocation('');
+    setDestination(null);
+    setMapVisible(false);
+    setShowLocationInput(true);
+    // Focus the search input when clearing
+    setTimeout(() => {
+      focusLocationSearch();
+    }, 100);
+  };
+
   const handleSubmit = async () => {
     if (!selectedDate || !selectedTime || !destination) {
       return;
@@ -475,8 +561,12 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
         <View style={styles.divider} />
 
-        <ScrollView style={styles.scrollContent}>
-
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.scrollContent} 
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.content}>
             <View style={styles.transportInfo}>
               <View style={styles.iconContainer}>
@@ -619,35 +709,139 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
               </View>
 
               <Text style={styles.sectionTitle}>{i18n.t('reservation.whereAreYouStaying')}</Text>
-              <TouchableOpacity
-                style={styles.inputContainer}
-                onPress={() => setShowLocationPicker(true)}
-              >
-                <Text style={[styles.input, !hotelLocation && styles.inputPlaceholder]}>
-                  {hotelLocation || i18n.t('reservation.tapToSelectYourHotelLocationOnTheMap')}
-                </Text>
-              </TouchableOpacity>
+              
+              {/* Location search input - always visible */}
+              <View style={styles.locationInputContainer}>
+                <GooglePlacesAutocomplete
+                  ref={googlePlacesRef}
+                  placeholder={i18n.t('reservation.searchForLocation')}
+                  onPress={handleLocationSelect}
+                  query={{
+                    key: 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY',
+                    language: 'en',
+                    components: 'country:ma',
+                  }}
+                  fetchDetails={true}
+                  onFail={(error) => console.error(error)}
+                  onNotFound={() => console.log('No results found')}
+                  styles={{
+                    container: styles.autocompleteContainer,
+                    textInputContainer: styles.textInputContainer,
+                    textInput: styles.searchInput,
+                    listView: styles.listView,
+                    row: styles.autocompleteRow,
+                    description: styles.autocompleteDescription,
+                    separator: styles.autocompleteSeparator,
+                    poweredContainer: { display: 'none' }
+                  }}
+                  enablePoweredByContainer={false}
+                  minLength={1}
+                  listViewDisplayed={true}
+                  textInputProps={{
+                    placeholderTextColor: '#999',
+                    returnKeyType: 'search',
+                    clearButtonMode: 'while-editing',
+                    onChangeText: (text) => {
+                      if (text === '') {
+                        handleClearLocation();
+                      }
+                    }
+                  }}
+                  keyboardShouldPersistTaps="handled"
+                />
+              </View>
+
+              {/* Map display section - always visible, just shows placeholder when no location */}
+              {mapVisible && destination ? (
+                <View style={styles.mapContainer}>
+                  <MapView
+                    ref={mapRef}
+                    provider={PROVIDER_DEFAULT}
+                    style={styles.map}
+                    initialRegion={mapRegion || undefined}
+                    showsUserLocation={true}
+                    showsCompass={true}
+                    rotateEnabled={true}
+                    scrollEnabled={true}
+                    zoomEnabled={true}
+                    pitchEnabled={Platform.OS !== 'ios'}
+                  >
+                    <Marker
+                      coordinate={{
+                        latitude: destination[1],
+                        longitude: destination[0],
+                      }}
+                      title={i18n.t('reservation.selectedLocation')}
+                      description={hotelLocation}
+                    />
+                  </MapView>
+                  
+                  {/* Zoom controls */}
+                  <View style={styles.zoomControls}>
+                    <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
+                      <Ionicons name="add" size={24} color="#333" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
+                      <Ionicons name="remove" size={24} color="#333" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.mapPlaceholderContainer}>
+                  <View style={styles.mapPlaceholderContent}>
+                    <Ionicons name="map-outline" size={50} color="#CE1126" />
+                    <Text style={styles.mapPlaceholderText}>{i18n.t('reservation.searchToSeeMapLocation') || "Search for a location to see it on the map"}</Text>
+                  </View>
+                  <View style={styles.mapPlaceholderGrid}>
+                    <View style={styles.mapPlaceholderGridRow}>
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                      <View style={styles.mapPlaceholderGridItem} />
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                      <View style={styles.mapPlaceholderGridItem} />
+                    </View>
+                    <View style={styles.mapPlaceholderGridRow}>
+                      <View style={styles.mapPlaceholderGridItem} />
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                      <View style={styles.mapPlaceholderGridItem} />
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                    </View>
+                    <View style={styles.mapPlaceholderGridRow}>
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                      <View style={styles.mapPlaceholderGridItem} />
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                      <View style={styles.mapPlaceholderGridItem} />
+                    </View>
+                    <View style={styles.mapPlaceholderGridRow}>
+                      <View style={styles.mapPlaceholderGridItem} />
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                      <View style={styles.mapPlaceholderGridItem} />
+                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                    </View>
+                  </View>
+                </View>
+              )}
 
               {bookingError && (
                 <Text style={styles.errorText}>{bookingError}</Text>
               )}
             </View>
           </View>
-
-          <View style={styles.footer}>
-            <Button
-              title={i18n.t('reservation.confirmReservation')}
-              style={styles.confirmButton}
-              icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
-              onPress={handleSubmit}
-              loading={bookingStatus === 'loading'}
-              disabled={bookingStatus === 'loading'}
-            />
-          </View>
         </ScrollView>
+
+        {/* Fixed footer with confirm button */}
+        <View style={styles.fixedFooter}>
+          <Button
+            title={i18n.t('reservation.confirmReservation')}
+            style={styles.confirmButton}
+            icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
+            onPress={handleSubmit}
+            loading={bookingStatus === 'loading'}
+            disabled={bookingStatus === 'loading' || !destination}
+          />
+        </View>
       </View>
 
-      {/* Modern Date Picker */}
+      {/* Date and Time pickers */}
       <DatePickerModal
         visible={showModernDatePicker}
         onClose={() => setShowModernDatePicker(false)}
@@ -661,19 +855,8 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         type="specific"
       />
 
-      {/* Original Date Picker */}
       {showDatePicker && renderCustomDatePicker()}
       {showTimePicker && renderCustomTimePicker()}
-
-      {showLocationPicker && (
-        <LocationPickerModal
-          onClose={() => setShowLocationPicker(false)}
-          onLocationSelect={(longitude: number, latitude: number, address: string) => {
-            setDestination([longitude, latitude]);
-            setHotelLocation(address);
-          }}
-        />
-      )}
     </KeyboardAvoidingView>
   );
 };
@@ -853,17 +1036,6 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 12,
-    height: 50,
-    backgroundColor: '#f9f9f9',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 10,
     height: 50,
     backgroundColor: '#f9f9f9',
   },
@@ -1122,6 +1294,163 @@ const styles = StyleSheet.create({
   toLabel: {
     fontSize: 13,
     color: '#666',
+  },
+  locationInputContainer: {
+    marginBottom: 16,
+    height: 50, // Height for just the input field
+    zIndex: 5,
+  },
+  autocompleteContainer: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    zIndex: 10,
+  },
+  textInputContainer: {
+    width: '100%',
+    backgroundColor: 'transparent',
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+  },
+  searchInput: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  listView: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    maxHeight: 150,
+    zIndex: 15,
+  },
+  autocompleteRow: {
+    backgroundColor: '#fff',
+    padding: 15,
+    height: 'auto',
+  },
+  autocompleteDescription: {
+    color: '#333',
+    fontSize: 14,
+  },
+  autocompleteSeparator: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+  },
+  locationDisplayContainer: {
+    marginBottom: 16,
+  },
+  locationDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: '#f9f9f9',
+  },
+  locationText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 8,
+  },
+  clearButton: {
+    padding: 6,
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  map: {
+    flex: 1,
+  },
+  zoomControls: {
+    position: 'absolute',
+    right: 16,
+    bottom: Platform.OS === 'ios' ? 50 : 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  zoomButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 80, // Add padding to account for fixed footer
+  },
+  mapPlaceholderContainer: {
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mapPlaceholderContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    zIndex: 2,
+  },
+  mapPlaceholderText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    width: 200,
+  },
+  mapPlaceholderGrid: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.5,
+    padding: 20,
+  },
+  mapPlaceholderGridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flex: 1,
+  },
+  mapPlaceholderGridItem: {
+    flex: 1,
+    margin: 2,
+    backgroundColor: '#f0f0f0',
+  },
+  mapPlaceholderGridItemDark: {
+    backgroundColor: '#ccc',
+  },
+  mapPlaceholderGridItemRed: {
+    backgroundColor: '#CE1126',
+  },
+  fixedFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Add extra padding for iOS
   },
 });
 
