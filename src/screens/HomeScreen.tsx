@@ -1,18 +1,76 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 // Import Container Components
+import { Ionicons } from '@expo/vector-icons';
 import BottomNavBar from '../containers/BottomNavBar';
 import EmergencyContactsButton from '../containers/EmergencyContactsButton';
 import EventBannerContainer from '../containers/EventBannerContainer';
 import ExploreCardsContainer from '../containers/ExploreCardsContainer';
 import SearchBarContainer from '../containers/SearchBarContainer';
 import ServiceCardsContainer from '../containers/ServiceCardsContainer';
-import { clearTokens } from '../service/KeycloakService';
 import { RootStackParamList } from '../types/navigation';
 
-const HomeScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Step interface from react-native-copilot
+interface StepType {
+  name: string;
+  order: number;
+  visible: boolean;
+  text: string;
+}
+
+const HomeScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { start, copilotEvents, visible, stop } = useCopilot();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [showTourButton, setShowTourButton] = useState(true);
+
+  useEffect(() => {
+    // Handle tour completion
+    const handleStop = () => {
+      // Keep the tour button visible for reuse
+      // You can uncomment this line to hide the button after completion
+      // setShowTourButton(false);
+    };
+
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Set up scroll handling for steps that might be outside the viewport
+  useEffect(() => {
+    const handleStepChange = (step?: StepType) => {
+      // Scroll to different positions based on the step
+      if (!step) return;
+      
+      if (step.name === 'explore') {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      } else if (step.name === 'services') {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      } else if (step.name === 'search' || step.name === 'event') {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }
+
+      // Allow time for the scroll to complete before continuing
+      // This helps ensure components are fully visible before highlighting
+      return new Promise<void>(resolve => {
+        setTimeout(resolve, 600);
+      });
+    };
+
+    copilotEvents.on('stepChange', handleStepChange);
+    
+    return () => {
+      copilotEvents.off('stepChange', handleStepChange);
+    };
+  }, [copilotEvents]);
 
   const handleMatchesExplore = () => {
     // Navigate to matches screen
@@ -31,7 +89,6 @@ const HomeScreen: React.FC = () => {
     }
   };
   
-
   const handleEmergencyContacts = () => {
     // Navigate to emergency contacts screen
     navigation.navigate('Emergency');
@@ -43,25 +100,72 @@ const HomeScreen: React.FC = () => {
     navigation.navigate(routeName);
   };
 
+  // Start the tour when the button is pressed
+  const handleStartTour = () => {
+    start();
+  };
+
   return (
     <View style={styles.mainContainer}>
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      {/* Always show tour button (for reusability) */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>App Tour</Text>
+        </TouchableOpacity>
+      )}
+
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollContainer} 
+        showsVerticalScrollIndicator={false}
+      >
         {/* Search Bar Section */}
-        <SearchBarContainer />
+        <CopilotStep
+          text="Search for destinations, restaurants, or activities"
+          order={1}
+          name="search"
+        >
+          <WalkthroughableView>
+            <SearchBarContainer />
+          </WalkthroughableView>
+        </CopilotStep>
         
         {/* Africa Cup Banner Section */}
-        <EventBannerContainer onExplore={handleMatchesExplore} />
+        <CopilotStep
+          text="Check out upcoming events and matches"
+          order={2}
+          name="event"
+        >
+          <WalkthroughableView>
+            <EventBannerContainer onExplore={handleMatchesExplore} />
+          </WalkthroughableView>
+        </CopilotStep>
         
         {/* Service Icons Section */}
-        <ServiceCardsContainer />
+        <CopilotStep
+          text="Access essential services for your stay"
+          order={3}
+          name="services"
+        >
+          <WalkthroughableView>
+            <ServiceCardsContainer />
+          </WalkthroughableView>
+        </CopilotStep>
         
         {/* Explore Morocco Section */}
-        <ExploreCardsContainer onCategoryPress={handleCategoryPress} />
+        <CopilotStep
+          text="Explore different categories of attractions"
+          order={4}
+          name="explore"
+        >
+          <WalkthroughableView>
+            <ExploreCardsContainer onCategoryPress={handleCategoryPress} />
+          </WalkthroughableView>
+        </CopilotStep>
 
-        {/* Emergency Contacts Button */}
+        {/* Emergency Contacts Button - Removed from tour */}
         <EmergencyContactsButton onPress={handleEmergencyContacts} />
-        
-    
         
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
         <View style={styles.bottomPadding} />
@@ -70,6 +174,32 @@ const HomeScreen: React.FC = () => {
       {/* Bottom Navigation Bar */}
       <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
     </View>
+  );
+};
+
+const HomeScreen: React.FC = () => {
+  return (
+    <CopilotProvider 
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+      // These parameters control the highlight dimensions:
+      margin={0} // Zero margin for exact fitting
+      arrowSize={5} // Smaller arrow for better precision
+      arrowColor="#FF6B6B" // Match the tooltip color
+      verticalOffset={0} // Remove any vertical offset
+    >
+      <HomeScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -83,7 +213,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   bottomPadding: {
-    height: 80, 
+    height: 100, 
   },
   testButton: {
     backgroundColor: '#6200EE',
@@ -96,6 +226,32 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  tooltip: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 10,
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   }
 });
 
