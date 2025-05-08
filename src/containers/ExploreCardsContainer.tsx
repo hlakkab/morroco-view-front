@@ -3,6 +3,7 @@ import React from 'react';
 import { Dimensions, ImageBackground, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useLanguage } from '../contexts/LanguageContext';
 import i18n from '../translations/i18n';
+import { trackEvent } from '../service/Mixpanel';
 // Example JPG imports - replace these with your actual paths
 const monumentsImage = require('../assets/exploreBgImgs/monuments.jpg');
 const restaurantImage = require('../assets/exploreBgImgs/restaurant.jpg');
@@ -49,6 +50,14 @@ const ExploreCardsContainer: React.FC<ExploreCardsContainerProps> = ({ onCategor
   // Use language context to force re-render on language change
   const { currentLanguage } = useLanguage();
 
+  const handleCategoryClick = (category: string) => {
+    trackEvent('Explore Category Clicked', {
+      category_name: category,
+      language: currentLanguage
+    });
+    onCategoryPress(category);
+  };
+
   return (
     <>
       <Text style={styles.sectionTitle}>{i18n.t('home.exploreMorocco')}</Text>
@@ -59,14 +68,14 @@ const ExploreCardsContainer: React.FC<ExploreCardsContainerProps> = ({ onCategor
           title="Monuments" 
           translationKey="monuments"
           imageSrc={monumentsImage}
-          onPress={() => onCategoryPress('Monuments')}
+          onPress={() => handleCategoryClick('Monuments')}
         />
         <CategoryCard 
           title="Restaurant" 
           translationKey="restaurant"
           imageSrc={restaurantImage}
           style={styles.restaurantCard} 
-          onPress={() => onCategoryPress('Restaurant')}
+          onPress={() => handleCategoryClick('Restaurant')}
         />
       </View>
       
@@ -77,14 +86,14 @@ const ExploreCardsContainer: React.FC<ExploreCardsContainerProps> = ({ onCategor
           translationKey="entertainment"
           imageSrc={entertainmentImage}
           style={styles.entertainmentCard} 
-          onPress={() => onCategoryPress('Entertainment')}
+          onPress={() => handleCategoryClick('Entertainment')}
         />
         <CategoryCard 
           title="Artisans" 
           translationKey="artisans"
           imageSrc={artisansImage}
           style={styles.artisansCard} 
-          onPress={() => onCategoryPress('Artisans')}
+          onPress={() => handleCategoryClick('Artisans')}
         />
       </View>
     </>

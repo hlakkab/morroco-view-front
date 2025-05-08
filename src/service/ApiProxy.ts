@@ -5,12 +5,14 @@ import axios, {
   AxiosError
 } from 'axios';
 import { getAccessToken, refreshToken, clearTokens } from './KeycloakService';
+import { trackEvent } from './Mixpanel';
 
 //const API_URL = "http://192.168.0.205:9090";
-const API_URL = 'http://49.13.89.74:9090';
+const baseURL = 'http://49.13.89.74:9090';
+
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -35,6 +37,16 @@ api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    // Track server errors (5xx)
+    if (error.response?.status && error.response.status >= 500) {
+      trackEvent('Server_Error', {
+        status: error.response.status,
+        url: originalRequest.url,
+        method: originalRequest.method,
+        data: error.response.data
+      });
+    }
 
     // If the error is 401 and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {

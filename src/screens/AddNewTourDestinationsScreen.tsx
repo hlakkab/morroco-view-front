@@ -15,6 +15,8 @@ import { fetchBookmarksAsItems, setTourDestinations, setTourItems } from '../sto
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { TourSavedItem } from '../types/tour';
+import { useLanguage } from '../contexts/LanguageContext';
+import { trackEvent } from '../service/Mixpanel';
 
 
 
