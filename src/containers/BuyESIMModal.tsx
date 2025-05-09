@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Animated,
   Dimensions,
@@ -12,6 +12,7 @@ import {
   View
 } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
 import { AppDispatch } from '../store';
 import { createEsim } from '../store/slices/esimSlice';
@@ -20,6 +21,9 @@ import { createEsim } from '../store/slices/esimSlice';
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
 import OrangeSvg from '../assets/serviceIcons/orange-img.svg';
 import i18n from '../translations/i18n';
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 interface OperatorOption {
   id: string;
@@ -40,12 +44,42 @@ interface BuyESIMModalProps {
   onBuy: (operatorId: string) => void;
 }
 
-const BuyESIMModal: React.FC<BuyESIMModalProps> = ({ 
+const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({ 
   visible, 
   onClose,
   onBuy
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
+
+  // Start the tour automatically when the modal becomes visible
+  useEffect(() => {
+    if (visible && !tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [visible, startTour, tourStarted]);
+
+  // Handle copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+
+    copilotEvents.on('stop', handleStop);
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   // Available operators
   const operators: OperatorOption[] = [
@@ -158,6 +192,13 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
         >
           {/* White header with drag handle */}
           <View style={styles.headerContainer} {...panResponder.panHandlers}>
+            {/* Manual tour button */}
+            {!tourVisible && (
+              <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+                <Text style={styles.tourButtonText}>Tour Guide</Text>
+              </TouchableOpacity>
+            )}
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
@@ -171,86 +212,131 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = ({
           </View>
           
           <View style={styles.modalContent}>
+            
+
             {/* Operator Selection */}
             <View style={styles.formField}>
               <Text style={styles.label}>{i18n.t('qrcode.selectOperator')} <Text style={styles.required}>*</Text></Text>
-              
-              <View style={styles.operatorList}>
-                {operators.map(operator => (
-                  <TouchableOpacity 
-                    key={operator.id}
-                    style={[
-                      styles.operatorOption,
-                      selectedOperator === operator.id && styles.operatorOptionSelected
-                    ]}
-                    onPress={() => handleSelectOperator(operator.id)}
-                  >
-                    <View style={styles.operatorInfo}>
-                      {operator.logo}
-                      <Text style={styles.operatorName}>{operator.name}</Text>
-                    </View>
-                    
-                    {selectedOperator === operator.id && (
-                      <View style={styles.checkmarkContainer}>
-                        <Ionicons name="checkmark-circle" size={24} color="#D91A1A" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <CopilotStep
+                text="Choose your preferred operator for your eSIM"
+                order={1}
+                name="operator-selection"
+              >
+                <WalkthroughableView style={styles.highlightWrapper}>
+                  <View style={styles.operatorList}>
+                    {operators.map(operator => (
+                      <TouchableOpacity 
+                        key={operator.id}
+                        style={[
+                          styles.operatorOption,
+                          selectedOperator === operator.id && styles.operatorOptionSelected
+                        ]}
+                        onPress={() => handleSelectOperator(operator.id)}
+                      >
+                        <View style={styles.operatorInfo}>
+                          {operator.logo}
+                          <Text style={styles.operatorName}>{operator.name}</Text>
+                        </View>
+                        
+                        {selectedOperator === operator.id && (
+                          <View style={styles.checkmarkContainer}>
+                            <Ionicons name="checkmark-circle" size={24} color="#D91A1A" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </WalkthroughableView>
+              </CopilotStep>
             </View>
 
             {/* Offers Selection */}
             <View style={styles.formField}>
               <Text style={styles.label}>Select Offer <Text style={styles.required}>*</Text></Text>
-              <View style={styles.offersList}>
-                {offers.map((offer) => (
-                  <TouchableOpacity
-                    key={offer.id}
-                    style={[
-                      styles.offerOption,
-                      selectedOffer === offer.id && styles.offerOptionSelected
-                    ]}
-                    onPress={() => handleSelectOffer(offer.id)}
-                  >
-                    <Text style={styles.offerData}>{offer.data}</Text>
-                    <View style={styles.offerRightSection}>
-                      <Text style={[
-                        styles.offerPrice,
-                        selectedOffer === offer.id && styles.offerPriceSelected
-                      ]}>
-                        {`${offer.price}€`}
-                      </Text>
-                      {selectedOffer === offer.id && (
-                        <View style={styles.checkmarkContainer}>
-                          <Ionicons name="checkmark-circle" size={24} color="#D91A1A" />
+              <CopilotStep
+                text="Select the data plan that best suits your needs"
+                order={2}
+                name="offer-selection"
+              >
+                <WalkthroughableView style={styles.highlightWrapper}>
+                  <View style={styles.offersList}>
+                    {offers.map((offer) => (
+                      <TouchableOpacity
+                        key={offer.id}
+                        style={[
+                          styles.offerOption,
+                          selectedOffer === offer.id && styles.offerOptionSelected
+                        ]}
+                        onPress={() => handleSelectOffer(offer.id)}
+                      >
+                        <Text style={styles.offerData}>{offer.data}</Text>
+                        <View style={styles.offerRightSection}>
+                          <Text style={[
+                            styles.offerPrice,
+                            selectedOffer === offer.id && styles.offerPriceSelected
+                          ]}>
+                            {`${offer.price}€`}
+                          </Text>
+                          {selectedOffer === offer.id && (
+                            <View style={styles.checkmarkContainer}>
+                              <Ionicons name="checkmark-circle" size={24} color="#D91A1A" />
+                            </View>
+                          )}
                         </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </WalkthroughableView>
+              </CopilotStep>
             </View>
 
             {/* Buy Button */}
             <View style={styles.buttonContainer}>
-              {selectedOperator && selectedOffer && (
-                <Button 
-                  title={`${i18n.t('qrcode.buyFor')} ${(() => {
-                    const offerPrice = offers.find(o => o.id === selectedOffer)?.price;
-                    if (offerPrice) {
-                      return Math.round( parseFloat(offerPrice)) + '€';
-                    }
-                    return '0€';
-                  })()}`} 
-                  onPress={handleBuy} 
-                />
-              )}
+              <CopilotStep
+                text="Complete your purchase by clicking the buy button"
+                order={3}
+                name="buy-button"
+              >
+                <WalkthroughableView style={styles.buttonHighlightWrapper}>
+                  <Button 
+                    title={`${i18n.t('qrcode.buyFor')} ${(() => {
+                      const offerPrice = offers.find(o => o.id === selectedOffer)?.price;
+                      if (offerPrice) {
+                        return Math.round(parseFloat(offerPrice)) + '€';
+                      }
+                      return '0€';
+                    })()}`} 
+                    onPress={handleBuy}
+                    disabled={!selectedOperator || !selectedOffer}
+                  />
+                </WalkthroughableView>
+              </CopilotStep>
             </View>
           </View>
         </Animated.View>
       </View>
     </Modal>
+  );
+};
+
+const BuyESIMModal: React.FC<BuyESIMModalProps> = (props) => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <BuyESIMModalContent {...props} />
+    </CopilotProvider>
   );
 };
 
@@ -316,15 +402,11 @@ const styles = StyleSheet.create({
   modalContent: {
     marginTop: 15,
     flex: 1,
-    gap: 10,
     width: '100%',
-  
     paddingHorizontal: 20,
     paddingVertical: 0,
   },
-  formField: {
-    marginBottom: 0,
-  },
+  
   label: {
     fontSize: 16,
     fontWeight: '500',
@@ -362,9 +444,6 @@ const styles = StyleSheet.create({
   checkmarkContainer: {
     marginLeft: 10
   },
-  buttonContainer: {
-    paddingVertical: 20,
-  },
   offersList: {
     backgroundColor: 'white',
     borderRadius: 8,
@@ -399,6 +478,78 @@ const styles = StyleSheet.create({
   offerPriceSelected: {
     color: '#D91A1A'
   },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 26,
+    right: 60,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  walkthroughContainer: {
+    width: '100%',
+    position: 'relative',
+  },
+  operatorHighlight: {
+    width: '100%',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  offerHighlight: {
+    width: '100%',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  buyButtonHighlight: {
+    width: '100%',
+    marginTop: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  formField: {
+    marginBottom: 12,
+    position: 'relative',
+    width: '100%',
+    borderRadius: 8,
+  },
+  buttonContainer: {
+    paddingVertical: 20,
+    position: 'relative',
+    width: '100%',
+  },
+  highlightWrapper: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 12,
+    backgroundColor: 'transparent',
+  },
+  buttonHighlightWrapper: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+  }
 });
 
 export default BuyESIMModal;

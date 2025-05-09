@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
@@ -17,9 +18,15 @@ import { RootStackParamList } from '../types/navigation';
 
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
 
-const EntertainmentScreenVo: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const EntertainmentScreenContent: React.FC = () => {
   const navigation = useNavigation<EntertainmentScreenNavigationProp>();
   const dispatch = useAppDispatch();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
@@ -120,6 +127,36 @@ const EntertainmentScreenVo: React.FC = () => {
     return searchMatch && cityMatch && locationMatch;
   });
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted && !loading) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted, loading]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -149,37 +186,92 @@ const EntertainmentScreenVo: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={i18n.t('entertainment.title')} />
       </View>
       <View style={styles.content}>
-        <SearchBar
-            placeholder={i18n.t('entertainment.searchPlaceholder')}
-            onChangeText={handleSearch}
-            value={searchQuery}
-            onFilterPress={handleFilterPress}
-        />
-        <View style={styles.cityFilterContainer}>
-          <FilterSelector
-            options={cityOptions}
-            selectedOptionId={selectedCityId}
-            onSelectOption={handleCitySelect}
-            title={i18n.t('entertainment.city')}
-          />
-        </View>
-        <EntertainmentListContainerVo entertainments={filteredEntertainments} />
-      </View>
+        <CopilotStep
+          text="Search for entertainment venues and filter by type"
+          order={1}
+          name="search"
+        >
+          <WalkthroughableView style={styles.searchHighlight}>
+            <SearchBar
+              placeholder={i18n.t('entertainment.searchPlaceholder')}
+              onChangeText={handleSearch}
+              value={searchQuery}
+              onFilterPress={handleFilterPress}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
-      {/* Filter Popup with location filters only */}
-      <FilterPopup
+        <CopilotStep
+          text="Select a city to filter entertainment venues"
+          order={2}
+          name="citySelector"
+        >
+          <WalkthroughableView style={styles.cityHighlight}>
+            <View style={styles.cityFilterContainer}>
+              <FilterSelector
+                options={cityOptions}
+                selectedOptionId={selectedCityId}
+                onSelectOption={handleCitySelect}
+                title={i18n.t('entertainment.city')}
+              />
+            </View>
+          </WalkthroughableView>
+        </CopilotStep>
+
+        <CopilotStep
+          text="Browse and select entertainment venues to view their details"
+          order={3}
+          name="entertainmentList"
+        >
+          <WalkthroughableView style={styles.entertainmentListHighlight}>
+            <EntertainmentListContainerVo entertainments={filteredEntertainments} />
+          </WalkthroughableView>
+        </CopilotStep>
+
+        <FilterPopup
           visible={filterPopupVisible}
           onClose={handleCloseFilter}
           filterOptions={filterOptions}
           onApplyFilters={handleApplyFilters}
           title={i18n.t('entertainment.filterTitle')}
           categories={categoriesWithIcons}
-      />
+        />
+      </View>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const EntertainmentScreenVo: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <EntertainmentScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -222,6 +314,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     padding: 20,
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  searchHighlight: {
+    width: '100%',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  cityHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  entertainmentListHighlight: {
+    flex: 1,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

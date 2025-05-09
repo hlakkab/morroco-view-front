@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -15,6 +15,7 @@ import {
   View,
   ViewToken
 } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import i18n from '../translations/i18n';
 
 import AboutSection from '../components/AboutSection';
@@ -30,15 +31,51 @@ import { Restaurant } from '../types/Restaurant';
 
 const { width, height } = Dimensions.get('window');
 
-const RestaurantDetailScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const RestaurantDetailScreenContent: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const dispatch = useAppDispatch();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
   const { selectedRestaurant } = useAppSelector((state) => state.restaurant);
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted && selectedRestaurant) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted, selectedRestaurant]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   const handleBack = () => {
     navigation.goBack();
@@ -73,72 +110,139 @@ const RestaurantDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={selectedRestaurant!.name} />
       </View>
         
       <ScrollView style={styles.scrollView}>
-        <View style={styles.imageContainer}>
-          <View style={styles.imageSection}>
-            <FlatList
-              data={selectedRestaurant!.images}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item }) => (
-                <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
-              )}
-            />
+        <CopilotStep
+          text="View restaurant images and save to favorites"
+          order={1}
+          name="gallery"
+        >
+          <WalkthroughableView style={styles.galleryHighlight}>
+            <View style={styles.imageContainer}>
+              <View style={styles.imageSection}>
+                <FlatList
+                  data={selectedRestaurant!.images}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={handleScroll}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item }) => (
+                    <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
+                  )}
+                />
 
-            <TouchableOpacity style={[styles.saveButton, selectedRestaurant!.saved && styles.savedButton]} onPress={handleSave}>
-              <Ionicons
-                name={selectedRestaurant!.saved ? 'bookmark' : 'bookmark-outline'}
-                size={24}
-                color={selectedRestaurant!.saved ? '#fff' : '#000'}
-              />
-            </TouchableOpacity>
-
-            <View style={styles.paginationContainer}>
-              <View style={styles.pagination}>
-                {selectedRestaurant!.images?.map((_, index) => (
-                  <View
-                    key={index}
-                    style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
+                <TouchableOpacity style={[styles.saveButton, selectedRestaurant!.saved && styles.savedButton]} onPress={handleSave}>
+                  <Ionicons
+                    name={selectedRestaurant!.saved ? 'bookmark' : 'bookmark-outline'}
+                    size={24}
+                    color={selectedRestaurant!.saved ? '#fff' : '#000'}
                   />
-                ))}
+                </TouchableOpacity>
+
+                <View style={styles.paginationContainer}>
+                  <View style={styles.pagination}>
+                    {selectedRestaurant!.images?.map((_, index) => (
+                      <View
+                        key={index}
+                        style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
+                      />
+                    ))}
+                  </View>
+                </View>
               </View>
             </View>
-          </View>
-        </View>
+          </WalkthroughableView>
+        </CopilotStep>
 
         <View style={styles.content}>
-          {/* Operating Hours Section */}
-          <View style={styles.operatingHoursContainer}>
-            <Ionicons name="time-outline" size={16} color="#137A08" />
-            <Text style={styles.operatingHoursText}>
-              {i18n.t('restaurants.operatingHours')} {selectedRestaurant!.endTime}    
-            </Text>
-          </View>
+          <CopilotStep
+            text="Check restaurant operating hours"
+            order={2}
+            name="operatingHours"
+          >
+            <WalkthroughableView style={styles.operatingHoursHighlight}>
+              <View style={styles.operatingHoursContainer}>
+                <Ionicons name="time-outline" size={16} color="#137A08" />
+                <Text style={styles.operatingHoursText}>
+                  {i18n.t('restaurants.operatingHours')} {selectedRestaurant!.endTime}    
+                </Text>
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          {/* About Section */}
-          <AboutSection
-            title={i18n.t('restaurants.about')}
-            text={selectedRestaurant!.description || i18n.t('restaurants.noInformation')}
-          />
+          <CopilotStep
+            text="Learn more about the restaurant"
+            order={3}
+            name="about"
+          >
+            <WalkthroughableView style={styles.aboutHighlight}>
+              <AboutSection
+                title={i18n.t('restaurants.about')}
+                text={selectedRestaurant!.description || i18n.t('restaurants.noInformation')}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
 
-          {/* Location Section */}
-          <LocationSection
-            title={i18n.t('restaurants.location')}
-            address={selectedRestaurant!.address || ""}
-            mapUrl={`https://maps.app.goo.gl/${selectedRestaurant!.mapId}`}
-          />
+          <CopilotStep
+            text="Find the restaurant location"
+            order={4}
+            name="location"
+          >
+            <WalkthroughableView style={styles.locationHighlight}>
+              <LocationSection
+                title={i18n.t('restaurants.location')}
+                address={selectedRestaurant!.address || ""}
+                mapUrl={`https://maps.app.goo.gl/${selectedRestaurant!.mapId}`}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </ScrollView>
 
-      <ButtonFixe title={i18n.t('restaurants.bookReservation')} onPress={handleReservation} />
+      <CopilotStep
+        text="Book a table at this restaurant"
+        order={5}
+        name="reservation"
+      >
+        <WalkthroughableView style={styles.reservationHighlight}>
+          <ButtonFixe title={i18n.t('restaurants.bookReservation')} onPress={handleReservation} />
+        </WalkthroughableView>
+      </CopilotStep>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const RestaurantDetailScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <RestaurantDetailScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -284,6 +388,52 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  galleryHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  operatingHoursHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  aboutHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  locationHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  reservationHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

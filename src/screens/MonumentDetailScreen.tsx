@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dimensions, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AboutSection from '../components/AboutSection';
 import Button from '../components/Button';
 import ImageGallery from '../components/ImageGallery';
@@ -73,11 +74,17 @@ const MONUMENT_IMAGES = [
 
 const { width } = Dimensions.get('window');
 
-const MonumentDetailScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const MonumentDetailScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as Monument;
   const dispatch = useAppDispatch();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   const [saved, setSaved] = useState(params.saved || false);
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -103,66 +110,144 @@ const MonumentDetailScreen: React.FC = () => {
     setShowTicketModal(false);
   };
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   console.log(monumentDetails);
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={monumentDetails.name} onBack={handleBack} />
       </View>
 
       <ScrollView style={styles.scrollView}>
-        <ImageGallery 
-          images={monumentDetails.images || MONUMENT_IMAGES}
-          isSaved={saved}
-          onSavePress={handleSave}
-        />
+        <CopilotStep
+          text="Browse through the monument images and save it to your favorites"
+          order={1}
+          name="imageGallery"
+        >
+          <WalkthroughableView style={styles.walkthroughContainer}>
+            <ImageGallery 
+              images={monumentDetails.images || MONUMENT_IMAGES}
+              isSaved={saved}
+              onSavePress={handleSave}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
         <View style={styles.content}>
-          <View style={styles.monumentTypeContainer}>
-            <Text style={styles.monumentType}>
-              {/* {monumentDetails.isFeatured ? 'Featured Monument' : 'Historical Monument'} */}
-              {monumentDetails.type}
-            </Text>
-          </View>
+          <CopilotStep
+            text="View important information about the monument including type, visiting hours, and entry fee"
+            order={2}
+            name="monumentInfo"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <View style={styles.monumentTypeContainer}>
+                <Text style={styles.monumentType}>
+                  {/* {monumentDetails.isFeatured ? 'Featured Monument' : 'Historical Monument'} */}
+                  {monumentDetails.type}
+                </Text>
+              </View>
 
-          <View style={styles.infoContainer}>
-            <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{monumentDetails.startTime} - {monumentDetails.endTime}</Text>
-            </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="cash-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{i18n.t('monuments.entryFee')}: {monumentDetails.entryFee || "50 DH"}</Text>
-            </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="globe-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{monumentDetails.website}</Text>
-            </View>
-          </View>
+              <View style={styles.infoContainer}>
+                <View style={styles.infoItem}>
+                  <Ionicons name="time-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>{monumentDetails.startTime} - {monumentDetails.endTime}</Text>
+                </View>
+                
+                <View style={styles.infoItem}>
+                  <Ionicons name="cash-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>{i18n.t('monuments.entryFee')}: {monumentDetails.entryFee || "50 DH"}</Text>
+                </View>
+                
+                <View style={styles.infoItem}>
+                  <Ionicons name="globe-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>{monumentDetails.website}</Text>
+                </View>
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <AboutSection 
-            title={i18n.t('monuments.about')}
-            text={monumentDetails.description || i18n.t('monuments.noInformation')} 
-          />
+          <CopilotStep
+            text="Read more about the monument's history and significance"
+            order={3}
+            name="aboutSection"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <AboutSection 
+                title={i18n.t('monuments.about')}
+                text={monumentDetails.description || i18n.t('monuments.noInformation')} 
+              />
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <LocationSection 
-            address={monumentDetails.address} 
-            mapUrl={monumentDetails.mapId}
-          />
+          <CopilotStep
+            text="Find the monument's location and get directions"
+            order={4}
+            name="locationSection"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <LocationSection 
+                address={monumentDetails.address} 
+                mapUrl={monumentDetails.mapId}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Button 
-          title={i18n.t('monuments.buyTickets')}
-          style={styles.ticketButton}
-          icon={<Ionicons name="ticket" size={20} color="#fff" style={{ marginRight: 8 }} />}
-          onPress={handleBuyTicket}
-        />
-      </View>
+      <CopilotStep
+        text="Purchase tickets for your visit"
+        order={5}
+        name="buyTickets"
+      >
+        <WalkthroughableView style={styles.walkthroughContainer}>
+          <View style={styles.footer}>
+            <Button 
+              title={i18n.t('monuments.buyTickets')}
+              style={styles.ticketButton}
+              icon={<Ionicons name="ticket" size={20} color="#fff" style={{ marginRight: 8 }} />}
+              onPress={handleBuyTicket}
+            />
+          </View>
+        </WalkthroughableView>
+      </CopilotStep>
 
       <Modal
         visible={showTicketModal}
@@ -224,6 +309,28 @@ const MonumentDetailScreen: React.FC = () => {
         </View>
       </Modal>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const MonumentDetailScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <MonumentDetailScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -354,6 +461,35 @@ const styles = StyleSheet.create({
   },
   closeModalButton: {
     marginTop: 8,
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  walkthroughContainer: {
+    width: '100%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

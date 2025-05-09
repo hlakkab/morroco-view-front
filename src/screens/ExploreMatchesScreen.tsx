@@ -1,7 +1,8 @@
 // src/screens/ExploreMatchesScreen.tsx
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Modal, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import MatchCard from '../components/cards/MatchCard';
 import FilterPopup, { FilterOption } from "../components/FilterPopup";
 import FilterSelector from '../components/FilterSelector';
@@ -21,10 +22,15 @@ import { fetchMatches, setCurrentMatch, setSelectedMatch, toggleMatchBookmark } 
 import i18n from '../translations/i18n';
 import { Match } from '../types/match';
 
-const ExploreMatchesScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+const ExploreMatchesScreenContent: React.FC = () => {
   // États et dispatch
   const dispatch = useAppDispatch();
   const { matches } = useAppSelector(state => state.match);
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,10 +56,41 @@ const ExploreMatchesScreen: React.FC = () => {
     }
   }, [filterOptions]);
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      // Delay starting the tour until after the UI has rendered
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
   // Reset page quand filtre ou recherche change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCityId, filterOptions]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   // Préparer les données filtrées
   const activeStadiums = filterOptions.filter(opt => opt.selected).map(opt => opt.id);
@@ -71,19 +108,41 @@ const ExploreMatchesScreen: React.FC = () => {
   const currentMatches = filteredMatches.slice(start, start + itemsPerPage);
 
   return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <ScreenHeader title={i18n.t('matches.africaCupOfNations')} />
-        </View>
-        <View style={styles.content}>
-          <SearchBar
+    <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
+      <View style={styles.headerContainer}>
+        <ScreenHeader title={i18n.t('matches.africaCupOfNations')} />
+      </View>
+      <View style={styles.content}>
+        <CopilotStep
+          text="Search for matches and filter by stadium"
+          order={1}
+          name="search"
+        >
+          <WalkthroughableView style={styles.searchHighlight}>
+            <SearchBar
               placeholder={i18n.t('matches.searchMatches')}
               onChangeText={setSearchQuery}
               onFilterPress={() => setFilterPopupVisible(true)}
               value={searchQuery}
-          />
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
-          <FilterSelector
+        <CopilotStep
+          text="Select a city to filter matches"
+          order={2}
+          name="citySelector"
+        >
+          <WalkthroughableView style={styles.cityHighlight}>
+            <FilterSelector
               options={[
                 { id: 'all', label: i18n.t('matches.allCities') },
                 ...matchCities.map(c => ({ id: normalizeString(c.id), label: c.label }))
@@ -91,70 +150,100 @@ const ExploreMatchesScreen: React.FC = () => {
               selectedOptionId={selectedCityId}
               onSelectOption={setSelectedCityId}
               title={i18n.t('matches.city')}
-          />
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
-          {filteredMatches.length > 0 ? (
-              <>
+        {filteredMatches.length > 0 ? (
+          <>
+            <CopilotStep
+              text="Browse and select matches to view details"
+              order={3}
+              name="matchList"
+            >
+              <WalkthroughableView style={styles.matchesListHighlight}>
                 <FlatList
-                    data={currentMatches}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                        <MatchCard
-                            match={item}
-                            handleCardPress={() => {
-                              dispatch(setSelectedMatch(item));
-                              dispatch(setCurrentMatch(item));
-                              setModalVisible(true);
-                            }}
-                            handleSaveMatch={id => {
-                              // Find the match by id and pass the full match object
-                              const matchToToggle = matches.find(match => match.id === id);
-                              if (matchToToggle) {
-                                dispatch(toggleMatchBookmark(matchToToggle));
-                              }
-                            }}
-                        />
-                    )}
-                    contentContainerStyle={styles.matchesList}
-                    showsVerticalScrollIndicator={false}
+                  data={currentMatches}
+                  keyExtractor={item => item.id}
+                  renderItem={({ item }) => (
+                    <MatchCard
+                      match={item}
+                      handleCardPress={() => {
+                        dispatch(setSelectedMatch(item));
+                        dispatch(setCurrentMatch(item));
+                        setModalVisible(true);
+                      }}
+                      handleSaveMatch={id => {
+                        const matchToToggle = matches.find(match => match.id === id);
+                        if (matchToToggle) {
+                          dispatch(toggleMatchBookmark(matchToToggle));
+                        }
+                      }}
+                    />
+                  )}
+                  contentContainerStyle={styles.matchesList}
+                  showsVerticalScrollIndicator={false}
                 />
-                <Pagination
-                    totalItems={filteredMatches.length}
-                    itemsPerPage={itemsPerPage}
-                    currentPage={currentPage}
-                    onPageChange={setCurrentPage}
-                />
-              </>
-          ) : (
-              <View style={styles.noMatchesContainer}>
-                <Text style={styles.noMatchesText}>{i18n.t('matches.noMatchesFound')}</Text>
-              </View>
-          )}
+              </WalkthroughableView>
+            </CopilotStep>
+            <Pagination
+              totalItems={filteredMatches.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+          </>
+        ) : (
+          <View style={styles.noMatchesContainer}>
+            <Text style={styles.noMatchesText}>{i18n.t('matches.noMatchesFound')}</Text>
+          </View>
+        )}
 
-          <Modal
-              visible={modalVisible}
-              animationType="slide"
-              transparent
-              onRequestClose={() => setModalVisible(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <MatchPopup onClose={() => setModalVisible(false)} />
-            </View>
-          </Modal>
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <MatchPopup onClose={() => setModalVisible(false)} />
+          </View>
+        </Modal>
 
-          <FilterPopup
-              visible={filterPopupVisible}
-              onClose={() => setFilterPopupVisible(false)}
-              filterOptions={filterOptions}
-              onApplyFilters={opts => setFilterOptions(opts)}
-              title={i18n.t('matches.filterMatches')}
-              categories={{ stadium: { ...matchFilterCategories.stadium, icon: <Ionicons name="football" size={20} color="#CE1126" /> } }}
-          />
-        </View>
-      </SafeAreaView>
+        <FilterPopup
+          visible={filterPopupVisible}
+          onClose={() => setFilterPopupVisible(false)}
+          filterOptions={filterOptions}
+          onApplyFilters={opts => setFilterOptions(opts)}
+          title={i18n.t('matches.filterMatches')}
+          categories={{ stadium: { ...matchFilterCategories.stadium, icon: <Ionicons name="football" size={20} color="#CE1126" /> } }}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 
+// Main component with CopilotProvider
+const ExploreMatchesScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <ExploreMatchesScreenContent />
+    </CopilotProvider>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -195,6 +284,48 @@ const styles = StyleSheet.create({
   noMatchesText: {
     fontSize: 16,
     color: '#333',
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  searchHighlight: {
+    width: '100%',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  cityHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  matchesListHighlight: {
+    flex: 1,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

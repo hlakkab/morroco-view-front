@@ -1,9 +1,10 @@
 import Fontisto from '@expo/vector-icons/Fontisto';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import CloseButton from '../assets/img/CloseButton.svg';
 import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -22,11 +23,16 @@ export interface MatchPopupProps {
   onClose: () => void;
 }
 
-const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
   const { currentLanguage } = useLanguage();
   const { currentMatch, ticketPurchaseStatus, ticketPurchaseError } 
     = useSelector((state: RootState) => state.match);
+  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   // Reset ticket purchase status when component unmounts
   useEffect(() => {
@@ -74,6 +80,29 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
     })
   ).current;
 
+  // Start the tour automatically when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+
+    copilotEvents.on('stop', handleStop);
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
   const handleSave = () => {
     if (currentMatch) {
       dispatch(toggleMatchBookmark(currentMatch));
@@ -89,6 +118,11 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
     }
   };
 
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   // If no current match is available, return null or a loading state
   if (!currentMatch) {
     return (
@@ -100,11 +134,18 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
     );
   }
 
-
   return (
     <Animated.View
       style={[styles.container, { transform: [{ translateY: pan.y }] }]}>
       <View style={[styles.popup]}>
+        {/* Manual tour button */}
+        {!tourVisible && (
+          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.tourButtonText}>Tour Guide</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Header blanc */}
         <View style={styles.headerSection}>
           {/* Drag handle */}
@@ -135,112 +176,153 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
           bounces={true}
           nestedScrollEnabled={true}
         >
-          
           <View style={styles.content}>
+            <CopilotStep
+              text="View match details including teams, date, time and venue"
+              order={1}
+              name="match-details"
+            >
+              <WalkthroughableView style={styles.grandContainer}>
+                <TouchableOpacity
+                  style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
+                  onPress={handleSave}
+                >
+                  <Ionicons
+                    name={currentMatch.saved ? "bookmark" : "bookmark-outline"}
+                    size={24}
+                    color={currentMatch.saved ? "#888888" : "#000"}
+                  />
+                </TouchableOpacity>
 
-          
-            <View style={styles.grandContainer}>
-              <TouchableOpacity
-                style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
-                onPress={handleSave}
-              >
-                <Ionicons
-                  name={currentMatch.saved ? "bookmark" : "bookmark-outline"}
-                  size={24}
-                  color={currentMatch.saved ? "#888888" : "#000"}
+                <View style={styles.teamsContainer}>
+                  <View style={styles.teamContainer}>
+                    <View style={styles.flagContainer}>
+                      <Image
+                        source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
+                        style={styles.flag}
+                      />
+                    </View>
+                  </View>
+
+                  <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
+
+                  <View style={styles.teamContainer}>
+                    <View style={styles.flagContainer}>
+                      <Image
+                        source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
+                        style={styles.flag}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.detailRow}>
+                  {/* Date */}
+                  <View style={styles.detailItem}>
+                    <View style={styles.iconTitleContainer}>
+                      <Fontisto name="date" size={16} color="#656565" />
+                      <Text style={styles.detailTitle}>{i18n.t('matches.date')}</Text>
+                    </View>
+                    <Text style={styles.detailValue}>
+                      {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </Text>
+                  </View>
+
+                  {/* Séparateur 1 */}
+                  <View style={styles.separator}></View>
+
+                  {/* Time */}
+                  <View style={styles.detailItem}>
+                    <View style={styles.iconTitleContainer}>
+                      <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
+                      <Text style={styles.detailTitle}>{i18n.t('matches.time')}</Text>
+                    </View>
+                    <Text style={styles.detailValue}>
+                      {currentMatch.date.includes("T")
+                        ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                        : "21:00"}
+                    </Text>
+                  </View>
+
+                  {/* Séparateur 2 */}
+                  <View style={styles.separator}></View>
+
+                  {/* Stadium */}
+                  <View style={styles.detailItem}>
+                    <View style={styles.iconTitleContainer}>
+                      <StadiumIconPopup width={16} height={16} />
+                      <Text style={styles.detailTitle}>{i18n.t('matches.stadium')}</Text>
+                    </View>
+                    <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
+                  </View>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
+
+            <CopilotStep
+              text="Read about the match and its significance"
+              order={2}
+              name="about-section"
+            >
+              <WalkthroughableView>
+                <AboutSection
+                  text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
                 />
-              </TouchableOpacity>
+              </WalkthroughableView>
+            </CopilotStep>
 
+            <CopilotStep
+              text="Find the match location and get directions"
+              order={3}
+              name="location-section"
+            >
+              <WalkthroughableView>
+                <LocationSection
+                  address={currentMatch.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
+                  mapUrl={currentMatch.spot?.mapId}
+                />
+              </WalkthroughableView>
+            </CopilotStep>
 
-              
-              <View style={styles.teamsContainer}>
-                <View style={styles.teamContainer}>
-                  <View style={styles.flagContainer}>
-                    <Image
-                      source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
-                      style={styles.flag}
-                    />
-                  </View>
-                </View>
-
-                <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
-
-                <View style={styles.teamContainer}>
-                  <View style={styles.flagContainer}>
-                    <Image
-                      source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
-                      style={styles.flag}
-                    />
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.detailRow}>
-                {/* Date */}
-                <View style={styles.detailItem}>
-                  <View style={styles.iconTitleContainer}>
-                    <Fontisto name="date" size={16} color="#656565" />
-                    <Text style={styles.detailTitle}>{i18n.t('matches.date')}</Text>
-                  </View>
-                  <Text style={styles.detailValue}>
-                    {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </Text>
-                </View>
-
-                {/* Séparateur 1 */}
-                <View style={styles.separator}></View>
-
-                {/* Time */}
-                <View style={styles.detailItem}>
-                  <View style={styles.iconTitleContainer}>
-                    <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
-                    <Text style={styles.detailTitle}>{i18n.t('matches.time')}</Text>
-                  </View>
-                  <Text style={styles.detailValue}>
-                    {currentMatch.date.includes("T")
-                      ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-                      : "21:00"}
-                  </Text>
-                </View>
-
-                {/* Séparateur 2 */}
-                <View style={styles.separator}></View>
-
-                {/* Stadium */}
-                <View style={styles.detailItem}>
-                  <View style={styles.iconTitleContainer}>
-                    <StadiumIconPopup width={16} height={16} />
-                    <Text style={styles.detailTitle}>{i18n.t('matches.stadium')}</Text>
-                  </View>
-                  <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* About Section */}
-            <AboutSection
-              text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
-            />
-
-            {/* Location Section */}
-            <LocationSection
-              address={currentMatch.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-              mapUrl={currentMatch.spot?.mapId}
-            />
-
-            {/* Ticket Purchase Status */}
             <TicketPurchaseStatus
               status={ticketPurchaseStatus}
               error={ticketPurchaseError}
             />
           </View>
-
         </ScrollView>
 
-        {/* Bottom Section: Boutons Add to Tour & Buy Tickets */}
-        <ButtonFixe title={i18n.t('matches.buyTickets')} onPress={handleBuyTicket} />
+        <CopilotStep
+          text="Purchase tickets for the match"
+          order={4}
+          name="buy-tickets"
+        >
+          <WalkthroughableView>
+            <ButtonFixe title={i18n.t('matches.buyTickets')} onPress={handleBuyTicket} />
+          </WalkthroughableView>
+        </CopilotStep>
       </View>
     </Animated.View>
+  );
+};
+
+const MatchPopup: React.FC<MatchPopupProps> = (props) => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <MatchPopupContent {...props} />
+    </CopilotProvider>
   );
 };
 
@@ -481,6 +563,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6E6E6',
     borderColor: '#E6E6E6',
     opacity: 1,
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 
