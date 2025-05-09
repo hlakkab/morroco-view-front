@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import HotelPickupSvg from '../assets/serviceIcons/car-img.svg';
 import CardItem from '../components/cards/CardItem';
 import PickupCard from '../components/cards/PickupCard';
@@ -24,6 +25,9 @@ import {
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { HotelPickup } from '../types/transport';
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 interface HotelPickupListContainerProps {
   pickups: HotelPickup[];
@@ -129,85 +133,101 @@ const HotelPickupListContainer: React.FC<
       <View style={styles.container}>
         <View style={styles.filtersContainer}>
           <View style={styles.filterFromSection}>
-            <FilterSelector
-                title={i18n.t('pickup.city')}
-                options={cityOptions}
-                selectedOptionId={selectedCity}
-                onSelectOption={(option) => {
-                  setSelectedCityState((_prev) => {
-                    onSelectCity(option);
-                    return option;
-                  });
-                }}
-                containerStyle={styles.filterContainer}
-            />
+            <CopilotStep
+              text="Select the city for your pickup"
+              order={2}
+              name="citySelector"
+            >
+              <WalkthroughableView style={styles.cityHighlight}>
+                <FilterSelector
+                    title={i18n.t('pickup.city')}
+                    options={cityOptions}
+                    selectedOptionId={selectedCity}
+                    onSelectOption={(option) => {
+                      setSelectedCityState((_prev) => {
+                        onSelectCity(option);
+                        return option;
+                      });
+                    }}
+                    containerStyle={styles.filterContainer}
+                />
+              </WalkthroughableView>
+            </CopilotStep>
           </View>
 
           <View style={styles.directionContainer}>
-            <View style={styles.directionControlsWrapper}>
-              <Text style={styles.chooseDirectionText}>
-                {i18n.t('pickup.chooseDirection', { defaultValue: 'Choose Direction :' })}
-              </Text>
-              <View style={styles.directionControls}>
-                {pickupDirection === 'a2h' ? (
-                    // Airport → Hotel
-                    <>
-                      <View style={styles.endpointWithLabel}>
-                        <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
-                          <Ionicons name="airplane" size={20} color="#CE1126" />
-                        </View>
-                        <Text style={styles.endpointLabel}>
-                          {i18n.t('pickup.airport')}
-                        </Text>
-                      </View>
+            <CopilotStep
+              text="Toggle between airport to hotel or hotel to airport direction"
+              order={3}
+              name="directionToggle"
+            >
+              <WalkthroughableView style={styles.directionHighlight}>
+                <View style={styles.directionControlsWrapper}>
+                  <Text style={styles.chooseDirectionText}>
+                    {i18n.t('pickup.chooseDirection', { defaultValue: 'Choose Direction :' })}
+                  </Text>
+                  <View style={styles.directionControls}>
+                    {pickupDirection === 'a2h' ? (
+                        // Airport → Hotel
+                        <>
+                          <View style={styles.endpointWithLabel}>
+                            <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                              <Ionicons name="airplane" size={20} color="#CE1126" />
+                            </View>
+                            <Text style={styles.endpointLabel}>
+                              {i18n.t('pickup.airport')}
+                            </Text>
+                          </View>
 
-                      <View style={styles.directionMiddle}>
-                        <SwitchButton />
-                        <Text style={styles.toLabel}>
-                          {i18n.t('pickup.toDirection')}
-                        </Text>
-                      </View>
+                          <View style={styles.directionMiddle}>
+                            <SwitchButton />
+                            <Text style={styles.toLabel}>
+                              {i18n.t('pickup.toDirection')}
+                            </Text>
+                          </View>
 
-                      <View style={styles.endpointWithLabel}>
-                        <View style={styles.directionEndpoint}>
-                          <Ionicons name="home" size={20} color="#777" />
-                        </View>
-                        <Text style={styles.endpointLabel}>
-                          {i18n.t('pickup.hotel')}
-                        </Text>
-                      </View>
-                    </>
-                ) : (
-                    // Hotel → Airport
-                    <>
-                      <View style={styles.endpointWithLabel}>
-                        <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
-                          <Ionicons name="home" size={20} color="#CE1126" />
-                        </View>
-                        <Text style={styles.endpointLabel}>
-                          {i18n.t('pickup.hotel')}
-                        </Text>
-                      </View>
+                          <View style={styles.endpointWithLabel}>
+                            <View style={styles.directionEndpoint}>
+                              <Ionicons name="home" size={20} color="#777" />
+                            </View>
+                            <Text style={styles.endpointLabel}>
+                              {i18n.t('pickup.hotel')}
+                            </Text>
+                          </View>
+                        </>
+                    ) : (
+                        // Hotel → Airport
+                        <>
+                          <View style={styles.endpointWithLabel}>
+                            <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                              <Ionicons name="home" size={20} color="#CE1126" />
+                            </View>
+                            <Text style={styles.endpointLabel}>
+                              {i18n.t('pickup.hotel')}
+                            </Text>
+                          </View>
 
-                      <View style={styles.directionMiddle}>
-                        <SwitchButton />
-                        <Text style={styles.toLabel}>
-                          {i18n.t('pickup.toDirection')}
-                        </Text>
-                      </View>
+                          <View style={styles.directionMiddle}>
+                            <SwitchButton />
+                            <Text style={styles.toLabel}>
+                              {i18n.t('pickup.toDirection')}
+                            </Text>
+                          </View>
 
-                      <View style={styles.endpointWithLabel}>
-                        <View style={styles.directionEndpoint}>
-                          <Ionicons name="airplane" size={20} color="#777" />
-                        </View>
-                        <Text style={styles.endpointLabel}>
-                          {i18n.t('pickup.airport')}
-                        </Text>
-                      </View>
-                    </>
-                )}
-              </View>
-            </View>
+                          <View style={styles.endpointWithLabel}>
+                            <View style={styles.directionEndpoint}>
+                              <Ionicons name="airplane" size={20} color="#777" />
+                            </View>
+                            <Text style={styles.endpointLabel}>
+                              {i18n.t('pickup.airport')}
+                            </Text>
+                          </View>
+                        </>
+                    )}
+                  </View>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
           </View>
         </View>
 
@@ -223,18 +243,26 @@ const HotelPickupListContainer: React.FC<
               </Text>
             </View>
         ) : (
-            <FlatList
-                data={pickups}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <PickupCard
-                        item={item}
-                        handleSavePickup={handleSavePickup}
-                        handleCardPress={handleCardPress}
-                    />
-                )}
-                showsVerticalScrollIndicator={false}
-            />
+            <CopilotStep
+              text="Browse and select the pickup service that best fits your needs"
+              order={4}
+              name="pickupList"
+            >
+              <WalkthroughableView style={styles.pickupListHighlight}>
+                <FlatList
+                    data={pickups}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <PickupCard
+                            item={item}
+                            handleSavePickup={handleSavePickup}
+                            handleCardPress={handleCardPress}
+                        />
+                    )}
+                    showsVerticalScrollIndicator={false}
+                />
+              </WalkthroughableView>
+            </CopilotStep>
         )}
       </View>
   );
@@ -346,6 +374,21 @@ const styles = StyleSheet.create({
   toLabel: {
     fontSize: 12,
     color: '#666',
+  },
+  cityHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  directionHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  pickupListHighlight: {
+    flex: 1,
+    width: '100%',
+    overflow: 'hidden',
   },
 });
 

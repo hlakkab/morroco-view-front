@@ -1,34 +1,87 @@
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useDispatch, useSelector } from 'react-redux';
 
-import ESIMCardsContainer from '../containers/ESIMCardsContainer';
-import BuyESIMModal from '../containers/BuyESIMModal';
-import QRCodeModal from '../containers/QRCodeModal';
-import ScreenHeader from '../components/ScreenHeader';
-import { RootStackParamList } from '../types/navigation';
 import Button from '../components/Button';
-import i18n from '../translations/i18n';
-import { fetchEsims, createEsim } from '../store/slices/esimSlice';
+import ScreenHeader from '../components/ScreenHeader';
+import BuyESIMModal from '../containers/BuyESIMModal';
+import ESIMCardsContainer from '../containers/ESIMCardsContainer';
+import QRCodeModal from '../containers/QRCodeModal';
 import { AppDispatch, RootState } from '../store';
+import { createEsim, fetchEsims } from '../store/slices/esimSlice';
+import i18n from '../translations/i18n';
+import { RootStackParamList } from '../types/navigation';
 
-const ESIMScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const ESIMScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useDispatch<AppDispatch>();
   const { esims, loading, error } = useSelector((state: RootState) => state.esim);
   const [buyModalVisible, setBuyModalVisible] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
+  const { start, copilotEvents, visible, stop } = useCopilot();
+  const [tourFinished, setTourFinished] = useState(false);
 
   useEffect(() => {
     dispatch(fetchEsims());
   }, [dispatch]);
 
+  // Start the tour when component mounts (only if not already finished)
+  useEffect(() => {
+    // Only start the tour if it hasn't been finished before
+    if (!tourFinished) {
+      // Short delay to ensure the screen is fully rendered
+      const timer = setTimeout(() => {
+        start();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [start, tourFinished]);
+
+  // Handle copilot events
+  useEffect(() => {
+    // Function to handle tour completion
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+      setTourFinished(true); // Mark the tour as finished when stopped
+      
+      // Force unmount and remount of copilot components to reset state
+      const resetTimer = setTimeout(() => {
+        // This will help ensure the tour is fully stopped
+        stop();
+      }, 100);
+      
+      return () => clearTimeout(resetTimer);
+    };
+
+    // Listen for both stop and finish events
+    copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', (step) => {
+      console.log('Step changed to:', step?.name);
+    });
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange');
+    };
+  }, [copilotEvents, stop]);
+
   const handleBack = () => {
+    // Make sure to stop the tour when navigating away
+    stop();
     navigation.goBack();
   };
 
   const handleBuyOne = () => {
+    // Stop the tour before opening the modal
+    stop();
     setBuyModalVisible(true);
   };
 
@@ -70,7 +123,17 @@ const ESIMScreen: React.FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button title={i18n.t('qrcode.buyOne')} onPress={handleBuyOne} />
+        <View style={styles.buttonContainer}>
+          <CopilotStep
+            text="Click here to buy a new eSIM"
+            order={1}
+            name="buyEsim"
+          >
+            <WalkthroughableView style={styles.buttonWrapper}>
+              <Button title={i18n.t('qrcode.buyOne')} onPress={handleBuyOne} />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
       </View>
 
       <BuyESIMModal
@@ -85,6 +148,31 @@ const ESIMScreen: React.FC = () => {
         qrCodeUrl="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ESIM-123456789"
       />
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const ESIMScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={false}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+      arrowSize={5} // Smaller arrow for better precision
+      arrowColor="#CE1126" // Match the tooltip color
+      verticalOffset={0} // Remove any vertical offset
+    >
+      <ESIMScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -106,6 +194,19 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+  },
+  buttonWrapper: {
+    width: '100%', // Ensure the wrapper takes full width
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  buttonContainer: {
+    width: '100%',
+    // Ensure clear boundaries for the highlighted component
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
 });
 

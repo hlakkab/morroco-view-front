@@ -120,49 +120,57 @@ const HomeScreenContent: React.FC = () => {
         style={styles.scrollContainer} 
         showsVerticalScrollIndicator={false}
       >
-        {/* Search Bar Section */}
-        <CopilotStep
-          text="Search for destinations, restaurants, or activities"
-          order={1}
-          name="search"
-        >
-          <WalkthroughableView>
-            <SearchBarContainer />
-          </WalkthroughableView>
-        </CopilotStep>
+        {/* Search Bar Section with fixed height */}
+        <View style={styles.componentSearchContainer}>
+          <CopilotStep
+            text="Search for destinations, restaurants, or activities"
+            order={1}
+            name="search"
+          >
+            <WalkthroughableView style={styles.searchHighlight}>
+              <SearchBarContainer/>
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
         
-        {/* Africa Cup Banner Section */}
-        <CopilotStep
-          text="Check out upcoming events and matches"
-          order={2}
-          name="event"
-        >
-          <WalkthroughableView>
-            <EventBannerContainer onExplore={handleMatchesExplore} />
-          </WalkthroughableView>
-        </CopilotStep>
+        {/* Africa Cup Banner Section with fixed height */}
+        <View style={styles.componentContainer}>
+          <CopilotStep
+            text="Check out upcoming events and matches"
+            order={2}
+            name="event"
+          >
+            <WalkthroughableView style={styles.bannerHighlight}>
+              <EventBannerContainer onExplore={handleMatchesExplore} />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
         
-        {/* Service Icons Section */}
-        <CopilotStep
-          text="Access essential services for your stay"
-          order={3}
-          name="services"
-        >
-          <WalkthroughableView>
-            <ServiceCardsContainer />
-          </WalkthroughableView>
-        </CopilotStep>
+        {/* Service Icons Section with fixed height */}
+        <View style={styles.componentContainer}>
+          <CopilotStep
+            text="Access essential services for your stay"
+            order={3}
+            name="services"
+          >
+            <WalkthroughableView style={styles.servicesHighlight}>
+              <ServiceCardsContainer />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
         
-        {/* Explore Morocco Section */}
-        <CopilotStep
-          text="Explore different categories of attractions"
-          order={4}
-          name="explore"
-        >
-          <WalkthroughableView>
-            <ExploreCardsContainer onCategoryPress={handleCategoryPress} />
-          </WalkthroughableView>
-        </CopilotStep>
+        {/* Explore Morocco Section with fixed height */}
+        <View style={styles.componentContainer}>
+          <CopilotStep
+            text="Explore different categories of attractions"
+            order={4}
+            name="explore"
+          >
+            <WalkthroughableView style={styles.exploreHighlight}>
+              <ExploreCardsContainer onCategoryPress={handleCategoryPress} />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
 
         {/* Emergency Contacts Button - Removed from tour */}
         <EmergencyContactsButton onPress={handleEmergencyContacts} />
@@ -179,23 +187,21 @@ const HomeScreenContent: React.FC = () => {
 
 const HomeScreen: React.FC = () => {
   return (
-    <CopilotProvider 
+    <CopilotProvider
       stepNumberComponent={() => null}
       tooltipStyle={styles.tooltip}
       backdropColor="rgba(0, 0, 0, 0.7)"
       animationDuration={300}
       overlay="svg"
-      stopOnOutsideClick={true}
+      stopOnOutsideClick={false}
       labels={{
         skip: "Skip",
         previous: "Previous",
         next: "Next",
         finish: "Done"
       }}
-      // These parameters control the highlight dimensions:
-      margin={0} // Zero margin for exact fitting
       arrowSize={5} // Smaller arrow for better precision
-      arrowColor="#FF6B6B" // Match the tooltip color
+      arrowColor="#CE1126" // Match the tooltip color
       verticalOffset={0} // Remove any vertical offset
     >
       <HomeScreenContent />
@@ -207,6 +213,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: '#FFF7F7',
+    marginTop:30
   },
   scrollContainer: {
     flex: 1,
@@ -228,7 +235,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   tooltip: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#CE1126',
     borderRadius: 10,
   },
   tourButton: {
@@ -252,7 +259,44 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     marginLeft: 5,
-  }
+  },
+  searchHighlight: {
+    // Fixed height for search container - adjust as needed
+    height: 65, 
+    // width: '100%',
+    // overflow: 'hidden',
+    // marginBottom: 0,
+  },
+  bannerHighlight: {
+    // Fixed height for banner container - adjust as needed
+    // height: 250, 
+    // width: '100%',
+    // overflow: 'hidden',
+    // marginBottom: 0,
+    paddingBottom: 10
+
+  },
+  servicesHighlight: {
+    // Fixed height for services container - adjust as needed
+    // height: 135, 
+    // width: '100%',
+    // overflow: 'hidden',
+    // marginBottom: 0,
+    paddingBottom: 10
+
+  },
+  exploreHighlight: {
+    // Fixed height for explore container - adjust as needed
+    // height: 260, 
+    // width: '100%',
+    // overflow: 'hidden',
+    // marginBottom: 0,
+
+  },
+  componentSearchContainer: {
+  },
+  componentContainer: {
+  },
 });
 
 export default HomeScreen;
