@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  Modal, 
-  TouchableOpacity, 
-  Dimensions,
-  Animated,
-  PanResponder,
-  Image
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Button from '../components/Button';
+import React, { useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Image,
+  Modal,
+  PanResponder,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { useDispatch } from 'react-redux';
-import { createEsim } from '../store/slices/esimSlice';
+import Button from '../components/Button';
 import { AppDispatch } from '../store';
+import { createEsim } from '../store/slices/esimSlice';
 
 // SVG imports for different providers
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';

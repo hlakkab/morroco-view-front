@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 36,
-    marginBottom: 15,
+    // marginTop: 36,
+    // marginBottom: 15,
   },
   searchBar: {
     flex: 1,

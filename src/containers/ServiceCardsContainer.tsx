@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   serviceIconsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    // marginBottom: 15,
   },
   serviceItem: {
     width: (width - 75) / 4,
