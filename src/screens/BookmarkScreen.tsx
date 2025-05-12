@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, SafeAreaView, StyleSheet, View } from 'react-native';
+import { Alert, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
@@ -24,10 +25,16 @@ const ALL_SERVICE_TYPES = [
   { id: 'entertainment', type: 'ENTERTAINMENT', label: 'Entertainment' }
 ];
 
-const BookmarkScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const BookmarkScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
   const { bookmarks, loading, error } = useAppSelector((state) => state.bookmark);
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
@@ -84,6 +91,31 @@ const BookmarkScreen: React.FC = () => {
     dispatch(fetchBookmarks());
   }, [dispatch]);
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
   const handleBack = () => {
     navigation.goBack();
   };
@@ -113,6 +145,11 @@ const BookmarkScreen: React.FC = () => {
 
   const handleCitySelect = (cityId: string) => {
     setSelectedCityId(cityId);
+  };
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
   };
 
   // Filter bookmarks based on search query and selected filters
@@ -157,29 +194,63 @@ const BookmarkScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={i18n.t('bookmark.title')} onBack={handleBack} />
       </View>
       <View style={styles.content}>
-        <SearchBar
-          placeholder={i18n.t('bookmark.searchPlaceholder')}
-          onChangeText={handleSearch}
-          value={searchQuery}
-          onFilterPress={handleFilterPress}
-        />
-        <View style={styles.cityFilterContainer}>
-          <FilterSelector
-            options={cityOptions}
-            selectedOptionId={selectedCityId}
-            onSelectOption={handleCitySelect}
-            title={i18n.t('bookmark.city')}
-          />
-        </View>
-        <BookmarkListContainer 
-          bookmarks={filteredBookmarks}
-          loading={loading}
-          error={error}
-        />
+        <CopilotStep
+          text="Search for your bookmarked items and filter by type"
+          order={1}
+          name="search"
+        >
+          <WalkthroughableView style={styles.searchHighlight}>
+            <SearchBar
+              placeholder={i18n.t('bookmark.searchPlaceholder')}
+              onChangeText={handleSearch}
+              value={searchQuery}
+              onFilterPress={handleFilterPress}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
+
+        <CopilotStep
+          text="Select a city to filter your bookmarks"
+          order={2}
+          name="citySelector"
+        >
+          <WalkthroughableView style={styles.cityHighlight}>
+            <View style={styles.cityFilterContainer}>
+              <FilterSelector
+                options={cityOptions}
+                selectedOptionId={selectedCityId}
+                onSelectOption={handleCitySelect}
+                title={i18n.t('bookmark.city')}
+              />
+            </View>
+          </WalkthroughableView>
+        </CopilotStep>
+
+        <CopilotStep
+          text="View and manage your saved bookmarks"
+          order={3}
+          name="bookmarkList"
+        >
+          <WalkthroughableView style={styles.bookmarkListHighlight}>
+            <BookmarkListContainer 
+              bookmarks={filteredBookmarks}
+              loading={loading}
+              error={error}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
       </View>
 
       <FilterPopup
@@ -193,6 +264,28 @@ const BookmarkScreen: React.FC = () => {
 
       <BottomNavBar activeRoute="Bookmark" onNavigate={handleNavigation} />
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const BookmarkScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <BookmarkScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -214,6 +307,38 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 8,
     marginBottom: 16,
+  },
+  tourButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 20 : 40,
+    right: 16,
+    backgroundColor: '#CE1126',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 8,
+    padding: 12,
+  },
+  searchHighlight: {
+    marginBottom: 16,
+  },
+  cityHighlight: {
+    marginBottom: 16,
+  },
+  bookmarkListHighlight: {
+    flex: 1,
   },
 });
 
