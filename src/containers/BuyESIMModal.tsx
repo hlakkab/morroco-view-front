@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { useDispatch } from 'react-redux';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import { useDispatch } from 'react-redux';
 import Button from '../components/Button';
 import { AppDispatch } from '../store';
 import { createEsim } from '../store/slices/esimSlice';
@@ -216,13 +216,13 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
 
             {/* Operator Selection */}
             <View style={styles.formField}>
-              <Text style={styles.label}>{i18n.t('qrcode.selectOperator')} <Text style={styles.required}>*</Text></Text>
               <CopilotStep
                 text="Choose your preferred operator for your eSIM"
                 order={1}
                 name="operator-selection"
               >
-                <WalkthroughableView style={styles.highlightWrapper}>
+                <WalkthroughableView style={styles.enhancedHighlight}>
+                  <Text style={styles.label}>{i18n.t('qrcode.selectOperator')} <Text style={styles.required}>*</Text></Text>
                   <View style={styles.operatorList}>
                     {operators.map(operator => (
                       <TouchableOpacity 
@@ -252,13 +252,13 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
 
             {/* Offers Selection */}
             <View style={styles.formField}>
-              <Text style={styles.label}>Select Offer <Text style={styles.required}>*</Text></Text>
               <CopilotStep
                 text="Select the data plan that best suits your needs"
                 order={2}
                 name="offer-selection"
               >
-                <WalkthroughableView style={styles.highlightWrapper}>
+                <WalkthroughableView style={styles.enhancedHighlight}>
+                  <Text style={styles.label}>Select Offer <Text style={styles.required}>*</Text></Text>
                   <View style={styles.offersList}>
                     {offers.map((offer) => (
                       <TouchableOpacity
@@ -297,7 +297,7 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
                 order={3}
                 name="buy-button"
               >
-                <WalkthroughableView style={styles.buttonHighlightWrapper}>
+                <WalkthroughableView style={styles.enhancedHighlight}>
                   <Button 
                     title={`${i18n.t('qrcode.buyFor')} ${(() => {
                       const offerPrice = offers.find(o => o.id === selectedOffer)?.price;
@@ -334,6 +334,8 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = (props) => {
         next: "Next",
         finish: "Done"
       }}
+      androidStatusBarVisible={true} 
+      arrowSize={6}
     >
       <BuyESIMModalContent {...props} />
     </CopilotProvider>
@@ -481,6 +483,8 @@ const styles = StyleSheet.create({
   tooltip: {
     backgroundColor: '#CE1126',
     borderRadius: 10,
+    padding: 12,
+    width: '80%',
   },
   tourButton: {
     position: 'absolute',
@@ -527,29 +531,24 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   formField: {
-    marginBottom: 12,
-    position: 'relative',
+    marginBottom: 20,
     width: '100%',
     borderRadius: 8,
   },
   buttonContainer: {
-    paddingVertical: 20,
-    position: 'relative',
     width: '100%',
+    marginTop: 10,
+    marginBottom: 10,
   },
-  highlightWrapper: {
+  enhancedHighlight: {
     width: '100%',
     borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 12,
+    overflow: 'visible',
     backgroundColor: 'transparent',
+    padding: 2,
+    marginBottom: 0,
+    zIndex: 100,
   },
-  buttonHighlightWrapper: {
-    width: '100%',
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
-  }
 });
 
 export default BuyESIMModal;

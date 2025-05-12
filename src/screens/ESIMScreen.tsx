@@ -167,7 +167,7 @@ const ESIMScreen: React.FC = () => {
         next: "Next",
         finish: "Done"
       }}
-      arrowSize={5} // Smaller arrow for better precision
+      arrowSize={6} // Smaller arrow for better precision
       arrowColor="#CE1126" // Match the tooltip color
       verticalOffset={0} // Remove any vertical offset
     >

@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import FilterPopup, { FilterOption } from "../components/FilterPopup";
 import FilterSelector from '../components/FilterSelector';
+import Pagination from "../components/Pagination";
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import BrokerListContainer from '../containers/BrokerListContainer';
@@ -17,9 +19,12 @@ import { fetchBrokers } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import i18n from '../translations/i18n';
 import { Broker } from '../types/exchange-broker';
-import Pagination from "../components/Pagination";
 
-const BrokerListScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const BrokerListScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +32,8 @@ const BrokerListScreen: React.FC = () => {
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const [selectedCity, setSelectedCity] = useState('all');
   const [allBrokers, setAllBrokers] = useState<Broker[]>([]);
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   // === PAGINATION ===
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,8 +43,6 @@ const BrokerListScreen: React.FC = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCity, filterOptions]);
   // === FIN PAGINATION ===
-
-
 
   // Add icons to filter categories - only include broker_type
   const categoriesWithIcons = {
@@ -77,6 +82,37 @@ const BrokerListScreen: React.FC = () => {
     dispatch(fetchBrokers('Marrakech')).unwrap()
       .catch(error => console.error("Error fetching brokers:", error));
   }, [dispatch]);
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted && !loading) {
+      // Delay starting the tour until after the UI has rendered
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted, loading]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   // Create city options for the FilterSelector using cities from filterData
   const cityOptions = [
@@ -179,12 +215,9 @@ const BrokerListScreen: React.FC = () => {
 
   // === PAGINATION : découpage des data pour la page courante ===
   const totalPages = Math.ceil(filteredBrokers.length / itemsPerPage);
-  const start = (currentPage - 1) * itemsPerPage;
-  const currentBrokers = filteredBrokers.slice(start, start + itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentBrokers = filteredBrokers.slice(startIndex, startIndex + itemsPerPage);
   // === FIN PAGINATION ===
-
-
-
 
   // Render loading state
   if (loading) {
@@ -214,57 +247,104 @@ const BrokerListScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+      
       <View style={styles.headerContainer}>
         <ScreenHeader title={i18n.t('exchange.brokerList')} onBack={handleBack} />
       </View>
 
       <View style={styles.content}>
-        <SearchBar
-            placeholder={i18n.t('exchange.searchBrokers')}
-            onChangeText={handleSearch}
-            onFilterPress={handleFilterPress}
-            value={searchQuery}
-        />
+        <CopilotStep
+          text="Search for a broker by name or address"
+          order={1}
+          name="search"
+        >
+          <WalkthroughableView style={styles.searchHighlight}>
+            <SearchBar
+              placeholder={i18n.t('exchange.searchBrokers')}
+              onChangeText={handleSearch}
+              onFilterPress={handleFilterPress}
+              value={searchQuery}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
-        <View style={styles.cityFilterContainer}>
-          <FilterSelector
-              options={cityOptions}
-              selectedOptionId={selectedCity}
-              onSelectOption={handleCitySelect}
-              title={i18n.t('matches.city')}
-          />
-        </View>
-
-        {currentBrokers.length > 0 ? (
-            <BrokerListContainer brokers={currentBrokers} />
-        ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="search-outline" size={48} color="#ccc" />
-              <Text style={styles.emptyText}>{i18n.t('exchange.noBrokersFound')}</Text>
+        <CopilotStep
+          text="Filter brokers by city"
+          order={2}
+          name="cityFilter"
+        >
+          <WalkthroughableView style={styles.cityHighlight}>
+            <View style={styles.cityFilterContainer}>
+              <FilterSelector
+                options={cityOptions}
+                selectedOptionId={selectedCity}
+                onSelectOption={handleCitySelect}
+                title={i18n.t('matches.city')}
+              />
             </View>
-        )}
+          </WalkthroughableView>
+        </CopilotStep>
 
-        {/* === Pagination : afficher si plus d’une page === */}
+        <BrokerListContainer brokers={currentBrokers} />
+
+        {/* === Pagination : afficher si plus d'une page === */}
         {totalPages > 0 && (
-            <Pagination
+          <CopilotStep
+            text="Navigate through pages of results"
+            order={4}
+            name="pagination"
+          >
+            <WalkthroughableView style={styles.paginationHighlight}>
+              <Pagination
                 totalItems={filteredBrokers.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
-            />
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         )}
         {/* === Fin Pagination === */}
 
         <FilterPopup
-            visible={filterVisible}
-            onClose={() => setFilterVisible(false)}
-            filterOptions={filterOptions}
-            onApplyFilters={handleApplyFilters}
-            title={i18n.t('exchange.filterBrokers')}
-            categories={categoriesWithIcons}
+          visible={filterVisible}
+          onClose={() => setFilterVisible(false)}
+          filterOptions={filterOptions}
+          onApplyFilters={handleApplyFilters}
+          title={i18n.t('exchange.filterBrokers')}
+          categories={categoriesWithIcons}
         />
       </View>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const BrokerListScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <BrokerListScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -330,6 +410,49 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 16,
   },
+  // Tour-specific styles
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  searchHighlight: {
+    width: '100%',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  cityHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  paginationHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    marginTop: 16,
+  }
 });
 
 export default BrokerListScreen;

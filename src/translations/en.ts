@@ -12,11 +12,17 @@ export default {
     cancel: 'Cancel',
     next: 'Next',
     noData: 'No data available',
+    tourGuide: 'Tour Guide',
+    skip: 'Skip',
+    previous: 'Previous',
+    done: 'Done',
   },
   onboarding: {
     seeTitle: 'See Morocco',
     seeSubtitle: 'Like Never Before.',
     getStarted: 'Get Started',
+    back: 'Back',
+    next: 'Next',
   },
   login: {
     accessAccount: 'Access my account',
@@ -147,6 +153,12 @@ export default {
     filterBrokers: 'Filter Brokers',
     loadingBrokers: 'Loading brokers...',
     failedToLoad: 'Failed to load brokers',
+    tour: {
+      searchBrokersDesc: 'Search for brokers by name or address',
+      cityFilterDesc: 'Filter brokers by city location',
+      brokerListDesc: 'Browse and select a broker to view details and exchange rates',
+      paginationDesc: 'Navigate through multiple pages of broker listings'
+    }
   },
   broker: {
     services: 'Services',
@@ -477,5 +489,25 @@ export default {
     deleteTour: 'Delete Tour',
     delete: 'Delete',
     deleteTourConfirmation: 'Are you sure you want to delete "{title}"? This action cannot be undone.',
+    onboarding: {
+      title: 'Welcome to Tours',
+      subtitle: 'Create personalized itineraries for your Moroccan adventure by following these simple steps:',
+      explore: {
+        title: 'Explore Morocco',
+        description: 'Start by exploring our collection of restaurants, monuments, artisans, and entertainment options. Discover the best spots to visit during your trip.'
+      },
+      events: {
+        title: 'Check Upcoming Events',
+        description: 'Browse upcoming matches and events to include in your itinerary. Plan your trip around these special occasions.'
+      },
+      bookmark: {
+        title: 'Save Your Favorites',
+        description: 'As you explore, bookmark the places and events you want to include in your tour. You can find all your saved items in the Bookmark tab.'
+      },
+      create: {
+        title: 'Create Your Tour',
+        description: 'Now you are ready to create a customized tour! Select your bookmarked items, set dates, and plan your perfect Moroccan adventure.'
+      }
+    }
   },
 }; 

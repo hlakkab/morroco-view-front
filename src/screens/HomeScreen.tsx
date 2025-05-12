@@ -29,49 +29,6 @@ const HomeScreenContent: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [showTourButton, setShowTourButton] = useState(true);
 
-  useEffect(() => {
-    // Handle tour completion
-    const handleStop = () => {
-      // Keep the tour button visible for reuse
-      // You can uncomment this line to hide the button after completion
-      // setShowTourButton(false);
-    };
-
-    copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
-  }, [copilotEvents]);
-
-  // Set up scroll handling for steps that might be outside the viewport
-  useEffect(() => {
-    const handleStepChange = (step?: StepType) => {
-      // Scroll to different positions based on the step
-      if (!step) return;
-      
-      if (step.name === 'explore') {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      } else if (step.name === 'services') {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      } else if (step.name === 'search' || step.name === 'event') {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      }
-
-      // Allow time for the scroll to complete before continuing
-      // This helps ensure components are fully visible before highlighting
-      return new Promise<void>(resolve => {
-        setTimeout(resolve, 600);
-      });
-    };
-
-    copilotEvents.on('stepChange', handleStepChange);
-    
-    return () => {
-      copilotEvents.off('stepChange', handleStepChange);
-    };
-  }, [copilotEvents]);
-
   const handleMatchesExplore = () => {
     // Navigate to matches screen
     navigation.navigate('Matches');
@@ -213,27 +170,27 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: '#FFF7F7',
-    marginTop:30
   },
   scrollContainer: {
     flex: 1,
     padding: 16,
+    marginTop:30
   },
   bottomPadding: {
     height: 100, 
   },
-  testButton: {
-    backgroundColor: '#6200EE',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 20,
-    alignItems: 'center',
-  },
-  testButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  // testButton: {
+  //   backgroundColor: '#6200EE',
+  //   padding: 15,
+  //   borderRadius: 10,
+  //   marginVertical: 20,
+  //   alignItems: 'center',
+  // },
+  // testButtonText: {
+  //   color: 'white',
+  //   fontSize: 16,
+  //   fontWeight: 'bold',
+  // },
   tooltip: {
     backgroundColor: '#CE1126',
     borderRadius: 10,

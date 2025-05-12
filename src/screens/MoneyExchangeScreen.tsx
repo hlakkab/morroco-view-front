@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -17,6 +18,11 @@ interface Currency {
   name: string;
   flag: string;
 }
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableScrollView = walkthroughable(ScrollView);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
 
 // Define currencies with the new type
 const CURRENCIES: Currency[] = [
@@ -40,7 +46,8 @@ const EXCHANGE_RATES: Record<CurrencyCode, { airport: number; bank: number; brok
   CHF: { airport: 11.2, bank: 11.3, broker: 12.0 },
 };
 
-const MoneyExchangeScreen: React.FC = () => {
+// Main content component with copilot functionality
+const MoneyExchangeScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [amount, setAmount] = useState('100');
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
@@ -52,6 +59,10 @@ const MoneyExchangeScreen: React.FC = () => {
     savings: 0,
     savingsPercentage: 0,
   });
+
+  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const handleBack = () => {
     navigation.goBack();
@@ -70,6 +81,67 @@ const MoneyExchangeScreen: React.FC = () => {
 
   const handleViewBrokers = () => {
     navigation.navigate('BrokerList');
+  };
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events for scrolling
+  // useEffect(() => {
+  //   const scrollToPosition = (step: any) => {
+  //     if (!scrollViewRef.current) return;
+      
+  //     const stepName = step?.name || '';
+      
+  //     switch (stepName) {
+  //       case 'currency-converter':
+  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
+  //         break;
+  //       case 'airport-option':
+  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
+  //         break;
+  //       case 'bank-option':
+  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
+  //         break;
+  //       case 'broker-option':
+  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
+  //         break;
+  //       case 'view-brokers':
+  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //   };
+
+  //   const handleStepChange = (stepObject: any) => {
+  //     // Add a small delay to ensure the UI has updated before scrolling
+  //     setTimeout(() => {
+  //       scrollToPosition(stepObject);
+  //     }, 100);
+  //   };
+
+  //   copilotEvents.on('stepChange', handleStepChange);
+
+  //   return () => {
+  //     copilotEvents.off('stepChange', handleStepChange);
+  //   };
+  // }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+    // Reset scroll position when starting the tour
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    }
   };
 
   // Calculate exchange rates whenever amount or currency changes
@@ -107,194 +179,262 @@ const MoneyExchangeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!tourVisible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={i18n.t('exchange.title')} onBack={handleBack} />
       </View>
       
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        scrollEnabled={!tourVisible} // Disable scrolling during tour
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.content}>
-          <View style={styles.converterCard}>
-            <Text style={styles.converterTitle}>{i18n.t('exchange.converter')}</Text>
-            
-            <View style={styles.inputContainer}>
-              <View style={styles.amountContainer}>
-                <Text style={styles.inputLabel}>{i18n.t('exchange.amount')}</Text>
-                <View style={styles.amountInputWrapper}>
-                  <Text style={styles.currencySymbol}>{selectedCurrency.symbol}</Text>
-                  <TextInput
-                    style={styles.amountInput}
-                    value={amount}
-                    onChangeText={handleAmountChange}
-                    keyboardType="numeric"
-                    placeholder={i18n.t('exchange.amount')}
-                  />
+          {/* Currency Converter Section */}
+          <CopilotStep
+            text={i18n.t('exchange.converter')}
+            order={1}
+            name="currency-converter"
+          >
+            <WalkthroughableView style={styles.converterCard}>
+              <Text style={styles.converterTitle}>{i18n.t('exchange.converter')}</Text>
+              
+              <View style={styles.inputContainer}>
+                <View style={styles.amountContainer}>
+                  <Text style={styles.inputLabel}>{i18n.t('exchange.amount')}</Text>
+                  <View style={styles.amountInputWrapper}>
+                    <Text style={styles.currencySymbol}>{selectedCurrency.symbol}</Text>
+                    <TextInput
+                      style={styles.amountInput}
+                      value={amount}
+                      onChangeText={handleAmountChange}
+                      keyboardType="numeric"
+                      placeholder={i18n.t('exchange.amount')}
+                    />
+                  </View>
+                </View>
+                
+                <View style={styles.currencyContainer}>
+                  <Text style={styles.inputLabel}>{i18n.t('exchange.currency')}</Text>
+                  <TouchableOpacity 
+                    style={styles.currencySelector}
+                    onPress={() => setShowCurrencyPicker(true)}
+                  >
+                    <Text style={styles.currencyFlag}>{selectedCurrency.flag}</Text>
+                    <Text style={styles.currencyCode}>{selectedCurrency.code}</Text>
+                    <Ionicons name="chevron-down" size={16} color="#666" />
+                  </TouchableOpacity>
                 </View>
               </View>
               
-              <View style={styles.currencyContainer}>
-                <Text style={styles.inputLabel}>{i18n.t('exchange.currency')}</Text>
-                <TouchableOpacity 
-                  style={styles.currencySelector}
-                  onPress={() => setShowCurrencyPicker(true)}
-                >
-                  <Text style={styles.currencyFlag}>{selectedCurrency.flag}</Text>
-                  <Text style={styles.currencyCode}>{selectedCurrency.code}</Text>
-                  <Ionicons name="chevron-down" size={16} color="#666" />
-                </TouchableOpacity>
+              <View style={styles.resultContainer}>
+                <Text style={styles.resultLabel}>{i18n.t('exchange.youllGet')}</Text>
+                <Text style={styles.resultValue}>
+                  {exchangeResults.broker.toFixed(2)} <Text style={styles.madText}>MAD</Text>
+                </Text>
+                <Text style={styles.resultNote}>
+                  {i18n.t('exchange.ratesDisclaimer')}
+                </Text>
               </View>
-            </View>
-            
-            <Modal
-              visible={showCurrencyPicker}
-              transparent={true}
-              animationType="fade"
-              onRequestClose={() => setShowCurrencyPicker(false)}
-            >
-              <TouchableWithoutFeedback onPress={() => setShowCurrencyPicker(false)}>
-                <View style={styles.modalOverlay}>
-                  <TouchableWithoutFeedback>
-                    <View style={styles.modalContent}>
-                      <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{i18n.t('exchange.selectCurrency')}</Text>
-                        <TouchableOpacity onPress={() => setShowCurrencyPicker(false)}>
-                          <Ionicons name="close" size={24} color="#333" />
-                        </TouchableOpacity>
-                      </View>
-                      <ScrollView style={styles.currencyScrollView}>
-                        {CURRENCIES.map((currency) => (
-                          <TouchableOpacity
-                            key={currency.code}
-                            style={[
-                              styles.currencyOption,
-                              selectedCurrency.code === currency.code && styles.selectedCurrencyOption
-                            ]}
-                            onPress={() => {
-                              handleCurrencySelect(currency);
-                              setShowCurrencyPicker(false);
-                            }}
-                          >
-                            <Text style={styles.currencyFlag}>{currency.flag}</Text>
-                            <Text style={styles.currencyName}>{currency.name}</Text>
-                            <Text style={styles.currencyCodeSmall}>{currency.code}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  </TouchableWithoutFeedback>
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
-            
-            <View style={styles.resultContainer}>
-              <Text style={styles.resultLabel}>{i18n.t('exchange.youllGet')}</Text>
-              <Text style={styles.resultValue}>
-                {exchangeResults.broker.toFixed(2)} <Text style={styles.madText}>MAD</Text>
-              </Text>
-              <Text style={styles.resultNote}>
-                {i18n.t('exchange.ratesDisclaimer')}
-              </Text>
-            </View>
-          </View>
+            </WalkthroughableView>
+          </CopilotStep>
           
           <Text style={styles.sectionTitle}>{i18n.t('exchange.compareOptions')}</Text>
           
           <View style={styles.optionsContainer}>
             {/* Airport Exchange Option */}
-            <View style={styles.exchangeOption}>
-              <View style={styles.optionHeader}>
-                <View style={styles.optionIconContainer}>
-                  <Ionicons name="airplane" size={20} color="#fff" />
+            <CopilotStep
+              text="Airport exchange booths offer convenience but typically have the lowest rates"
+              order={2}
+              name="airport-option"
+            >
+              <WalkthroughableView style={styles.exchangeOption}>
+                <View style={styles.optionHeader}>
+                  <View style={styles.optionIconContainer}>
+                    <Ionicons name="airplane" size={20} color="#fff" />
+                  </View>
+                  <Text style={styles.optionTitle}>{i18n.t('exchange.airport')}</Text>
                 </View>
-                <Text style={styles.optionTitle}>{i18n.t('exchange.airport')}</Text>
-              </View>
-              <View style={styles.optionContent}>
-                <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].airport.toFixed(2)} MAD</Text>
-                <Text style={styles.optionAmount}>
-                  {i18n.t('exchange.youGet')} <Text style={styles.optionAmountValue}>{exchangeResults.airport.toFixed(2)} MAD</Text>
-                </Text>
-                <View style={styles.optionBadge}>
-                  <Text style={styles.optionBadgeText}>{i18n.t('exchange.airportBadge')}</Text>
+                <View style={styles.optionContent}>
+                  <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].airport.toFixed(2)} MAD</Text>
+                  <Text style={styles.optionAmount}>
+                    {i18n.t('exchange.youGet')} <Text style={styles.optionAmountValue}>{exchangeResults.airport.toFixed(2)} MAD</Text>
+                  </Text>
+                  <View style={styles.optionBadge}>
+                    <Text style={styles.optionBadgeText}>{i18n.t('exchange.airportBadge')}</Text>
+                  </View>
                 </View>
-              </View>
-            </View>
+              </WalkthroughableView>
+            </CopilotStep>
             
             {/* Bank Exchange Option */}
-            <View style={styles.exchangeOption}>
-              <View style={styles.optionHeader}>
-                <View style={styles.optionIconContainer}>
-                  <Ionicons name="business" size={20} color="#fff" />
+            <CopilotStep
+              text="Banks offer more security but require more time and sometimes have limited hours"
+              order={3}
+              name="bank-option"
+            >
+              <WalkthroughableView style={styles.exchangeOption}>
+                <View style={styles.optionHeader}>
+                  <View style={styles.optionIconContainer}>
+                    <Ionicons name="business" size={20} color="#fff" />
+                  </View>
+                  <Text style={styles.optionTitle}>{i18n.t('exchange.bank')}</Text>
                 </View>
-                <Text style={styles.optionTitle}>{i18n.t('exchange.bank')}</Text>
-              </View>
-              <View style={styles.optionContent}>
-                <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].bank.toFixed(2)} MAD</Text>
-                <Text style={styles.optionAmount}>
-                  {i18n.t('exchange.youGet')} <Text style={styles.optionAmountValue}>{exchangeResults.bank.toFixed(2)} MAD</Text>
-                </Text>
-                <View style={styles.optionBadge}>
-                  <Text style={styles.optionBadgeText}>{i18n.t('exchange.bankBadge')}</Text>
+                <View style={styles.optionContent}>
+                  <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].bank.toFixed(2)} MAD</Text>
+                  <Text style={styles.optionAmount}>
+                    {i18n.t('exchange.youGet')} <Text style={styles.optionAmountValue}>{exchangeResults.bank.toFixed(2)} MAD</Text>
+                  </Text>
+                  <View style={styles.optionBadge}>
+                    <Text style={styles.optionBadgeText}>{i18n.t('exchange.bankBadge')}</Text>
+                  </View>
                 </View>
-              </View>
-            </View>
+              </WalkthroughableView>
+            </CopilotStep>
             
             {/* Broker Exchange Option - Highlighted */}
-            <View style={styles.exchangeOptionHighlighted}>
-              <View style={styles.bestDealBadge}>
-                <Text style={styles.bestDealText}>{i18n.t('exchange.bestDeal')}</Text>
-              </View>
-              
-              <View style={styles.optionHeader}>
-                <View style={[styles.optionIconContainer, styles.brokerIconContainer]}>
-                  <Ionicons name="cash-outline" size={20} color="#fff" />
-                </View>
-                <Text style={styles.optionTitle}>{i18n.t('exchange.broker')}</Text>
-              </View>
-              
-              <View style={styles.optionContent}>
-                <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].broker.toFixed(2)} MAD</Text>
-                <Text style={styles.optionAmount}>
-                  {i18n.t('exchange.youGet')} <Text style={styles.optionAmountHighlightedValue}>{exchangeResults.broker.toFixed(2)} MAD</Text>
-                </Text>
-                
-                <View style={styles.savingsContainer}>
-                  <Ionicons name="trending-up" size={18} color="#008060" />
-                  <View style={styles.savingsTextContainer}>
-                    <Text style={styles.savingsText}>
-                      {i18n.t('exchange.saveComparedTo').replace('{percent}', exchangeResults.savingsPercentage.toFixed(1))}
-                    </Text>
-                    <Text style={styles.savingsText}>
-                      {i18n.t('exchange.moreInPocket').replace('{amount}', exchangeResults.savings.toFixed(2))}
-                    </Text>
-                  </View>
+            <CopilotStep
+              text="Money exchange brokers offer the best rates with additional benefits"
+              order={4}
+              name="broker-option"
+            >
+              <WalkthroughableView style={styles.exchangeOptionHighlighted}>
+                <View style={styles.bestDealBadge}>
+                  <Text style={styles.bestDealText}>{i18n.t('exchange.bestDeal')}</Text>
                 </View>
                 
-                <View style={styles.brokerBenefits}>
-                  <View style={styles.benefitItem}>
-                    <Ionicons name="checkmark-circle" size={16} color="#008060" />
-                    <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit1')}</Text>
+                <View style={styles.optionHeader}>
+                  <View style={[styles.optionIconContainer, styles.brokerIconContainer]}>
+                    <Ionicons name="cash-outline" size={20} color="#fff" />
                   </View>
-                  <View style={styles.benefitItem}>
-                    <Ionicons name="checkmark-circle" size={16} color="#008060" />
-                    <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit2')}</Text>
-                  </View>
-                  <View style={styles.benefitItem}>
-                    <Ionicons name="checkmark-circle" size={16} color="#008060" />
-                    <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit3')}</Text>
-                  </View>
+                  <Text style={styles.optionTitle}>{i18n.t('exchange.broker')}</Text>
                 </View>
                 
-                <Button 
-                  title={i18n.t('exchange.viewBrokers')}
-                  icon={<Ionicons name="location" size={18} color="#fff" style={{ marginRight: 8 }} />}
-                  style={styles.brokerButton}
-                  onPress={handleViewBrokers}
-                />
-              </View>
-            </View>
+                <View style={styles.optionContent}>
+                  <Text style={styles.optionRate}>{i18n.t('exchange.rate')} {EXCHANGE_RATES[selectedCurrency.code].broker.toFixed(2)} MAD</Text>
+                  <Text style={styles.optionAmount}>
+                    {i18n.t('exchange.youGet')} <Text style={styles.optionAmountHighlightedValue}>{exchangeResults.broker.toFixed(2)} MAD</Text>
+                  </Text>
+                  
+                  <View style={styles.savingsContainer}>
+                    <Ionicons name="trending-up" size={18} color="#008060" />
+                    <View style={styles.savingsTextContainer}>
+                      <Text style={styles.savingsText}>
+                        {i18n.t('exchange.saveComparedTo').replace('{percent}', exchangeResults.savingsPercentage.toFixed(1))}
+                      </Text>
+                      <Text style={styles.savingsText}>
+                        {i18n.t('exchange.moreInPocket').replace('{amount}', exchangeResults.savings.toFixed(2))}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.brokerBenefits}>
+                    <View style={styles.benefitItem}>
+                      <Ionicons name="checkmark-circle" size={16} color="#008060" />
+                      <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit1')}</Text>
+                    </View>
+                    <View style={styles.benefitItem}>
+                      <Ionicons name="checkmark-circle" size={16} color="#008060" />
+                      <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit2')}</Text>
+                    </View>
+                    <View style={styles.benefitItem}>
+                      <Ionicons name="checkmark-circle" size={16} color="#008060" />
+                      <Text style={styles.benefitText}>{i18n.t('exchange.brokerBenefit3')}</Text>
+                    </View>
+                  </View>
+                  
+                  <CopilotStep
+                    text="Tap here to find money exchange brokers near your location"
+                    order={5}
+                    name="view-brokers"
+                  >
+                    <WalkthroughableTouchableOpacity onPress={handleViewBrokers}>
+                      <Button 
+                        title={i18n.t('exchange.viewBrokers')}
+                        icon={<Ionicons name="location" size={18} color="#fff" style={{ marginRight: 8 }} />}
+                        style={styles.brokerButton}
+                        onPress={handleViewBrokers}
+                      />
+                    </WalkthroughableTouchableOpacity>
+                  </CopilotStep>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showCurrencyPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowCurrencyPicker(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowCurrencyPicker(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{i18n.t('exchange.selectCurrency')}</Text>
+                  <TouchableOpacity onPress={() => setShowCurrencyPicker(false)}>
+                    <Ionicons name="close" size={24} color="#333" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={styles.currencyScrollView}>
+                  {CURRENCIES.map((currency) => (
+                    <TouchableOpacity
+                      key={currency.code}
+                      style={[
+                        styles.currencyOption,
+                        selectedCurrency.code === currency.code && styles.selectedCurrencyOption
+                      ]}
+                      onPress={() => {
+                        handleCurrencySelect(currency);
+                        setShowCurrencyPicker(false);
+                      }}
+                    >
+                      <Text style={styles.currencyFlag}>{currency.flag}</Text>
+                      <Text style={styles.currencyName}>{currency.name}</Text>
+                      <Text style={styles.currencyCodeSmall}>{currency.code}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const MoneyExchangeScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+    >
+      <MoneyExchangeScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -305,11 +445,10 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-
   },
   content: {
     paddingHorizontal: 16,
-
+    paddingBottom: 40, // Add extra padding at the bottom to ensure visibility during tour
   },
   headerContainer: {
     paddingTop: Platform.OS === 'ios' ? 0 : 40,
@@ -616,6 +755,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginLeft: 8,
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 10,
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

@@ -12,11 +12,17 @@ export default {
     cancel: 'Annuler',
     next: 'Suivant',
     noData: 'Aucune donnée disponible',
+    tourGuide: 'Guide du Tour',
+    skip: 'Passer',
+    previous: 'Précédent',
+    done: 'Terminer',
   },
   onboarding: {
     seeTitle: 'Découvrez le Maroc',
     seeSubtitle: 'Comme Jamais Auparavant.',
     getStarted: 'Commencer',
+    back: 'Retour',
+    next: 'Suivant',
   },
   login: {
     accessAccount: 'Accéder à mon compte',
@@ -147,6 +153,12 @@ export default {
     filterBrokers: 'Filtrer les Bureaux',
     loadingBrokers: 'Chargement des bureaux...',
     failedToLoad: 'Échec du chargement des bureaux',
+    tour: {
+      searchBrokersDesc: 'Recherchez des bureaux par nom ou adresse',
+      cityFilterDesc: 'Filtrez les bureaux par emplacement en ville',
+      brokerListDesc: 'Parcourez et sélectionnez un bureau pour voir les détails et les taux de change',
+      paginationDesc: 'Naviguez à travers plusieurs pages de listes de bureaux'
+    }
   },
   broker: {
     services: 'Services',
@@ -486,5 +498,25 @@ export default {
     deleteTour: 'Supprimer le Tour',
     delete: 'Supprimer',
     deleteTourConfirmation: 'Êtes-vous sûr de vouloir supprimer "{title}"? Cette action ne peut pas être annulée.',
+    onboarding: {
+      title: 'Bienvenue dans Tours',
+      subtitle: 'Créez des itinéraires personnalisés pour votre aventure marocaine en suivant ces étapes simples:',
+      explore: {
+        title: 'Explorez le Maroc',
+        description: 'Commencez par explorer notre collection de restaurants, monuments, artisans et options de divertissement. Découvrez les meilleurs endroits à visiter pendant votre voyage.'
+      },
+      events: {
+        title: 'Consultez les Événements à Venir',
+        description: 'Parcourez les matchs et événements à venir à inclure dans votre itinéraire. Planifiez votre voyage autour de ces occasions spéciales.'
+      },
+      bookmark: {
+        title: 'Enregistrez Vos Favoris',
+        description: 'Pendant votre exploration, marquez les lieux et événements que vous souhaitez inclure dans votre tour. Vous retrouverez tous vos éléments enregistrés dans l\'onglet Favoris.'
+      },
+      create: {
+        title: 'Créez Votre Tour',
+        description: 'Vous êtes maintenant prêt à créer un tour personnalisé ! Sélectionnez vos éléments favoris, définissez des dates et planifiez votre parfaite aventure marocaine.'
+      }
+    }
   },
 }; 
