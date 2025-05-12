@@ -40,7 +40,7 @@ export default {
   },
   home: {
     exploreMatches: 'Explore Matches',
-    exploreEvent: 'Explore Event',
+    exploreEvent: 'Upcoming Events',
     exploreMorocco: 'Explore Morocco',
     emergencyContacts: 'Emergency Contacts',
   },

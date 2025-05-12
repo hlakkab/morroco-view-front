@@ -1,20 +1,8 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import {ActivityIndicator, Image, Linking, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
 import BottomNavBar from '../containers/BottomNavBar';
 import { clearTokens, getUserInfo } from '../service/KeycloakService';
@@ -22,12 +10,18 @@ import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { User } from '../types/user';
 
-const AccountScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const AccountScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   
   // Temporary editable values
   const [editFirstName, setEditFirstName] = useState('');
@@ -38,6 +32,36 @@ const AccountScreen: React.FC = () => {
   useEffect(() => {
     fetchUserData();
   }, []);
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   const fetchUserData = async () => {
     try {
@@ -138,157 +162,164 @@ const AccountScreen: React.FC = () => {
 
   return (
     <View style={styles.mainContainer}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{ uri: user.profilePicture || defaultProfileImage }}
-              style={styles.profileImage}
-            />
-            <TouchableOpacity style={styles.editImageButton}>
-              <Ionicons name="camera" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.welcomeText}>
-            {i18n.t('account.welcome').replace('{name}', user.firstName)}
-          </Text>
-          
-          {/*<TouchableOpacity */}
-          {/*  style={[styles.editProfileButton, editing ? styles.saveProfileButton : {}]} */}
-          {/*  onPress={handleEditProfile}*/}
-          {/*  disabled={true}          // empêche toute interaction*/}
-          {/*>*/}
-          {/*  <Text style={[styles.editProfileText, editing ? styles.saveProfileText : {}]}>*/}
-          {/*    {editing ? i18n.t('account.saveProfile') : i18n.t('account.editProfile')}*/}
-          {/*  </Text>*/}
-          {/*  <Ionicons */}
-          {/*    name={editing ? "checkmark-circle" : "create-outline"} */}
-          {/*    size={20} */}
-          {/*    color={editing ? "#fff" : "#CE1126"} */}
-          {/*    style={styles.editIcon} */}
-          {/*  />*/}
-          {/*</TouchableOpacity>*/}
-        </View>
+        <CopilotStep
+          text="View and update your profile picture and personal information"
+          order={1}
+          name="profileCard"
+        >
+          <WalkthroughableView style={styles.profileCardHighlight}>
+            <View style={styles.profileCard}>
+              <View style={styles.profileImageContainer}>
+                <Image
+                  source={{ uri: user.profilePicture || defaultProfileImage }}
+                  style={styles.profileImage}
+                />
+                <TouchableOpacity style={styles.editImageButton}>
+                  <Ionicons name="camera" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={styles.welcomeText}>
+                {i18n.t('account.welcome').replace('{name}', user.firstName)}
+              </Text>
+            </View>
+          </WalkthroughableView>
+        </CopilotStep>
 
         {/* Personal Information Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{i18n.t('account.personalInfo')}</Text>
-          
-          <View style={styles.infoField}>
-            <View style={styles.fieldLabelContainer}>
-              <Ionicons name="person-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>{i18n.t('account.firstName')}</Text>
+        <CopilotStep
+          text="Manage your personal information and contact details"
+          order={2}
+          name="personalInfo"
+        >
+          <WalkthroughableView style={styles.personalInfoHighlight}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{i18n.t('account.personalInfo')}</Text>
+              
+              <View style={styles.infoField}>
+                <View style={styles.fieldLabelContainer}>
+                  <Ionicons name="person-outline" size={20} color="#666" />
+                  <Text style={styles.fieldLabel}>{i18n.t('account.firstName')}</Text>
+                </View>
+                {editing ? (
+                  <TextInput
+                    style={styles.input}
+                    value={editFirstName}
+                    onChangeText={setEditFirstName}
+                    placeholder={i18n.t('account.enterFirstName')}
+                  />
+                ) : (
+                  <Text style={styles.fieldValue}>{user.firstName}</Text>
+                )}
+              </View>
+              
+              <View style={styles.infoField}>
+                <View style={styles.fieldLabelContainer}>
+                  <Ionicons name="person-outline" size={20} color="#666" />
+                  <Text style={styles.fieldLabel}>{i18n.t('account.lastName')}</Text>
+                </View>
+                {editing ? (
+                  <TextInput
+                    style={styles.input}
+                    value={editLastName}
+                    onChangeText={setEditLastName}
+                    placeholder={i18n.t('account.enterLastName')}
+                  />
+                ) : (
+                  <Text style={styles.fieldValue}>{user.lastName}</Text>
+                )}
+              </View>
+              
+              <View style={styles.infoField}>
+                <View style={styles.fieldLabelContainer}>
+                  <Ionicons name="mail-outline" size={20} color="#666" />
+                  <Text style={styles.fieldLabel}>{i18n.t('account.email')}</Text>
+                </View>
+                {editing ? (
+                  <TextInput
+                    style={styles.input}
+                    value={editEmail}
+                    onChangeText={setEditEmail}
+                    placeholder={i18n.t('account.enterEmail')}
+                    keyboardType="email-address"
+                  />
+                ) : (
+                  <Text style={styles.fieldValue}>{user.email}</Text>
+                )}
+              </View>
+              
+              <View style={styles.infoField}>
+                <View style={styles.fieldLabelContainer}>
+                  <Ionicons name="call-outline" size={20} color="#666" />
+                  <Text style={styles.fieldLabel}>{i18n.t('account.phoneNumber')}</Text>
+                </View>
+                {editing ? (
+                  <TextInput
+                    style={styles.input}
+                    value={editPhoneNumber}
+                    onChangeText={setEditPhoneNumber}
+                    placeholder={i18n.t('account.enterPhoneNumber')}
+                    keyboardType="phone-pad"
+                  />
+                ) : (
+                  <Text style={styles.fieldValue}>
+                    {user.phoneNumber ? user.phoneNumber : i18n.t('account.notProvided')}
+                  </Text>
+                )}
+              </View>
             </View>
-            {editing ? (
-              <TextInput
-                style={styles.input}
-                value={editFirstName}
-                onChangeText={setEditFirstName}
-                placeholder={i18n.t('account.enterFirstName')}
-              />
-            ) : (
-              <Text style={styles.fieldValue}>{user.firstName}</Text>
-            )}
-          </View>
-          
-          <View style={styles.infoField}>
-            <View style={styles.fieldLabelContainer}>
-              <Ionicons name="person-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>{i18n.t('account.lastName')}</Text>
-            </View>
-            {editing ? (
-              <TextInput
-                style={styles.input}
-                value={editLastName}
-                onChangeText={setEditLastName}
-                placeholder={i18n.t('account.enterLastName')}
-              />
-            ) : (
-              <Text style={styles.fieldValue}>{user.lastName}</Text>
-            )}
-          </View>
-          
-          <View style={styles.infoField}>
-            <View style={styles.fieldLabelContainer}>
-              <Ionicons name="mail-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>{i18n.t('account.email')}</Text>
-            </View>
-            {editing ? (
-              <TextInput
-                style={styles.input}
-                value={editEmail}
-                onChangeText={setEditEmail}
-                placeholder={i18n.t('account.enterEmail')}
-                keyboardType="email-address"
-              />
-            ) : (
-              <Text style={styles.fieldValue}>{user.email}</Text>
-            )}
-          </View>
-          
-          <View style={styles.infoField}>
-            <View style={styles.fieldLabelContainer}>
-              <Ionicons name="call-outline" size={20} color="#666" />
-              <Text style={styles.fieldLabel}>{i18n.t('account.phoneNumber')}</Text>
-            </View>
-            {editing ? (
-              <TextInput
-                style={styles.input}
-                value={editPhoneNumber}
-                onChangeText={setEditPhoneNumber}
-                placeholder={i18n.t('account.enterPhoneNumber')}
-                keyboardType="phone-pad"
-              />
-            ) : (
-              <Text style={styles.fieldValue}>
-                {user.phoneNumber ? user.phoneNumber : i18n.t('account.notProvided')}
-              </Text>
-            )}
-          </View>
-        </View>
+          </WalkthroughableView>
+        </CopilotStep>
 
         {/* Support Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{i18n.t('account.support')}</Text>
-          
-          <TouchableOpacity style={styles.supportItem} onPress={handleContactPress}>
-            <View style={styles.supportItemLeft}>
-              <MaterialIcons name="support-agent" size={24} color="#CE1126" />
-              <Text style={styles.supportItemText}>{i18n.t('account.contactSupport')}</Text>
+        <CopilotStep
+          text="Get help and support through various contact methods"
+          order={3}
+          name="support"
+        >
+          <WalkthroughableView style={styles.supportHighlight}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{i18n.t('account.support')}</Text>
+              
+              <TouchableOpacity style={styles.supportItem} onPress={handleContactPress}>
+                <View style={styles.supportItemLeft}>
+                  <MaterialIcons name="support-agent" size={24} color="#CE1126" />
+                  <Text style={styles.supportItemText}>{i18n.t('account.contactSupport')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#666" />
+              </TouchableOpacity>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity>
-          
-          {/* <TouchableOpacity style={styles.supportItem}>
-            <View style={styles.supportItemLeft}>
-              <Ionicons name="help-circle-outline" size={24} color="#CE1126" />
-              <Text style={styles.supportItemText}>FAQ & Help Center</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.supportItem}>
-            <View style={styles.supportItemLeft}>
-              <Ionicons name="document-text-outline" size={24} color="#CE1126" />
-              <Text style={styles.supportItemText}>Terms & Privacy Policy</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity> */}
-        </View>
+          </WalkthroughableView>
+        </CopilotStep>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#fff" style={styles.logoutIcon} />
-          <Text style={styles.logoutText}>{i18n.t('account.logout')}</Text>
-        </TouchableOpacity>
+        <CopilotStep
+          text="Safely log out of your account when you're done"
+          order={4}
+          name="logout"
+        >
+          <WalkthroughableView style={styles.logoutHighlight}>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={24} color="#fff" style={styles.logoutIcon} />
+              <Text style={styles.logoutText}>{i18n.t('account.logout')}</Text>
+            </TouchableOpacity>
+          </WalkthroughableView>
+        </CopilotStep>
         
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>{i18n.t('account.version')}</Text>
         </View>
         
-        {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
         <View style={styles.bottomPadding} />
       </ScrollView>
       
@@ -347,9 +378,30 @@ const AccountScreen: React.FC = () => {
         </View>
       </Modal>
       
-      {/* Bottom Navigation Bar */}
       <BottomNavBar activeRoute="Account" onNavigate={handleNavigation} />
     </View>
+  );
+};
+
+// Main component with CopilotProvider
+const AccountScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <AccountScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -618,6 +670,41 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     backgroundColor: '#CE1126',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 20 : 40,
+    right: 16,
+    backgroundColor: '#CE1126',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  tooltip: {
+    backgroundColor: '#CE1126',
+    borderRadius: 8,
+    padding: 12,
+  },
+  profileCardHighlight: {
+    marginBottom: 16,
+  },
+  personalInfoHighlight: {
+    marginBottom: 16,
+  },
+  supportHighlight: {
+    marginBottom: 16,
+  },
+  logoutHighlight: {
+    marginBottom: 16,
   },
 });
 
