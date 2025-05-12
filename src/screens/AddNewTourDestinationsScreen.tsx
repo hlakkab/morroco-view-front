@@ -1,6 +1,7 @@
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
 import SearchBar from '../components/SearchBar';
 import StepProgress from '../components/StepProgress';
@@ -14,8 +15,10 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchBookmarksAsItems, setTourDestinations, TourItem } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
+import { Feather } from '@expo/vector-icons';
 
-
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 // Calculate the number of days between start and end dates (inclusive)
 export const calculateDaysInclusive = (startDate: string, endDate: string): number => {
@@ -182,9 +185,12 @@ const deg2rad = (deg: number) => {
   return deg * (Math.PI/180);
 };
 
-const AddNewTourDestinationsScreen: React.FC = () => {
+// Content component with Copilot functionality
+const AddNewTourDestinationsScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'AddNewTourDestinations'>>();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   
   // Get tour data from Redux instead of route params
   const { title, startDate, endDate } = useAppSelector(state => state.tour.currentTour);
@@ -411,45 +417,96 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       [selectedItemsByDay, selectedDay]
   );
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Feather name="info" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <TourFlowHeader title={i18n.t('tours.addNewTour')} />
       </View>
       
-      <View style={styles.stepProgressContainer}>
-        <StepProgress 
-          steps={steps} 
-          currentStep={1}
-        />
-      </View>
+      <CopilotStep
+        text="Track your progress through the tour creation process"
+        order={1}
+        name="stepProgress"
+      >
+        <WalkthroughableView style={styles.stepProgressContainer}>
+          <StepProgress 
+            steps={steps} 
+            currentStep={1}
+          />
+        </WalkthroughableView>
+      </CopilotStep>
 
       <View style={styles.content}>
-        {/* <SearchBar
-          placeholder="Search for ..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFilterPress={() => {}}
-        /> */}
+        <CopilotStep
+          text="Select the day you want to plan"
+          order={2}
+          name="daySelector"
+        >
+          <WalkthroughableView>
+            <DaySelector
+              totalDays={totalDays}
+              selectedDay={selectedDay}
+              getDayStatus={getDayStatus}
+              onSelectDay={setSelectedDay}
+              startDate={startDate}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
-        {/* Day Selector Component */}
-        <DaySelector
-          totalDays={totalDays}
-          selectedDay={selectedDay}
-          getDayStatus={getDayStatus}
-          onSelectDay={setSelectedDay}
-          startDate={startDate}
-        />
-
-        {/* City Selector Component */}
-        <CitySelector
-          cities={cities}
-          selectedCity={selectedCities[selectedDay] || ''}
-          selectedDay={selectedDay}
-          isLocked={isCityLockedForCurrentDay}
-          onCityChange={handleCityChange}
-          startDate={startDate}
-        />
+        <CopilotStep
+          text="Choose a city for your selected day"
+          order={3}
+          name="citySelector"
+        >
+          <WalkthroughableView>
+            <CitySelector
+              cities={cities}
+              selectedCity={selectedCities[selectedDay] || ''}
+              selectedDay={selectedDay}
+              isLocked={isCityLockedForCurrentDay}
+              onCityChange={handleCityChange}
+              startDate={startDate}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
         {/* Loading State */}
         {loading ? (
@@ -465,28 +522,41 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         ) : (
           /* Item List or Empty State */
           selectedCities[selectedDay] ? (
-              <ItemList
+            <CopilotStep
+              text="Select destinations for your tour in the chosen city"
+              order={4}
+              name="itemList"
+            >
+              <WalkthroughableView>
+                <ItemList
                   items={filteredItems}
                   selectedCity={selectedCities[selectedDay]}
                   selectedItems={selectedItemsByDay[selectedDay] || []}
-                  totalSelectedCount={currentCitySelectedCount}  // <— OK
-                  previouslySelectedItemIds={previouslySelectedItemIds}  // ← nouvel prop
+                  totalSelectedCount={currentCitySelectedCount}
+                  previouslySelectedItemIds={previouslySelectedItemIds}
                   onSelectItem={handleItemSelect}
-
-              />
+                />
+              </WalkthroughableView>
+            </CopilotStep>
           ) : (
             <EmptyCity selectedDay={selectedDay} />
           )
         )}
       </View>
 
-      <View style={styles.footer}>
-        <Button 
-          title={i18n.t('common.next')}
-          onPress={handleNext}
-          disabled={currentCitySelectedCount === 0 || loading}
-        />
-      </View>
+      <CopilotStep
+        text="Proceed to organize your tour when you're done selecting destinations"
+        order={5}
+        name="nextButton"
+      >
+        <WalkthroughableView style={styles.footer}>
+          <Button 
+            title={i18n.t('common.next')}
+            onPress={handleNext}
+            disabled={currentCitySelectedCount === 0 || loading}
+          />
+        </WalkthroughableView>
+      </CopilotStep>
       
       {/* Add the custom warning modal */}
       <EmptyDaysWarningModal
@@ -502,6 +572,28 @@ const AddNewTourDestinationsScreen: React.FC = () => {
         }}
       />
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const AddNewTourDestinationsScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+    >
+      <AddNewTourDestinationsScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -545,6 +637,45 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     color: '#E53935',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 20 : 45,
+    right: 16,
+    backgroundColor: '#E53935',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  tooltip: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
 
