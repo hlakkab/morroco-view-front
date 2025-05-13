@@ -920,6 +920,8 @@ const ReservationPopup = (props: ReservationPopupProps) => {
         next: "Next",
         finish: "Done"
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <ReservationPopupContent {...props} />
     </CopilotProvider>

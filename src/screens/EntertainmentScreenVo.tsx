@@ -199,7 +199,7 @@ const EntertainmentScreenContent: React.FC = () => {
       </View>
       <View style={styles.content}>
         <CopilotStep
-          text="Search for entertainment venues and filter by type"
+          text={i18n.t('copilot.searchEntertainment')}
           order={1}
           name="search"
         >
@@ -214,7 +214,7 @@ const EntertainmentScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Select a city to filter entertainment venues"
+          text={i18n.t('copilot.filterEntertainmentByCity')}
           order={2}
           name="citySelector"
         >
@@ -231,7 +231,7 @@ const EntertainmentScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Browse and select entertainment venues to view their details"
+          text={i18n.t('copilot.browseEntertainment')}
           order={3}
           name="entertainmentList"
         >
@@ -264,11 +264,13 @@ const EntertainmentScreenVo: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <EntertainmentScreenContent />
     </CopilotProvider>

@@ -111,7 +111,7 @@ const TicketsScreenContent: React.FC = () => {
       </View>
 
       <CopilotStep
-        text="Search for your tickets by team name, stadium, or ticket ID"
+        text={i18n.t('copilot.tickets.search')}
         order={1}
         name="search"
       >
@@ -139,7 +139,7 @@ const TicketsScreenContent: React.FC = () => {
         </View>
       ) : (
         <CopilotStep
-          text="View and manage your match and transport tickets"
+          text={i18n.t('copilot.tickets.viewTickets')}
           order={2}
           name="ticketsList"
         >
@@ -179,11 +179,13 @@ const TicketsScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <TicketsScreenContent />
     </CopilotProvider>

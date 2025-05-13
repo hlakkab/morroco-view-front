@@ -257,7 +257,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
       </View>
       <ScrollView style={styles.scrollView}>
         <CopilotStep
-          text="View images of the entertainment venue"
+          text={i18n.t('copilot.viewEntertainmentImages')}
           order={1}
           name="images"
         >
@@ -295,7 +295,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
 
         <View style={styles.content}>
           <CopilotStep
-            text="Check ratings, reviews and key specifications"
+            text={i18n.t('copilot.viewEntertainmentInfo')}
             order={2}
             name="ratingsAndSpecs"
           >
@@ -342,7 +342,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Read detailed information about the venue"
+            text={i18n.t('copilot.readEntertainmentDetails')}
             order={3}
             name="about"
           >
@@ -355,7 +355,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Find the venue's location and get directions"
+            text={i18n.t('copilot.findEntertainmentLocation')}
             order={4}
             name="location"
           >
@@ -371,7 +371,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
       </ScrollView>
 
       <CopilotStep
-        text="Click here to book your reservation"
+        text={i18n.t('copilot.bookEntertainment')}
         order={5}
         name="bookButton"
       >
@@ -394,11 +394,13 @@ const EntertainmentDetailScreenVo: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <EntertainmentDetailScreenContent />
     </CopilotProvider>

@@ -38,7 +38,7 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
   return (
     <View style={styles.container}>
       <CopilotStep
-        text="Browse and select a broker to view details and exchange rates"
+        text={i18n.t('copilot.broker.browseBrokers')}
         order={3}
         name="brokerList"
       >

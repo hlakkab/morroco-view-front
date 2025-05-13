@@ -320,6 +320,8 @@ const MatchPopup: React.FC<MatchPopupProps> = (props) => {
         next: "Next",
         finish: "Done"
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <MatchPopupContent {...props} />
     </CopilotProvider>

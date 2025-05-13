@@ -190,6 +190,8 @@ const QRCodesScreen: React.FC = () => {
         next: "Next",
         finish: "Done"
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <QRCodesScreenContent />
     </CopilotProvider>
