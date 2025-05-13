@@ -90,7 +90,7 @@ const ArtisanDetailScreenContent: React.FC = () => {
 
       <ScrollView style={styles.scrollView}>
         <CopilotStep
-          text="Browse through artisan images and save to favorites"
+          text={i18n.t('copilot.browseImages')}
           order={1}
           name="gallery"
         >
@@ -107,7 +107,7 @@ const ArtisanDetailScreenContent: React.FC = () => {
 
         <View style={styles.content}>
           <CopilotStep
-            text="View important information about the artisan"
+            text={i18n.t('copilot.viewArtisanInfo')}
             order={2}
             name="info"
           >
@@ -151,7 +151,7 @@ const ArtisanDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Learn more about the artisan's work and history"
+            text={i18n.t('copilot.learnArtisanHistory')}
             order={3}
             name="about"
           >
@@ -164,7 +164,7 @@ const ArtisanDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Find the artisan's location and get directions"
+            text={i18n.t('copilot.findArtisanLocation')}
             order={4}
             name="location"
           >
@@ -178,7 +178,7 @@ const ArtisanDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Get helpful tips for your visit"
+            text={i18n.t('copilot.getVisitTips')}
             order={5}
             name="tips"
           >
@@ -300,21 +300,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
-  },
   walkthroughContainer: {
     width: '100%',
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

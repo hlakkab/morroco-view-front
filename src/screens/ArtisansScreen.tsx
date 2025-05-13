@@ -264,7 +264,7 @@ const ArtisansScreenContent: React.FC = () => {
       </View>
       <View style={styles.content}>
         <CopilotStep
-          text="Search for artisans and filter by type"
+          text={i18n.t('copilot.searchArtisans')}
           order={1}
           name="search"
         >
@@ -279,7 +279,7 @@ const ArtisansScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Select a city to filter artisans"
+          text={i18n.t('copilot.filterByCity')}
           order={2}
           name="citySelector"
         >
@@ -296,7 +296,7 @@ const ArtisansScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Browse and select artisans to view their details"
+          text={i18n.t('copilot.browseArtisans')}
           order={3}
           name="artisanList"
         >
@@ -401,10 +401,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#CE1126',
     width: 150,
   },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
-  },
   searchHighlight: {
     width: '100%',
     marginBottom: 16,
@@ -421,14 +417,28 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
   },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

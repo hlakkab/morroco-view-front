@@ -200,7 +200,7 @@ const MoneyExchangeScreenContent: React.FC = () => {
         <View style={styles.content}>
           {/* Currency Converter Section */}
           <CopilotStep
-            text={i18n.t('exchange.converter')}
+            text="Currency Converter, enter an amount and select your currency."
             order={1}
             name="currency-converter"
           >
@@ -352,7 +352,7 @@ const MoneyExchangeScreenContent: React.FC = () => {
                   </View>
                   
                   <CopilotStep
-                    text="Tap here to find money exchange brokers near your location"
+                    text={i18n.t('copilot.findBrokers')}
                     order={5}
                     name="view-brokers"
                   >
@@ -757,17 +757,27 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

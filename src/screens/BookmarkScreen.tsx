@@ -207,7 +207,7 @@ const BookmarkScreenContent: React.FC = () => {
       </View>
       <View style={styles.content}>
         <CopilotStep
-          text="Search for your bookmarked items and filter by type"
+          text={i18n.t('copilot.searchBookmarks')}
           order={1}
           name="search"
         >
@@ -222,7 +222,7 @@ const BookmarkScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Select a city to filter your bookmarks"
+          text={i18n.t('copilot.filterBookmarksByCity')}
           order={2}
           name="citySelector"
         >
@@ -239,7 +239,7 @@ const BookmarkScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="View and manage your saved bookmarks"
+          text={i18n.t('copilot.manageBookmarks')}
           order={3}
           name="bookmarkList"
         >
@@ -308,29 +308,6 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 16,
   },
-  tourButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 40,
-    right: 16,
-    backgroundColor: '#CE1126',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    marginLeft: 4,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 8,
-    padding: 12,
-  },
   searchHighlight: {
     marginBottom: 16,
   },
@@ -339,6 +316,42 @@ const styles = StyleSheet.create({
   },
   bookmarkListHighlight: {
     flex: 1,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

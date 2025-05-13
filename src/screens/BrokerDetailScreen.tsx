@@ -155,7 +155,7 @@ const BrokerDetailScreenContent: React.FC = () => {
         }}
       >
         <CopilotStep
-          text="View the broker's images and save them to your favorites"
+          text={i18n.t('copilot.viewBrokerImages')}
           order={1}
           name="images"
         >
@@ -204,7 +204,7 @@ const BrokerDetailScreenContent: React.FC = () => {
 
         <View style={styles.content}>
           <CopilotStep
-            text="See the broker's type and status"
+            text={i18n.t('copilot.seeBrokerType')}
             order={2}
             name="brokerType"
           >
@@ -216,7 +216,7 @@ const BrokerDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="View the services offered by this broker"
+            text={i18n.t('copilot.viewServices')}
             order={3}
             name="services"
           >
@@ -240,7 +240,7 @@ const BrokerDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Check the broker's contact information and operating hours"
+            text={i18n.t('copilot.checkContactInfo')}
             order={4}
             name="contactInfo"
           >
@@ -267,7 +267,7 @@ const BrokerDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Learn more about this broker"
+            text={i18n.t('copilot.learnMore')}
             order={5}
             name="about"
           >
@@ -280,7 +280,7 @@ const BrokerDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Find the broker's location on the map"
+            text={i18n.t('copilot.findLocation')}
             order={6}
             name="location"
           >
@@ -292,7 +292,7 @@ const BrokerDetailScreenContent: React.FC = () => {
       </ScrollView>
 
       <CopilotStep
-        text="Contact the broker directly"
+        text={i18n.t('copilot.contactBroker')}
         order={7}
         name="contact"
       >
@@ -546,44 +546,41 @@ const styles = StyleSheet.create({
   closeButton: {
     marginTop: 8,
   },
-  tourButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 45,
-    right: 16,
-    backgroundColor: '#008060',
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1000,
-    elevation: 5,
+    zIndex: 999,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    elevation: 5,
   },
   tourButtonText: {
     color: '#FFFFFF',
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  tooltip: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

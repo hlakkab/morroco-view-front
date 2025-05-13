@@ -205,7 +205,7 @@ const MonumentDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Read more about the monument's history and significance"
+            text={i18n.t('copilot.readHistory')}
             order={3}
             name="aboutSection"
           >
@@ -218,7 +218,7 @@ const MonumentDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Find the monument's location and get directions"
+            text={i18n.t('copilot.findMonumentLocation')}
             order={4}
             name="locationSection"
           >
@@ -233,7 +233,7 @@ const MonumentDetailScreenContent: React.FC = () => {
       </ScrollView>
 
       <CopilotStep
-        text="Purchase tickets for your visit"
+        text={i18n.t('copilot.purchaseTickets')}
         order={5}
         name="buyTickets"
       >
@@ -462,21 +462,31 @@ const styles = StyleSheet.create({
   closeModalButton: {
     marginTop: 8,
   },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
-  },
   walkthroughContainer: {
     width: '100%',
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

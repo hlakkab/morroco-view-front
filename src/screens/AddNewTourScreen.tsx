@@ -157,7 +157,7 @@ const AddNewTourScreenContent: React.FC = () => {
       
       <View style={styles.content}>
         <CopilotStep
-          text="Track your progress through the tour creation process"
+          text={i18n.t('copilot.trackProgress')}
           order={1}
           name="stepProgress"
         >
@@ -172,7 +172,7 @@ const AddNewTourScreenContent: React.FC = () => {
 
         <View style={styles.form}>
           <CopilotStep
-            text="Enter a title for your tour"
+            text={i18n.t('copilot.enterTourTitle')}
             order={2}
             name="titleInput"
           >
@@ -192,7 +192,7 @@ const AddNewTourScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Select the start and end dates for your tour"
+            text={i18n.t('copilot.selectTourDates')}
             order={3}
             name="dateSelection"
           >
@@ -258,7 +258,7 @@ const AddNewTourScreenContent: React.FC = () => {
       />
 
       <CopilotStep
-        text="Proceed to the next step when you're ready"
+        text={i18n.t('copilot.proceedToNext')}
         order={4}
         name="nextButton"
       >
@@ -387,44 +387,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  tourButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 20: 45,
-    right: 16,
-    backgroundColor: '#E53935',
+
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1000,
-    elevation: 5,
+    zIndex: 999,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    elevation: 5,
   },
   tourButtonText: {
     color: '#FFFFFF',
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  tooltip: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 
