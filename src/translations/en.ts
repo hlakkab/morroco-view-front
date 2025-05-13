@@ -548,5 +548,7 @@ export default {
     filterBookmarksByCity: "Select a city to filter your bookmarks",
     manageBookmarks: "View and manage your saved bookmarks",
     selectTourDates: "Select the start and end dates for your tour",
+    viewMonumentImages: "Browse through the monument images and save it to your favorites",
+    viewMonumentInfo: "View important information about the monument including type, visiting hours, and entry fee",
   },
 }; 

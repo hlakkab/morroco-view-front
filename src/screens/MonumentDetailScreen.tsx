@@ -158,7 +158,7 @@ const MonumentDetailScreenContent: React.FC = () => {
 
       <ScrollView style={styles.scrollView}>
         <CopilotStep
-          text="Browse through the monument images and save it to your favorites"
+          text={i18n.t('copilot.viewMonumentImages')}
           order={1}
           name="imageGallery"
         >
@@ -173,7 +173,7 @@ const MonumentDetailScreenContent: React.FC = () => {
 
         <View style={styles.content}>
           <CopilotStep
-            text="View important information about the monument including type, visiting hours, and entry fee"
+            text={i18n.t('copilot.viewMonumentInfo')}
             order={2}
             name="monumentInfo"
           >

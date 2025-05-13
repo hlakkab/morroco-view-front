@@ -557,5 +557,7 @@ export default {
     filterBrokerByCity: "Filtrez les courtiers par ville",
     navigatePages: "Naviguez à travers les pages de résultats",
     buyESIM: "Cliquez ici pour acheter une nouvelle eSIM",
+    viewMonumentImages: "Parcourez les images du monument et sauvegardez-le dans vos favoris",
+    viewMonumentInfo: "Consultez les informations importantes sur le monument, y compris le type, les heures de visite et le prix d'entrée",
   },
 }; 

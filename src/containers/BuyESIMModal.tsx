@@ -335,7 +335,9 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = (props) => {
         finish: "Done"
       }}
       androidStatusBarVisible={true} 
-      arrowSize={6}
+      arrowSize={8}
+      arrowColor="#CE1126"
+      verticalOffset={0}
     >
       <BuyESIMModalContent {...props} />
     </CopilotProvider>
