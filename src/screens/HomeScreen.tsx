@@ -68,7 +68,7 @@ const HomeScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>App Tour</Text>
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
         </TouchableOpacity>
       )}
 
@@ -130,14 +130,29 @@ const HomeScreenContent: React.FC = () => {
         </View>
 
         {/* Emergency Contacts Button - Removed from tour */}
-        <EmergencyContactsButton onPress={handleEmergencyContacts} />
-        
+        <CopilotStep
+          text="Access important emergency contacts in Morocco with just one tap!"
+          order={5}
+          name="emergency"
+        >
+          <WalkthroughableView style={styles.emergencyHighlight}>
+            <EmergencyContactsButton onPress={handleEmergencyContacts} />
+          </WalkthroughableView>
+        </CopilotStep>
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
         <View style={styles.bottomPadding} />
       </ScrollView>
       
       {/* Bottom Navigation Bar */}
-      <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
+      <CopilotStep
+        text="Navigate easily between different sections of the app!"
+        order={6}
+        name="navbar"
+      >
+        <WalkthroughableView style={styles.navbarHighlight}>
+          <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
+        </WalkthroughableView>
+      </CopilotStep>
     </View>
   );
 };
@@ -197,7 +212,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#008060',
+    backgroundColor: '#FF6B6B',
     borderRadius: 25,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -216,41 +231,31 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   searchHighlight: {
-    // Fixed height for search container - adjust as needed
     height: 65, 
-    // width: '100%',
-    // overflow: 'hidden',
-    // marginBottom: 0,
+    
   },
   bannerHighlight: {
-    // Fixed height for banner container - adjust as needed
-    // height: 250, 
-    // width: '100%',
-    // overflow: 'hidden',
-    // marginBottom: 0,
+    
     paddingBottom: 10
 
   },
   servicesHighlight: {
-    // Fixed height for services container - adjust as needed
-    // height: 135, 
-    // width: '100%',
-    // overflow: 'hidden',
-    // marginBottom: 0,
+    
     paddingBottom: 10
 
   },
   exploreHighlight: {
-    // Fixed height for explore container - adjust as needed
-    // height: 260, 
-    // width: '100%',
-    // overflow: 'hidden',
-    // marginBottom: 0,
 
   },
   componentSearchContainer: {
   },
   componentContainer: {
+  },
+  emergencyHighlight: {
+
+  },
+  navbarHighlight: {
+
   },
 });
 

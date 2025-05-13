@@ -3,8 +3,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import { useSelector } from 'react-redux';
 import CloseButton from '../assets/img/CloseButton.svg';
 import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -182,78 +182,80 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
               order={1}
               name="match-details"
             >
-              <WalkthroughableView style={styles.grandContainer}>
-                <TouchableOpacity
-                  style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
-                  onPress={handleSave}
-                >
-                  <Ionicons
-                    name={currentMatch.saved ? "bookmark" : "bookmark-outline"}
-                    size={24}
-                    color={currentMatch.saved ? "#888888" : "#000"}
-                  />
-                </TouchableOpacity>
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.grandContainer}>
+                  <TouchableOpacity
+                    style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
+                    onPress={handleSave}
+                  >
+                    <Ionicons
+                      name={currentMatch.saved ? "bookmark" : "bookmark-outline"}
+                      size={24}
+                      color={currentMatch.saved ? "#888888" : "#000"}
+                    />
+                  </TouchableOpacity>
 
-                <View style={styles.teamsContainer}>
-                  <View style={styles.teamContainer}>
-                    <View style={styles.flagContainer}>
-                      <Image
-                        source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
-                        style={styles.flag}
-                      />
+                  <View style={styles.teamsContainer}>
+                    <View style={styles.teamContainer}>
+                      <View style={styles.flagContainer}>
+                        <Image
+                          source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
+                          style={styles.flag}
+                        />
+                      </View>
+                    </View>
+
+                    <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
+
+                    <View style={styles.teamContainer}>
+                      <View style={styles.flagContainer}>
+                        <Image
+                          source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
+                          style={styles.flag}
+                        />
+                      </View>
                     </View>
                   </View>
 
-                  <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
-
-                  <View style={styles.teamContainer}>
-                    <View style={styles.flagContainer}>
-                      <Image
-                        source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
-                        style={styles.flag}
-                      />
+                  <View style={styles.detailRow}>
+                    {/* Date */}
+                    <View style={styles.detailItem}>
+                      <View style={styles.iconTitleContainer}>
+                        <Fontisto name="date" size={16} color="#656565" />
+                        <Text style={styles.detailTitle}>{i18n.t('matches.date')}</Text>
+                      </View>
+                      <Text style={styles.detailValue}>
+                        {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </Text>
                     </View>
-                  </View>
-                </View>
 
-                <View style={styles.detailRow}>
-                  {/* Date */}
-                  <View style={styles.detailItem}>
-                    <View style={styles.iconTitleContainer}>
-                      <Fontisto name="date" size={16} color="#656565" />
-                      <Text style={styles.detailTitle}>{i18n.t('matches.date')}</Text>
+                    {/* Séparateur 1 */}
+                    <View style={styles.separator}></View>
+
+                    {/* Time */}
+                    <View style={styles.detailItem}>
+                      <View style={styles.iconTitleContainer}>
+                        <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
+                        <Text style={styles.detailTitle}>{i18n.t('matches.time')}</Text>
+                      </View>
+                      <Text style={styles.detailValue}>
+                        {currentMatch.date.includes("T")
+                          ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                          : "21:00"}
+                      </Text>
                     </View>
-                    <Text style={styles.detailValue}>
-                      {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </Text>
-                  </View>
 
-                  {/* Séparateur 1 */}
-                  <View style={styles.separator}></View>
+                    {/* Séparateur 2 */}
+                    <View style={styles.separator}></View>
 
-                  {/* Time */}
-                  <View style={styles.detailItem}>
-                    <View style={styles.iconTitleContainer}>
-                      <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
-                      <Text style={styles.detailTitle}>{i18n.t('matches.time')}</Text>
+                    {/* Stadium */}
+                    <View style={styles.detailItem}>
+                      <View style={styles.iconTitleContainer}>
+                        <StadiumIconPopup width={16} height={16} />
+                        <Text style={styles.detailTitle}>{i18n.t('matches.stadium')}</Text>
+                      </View>
+                      <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
                     </View>
-                    <Text style={styles.detailValue}>
-                      {currentMatch.date.includes("T")
-                        ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-                        : "21:00"}
-                    </Text>
-                  </View>
-
-                  {/* Séparateur 2 */}
-                  <View style={styles.separator}></View>
-
-                  {/* Stadium */}
-                  <View style={styles.detailItem}>
-                    <View style={styles.iconTitleContainer}>
-                      <StadiumIconPopup width={16} height={16} />
-                      <Text style={styles.detailTitle}>{i18n.t('matches.stadium')}</Text>
-                    </View>
-                    <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
                   </View>
                 </View>
               </WalkthroughableView>
@@ -264,7 +266,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
               order={2}
               name="about-section"
             >
-              <WalkthroughableView>
+              <WalkthroughableView style={styles.enhancedHighlight}>
                 <AboutSection
                   text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
                 />
@@ -276,7 +278,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
               order={3}
               name="location-section"
             >
-              <WalkthroughableView>
+              <WalkthroughableView style={styles.enhancedHighlight}>
                 <LocationSection
                   address={currentMatch.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
                   mapUrl={currentMatch.spot?.mapId}
@@ -296,7 +298,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
           order={4}
           name="buy-tickets"
         >
-          <WalkthroughableView>
+          <WalkthroughableView style={styles.enhancedHighlight}>
             <ButtonFixe title={i18n.t('matches.buyTickets')} onPress={handleBuyTicket} />
           </WalkthroughableView>
         </CopilotStep>
@@ -320,6 +322,8 @@ const MatchPopup: React.FC<MatchPopupProps> = (props) => {
         next: "Next",
         finish: "Done"
       }}
+      androidStatusBarVisible={true}
+      arrowSize={6}
     >
       <MatchPopupContent {...props} />
     </CopilotProvider>
@@ -373,7 +377,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   matchTitle: {
-
     fontFamily: 'Raleway',
     fontWeight: '700',
     fontSize: 24,
@@ -400,6 +403,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6FAFF',
     alignItems: 'center',
     borderRadius: 11,
+    width: '100%',
+    position: 'relative',
   },
   teamsContainer: {
     width: 215,
@@ -443,13 +448,14 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    //   alignItems: 'center',
     backgroundColor: '#F8F9FF',
-    marginBottom: 10
+    marginBottom: 10,
+    width: '100%',
+    justifyContent: 'space-around',
   },
   detailItem: {
-    //alignItems: 'center',
     justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   iconTitleContainer: {
     flexDirection: 'row',
@@ -496,7 +502,6 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
   },
-
   bottomContainer: {
     borderRadius: 4,
     alignItems: 'center',
@@ -544,7 +549,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    //backgroundColor: 'white',
     opacity: 0.5,
     borderRadius: 20,
     borderWidth: 1.7,
@@ -552,14 +556,8 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.2,
-    //shadowRadius: 4,
-    //elevation: 4,
   },
   savedButton: {
-    // backgroundColor: 'grey',
     backgroundColor: '#E6E6E6',
     borderColor: '#E6E6E6',
     opacity: 1,
@@ -567,6 +565,8 @@ const styles = StyleSheet.create({
   tooltip: {
     backgroundColor: '#CE1126',
     borderRadius: 10,
+    padding: 12,
+    width: '85%',
   },
   tourButton: {
     position: 'absolute',
@@ -589,6 +589,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     marginLeft: 5,
+  },
+  enhancedHighlight: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'visible',
+    backgroundColor: 'transparent',
+    padding: 2,
+    zIndex: 100,
   },
 });
 
