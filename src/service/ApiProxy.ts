@@ -6,9 +6,10 @@ import axios, {
 } from 'axios';
 import { getAccessToken, refreshToken, clearTokens } from './KeycloakService';
 import { trackEvent } from './Mixpanel';
+import { getImagesWithDefaults } from '../utils/imageUtils';
 
 //const API_URL = "http://192.168.0.205:9090";
-const baseURL = 'http://49.13.89.74:9090';
+const baseURL = 'https://agence.mview.ma/api';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -34,7 +35,29 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  async (response: AxiosResponse) => {
+    // Handle empty images array in successful responses
+    if (response.status === 200 && response.data) {
+
+      // Handle array response
+      if (Array.isArray(response.data)) {
+        const processedData = await Promise.all(response.data.map(async item => {
+          if (item.images && Array.isArray(item.images) && item.images.length === 0) {
+            const id = item.id || 'default';
+            item.images = await getImagesWithDefaults(item.images, id);
+          }
+          return item;
+        }));
+        response.data = processedData;
+      }
+      // Handle single object response
+      else if (response.data.images && Array.isArray(response.data.images) && response.data.images.length === 0) {
+        const id = response.data.id || 'default';
+        response.data.images = await getImagesWithDefaults(response.data.images, id);
+      }
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
