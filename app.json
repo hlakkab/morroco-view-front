@@ -2,8 +2,8 @@
   "expo": {
     "name": "morroco-view-front",
     "slug": "morroco-view-front",
-    "version": "1.0.2",
-    "versionCode": 2,
+    "version": "1.0.8",
+    "versionCode": 9,
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "light",
@@ -53,12 +53,6 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos."
-        }
-      ],
-      [
-        "expo-barcode-scanner",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan barcodes."
         }
       ]
     ],

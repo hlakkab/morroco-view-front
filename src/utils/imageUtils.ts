@@ -71,4 +71,71 @@ export const getImageWithFallback = (
     return fallbackImage || getRandomArtisanImage();
   }
   return imageUrl;
+};
+
+/**
+ * Checks if an image exists at the given URL
+ * @param url - The image URL to check
+ * @returns Promise<boolean> - True if the image exists and is accessible
+ */
+export const checkImageExists = async (url: string): Promise<boolean> => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok && response.status !== 403 && response.status !== 404;
+  } catch (error) {
+    console.error('Error checking image existence:', error);
+    return false;
+  }
+};
+
+/**
+ * Generates default images with the specified pattern when the images array is empty
+ * @param id - The ID to use in the image URL pattern
+ * @returns Promise<string[]> - Array of available default image URLs
+ */
+export const getDefaultImages = async (id: string): Promise<string[]> => {
+  const baseUrl = 'https://storage.googleapis.com/mview-media/';
+  const images: string[] = [];
+  let i = 1;
+  
+  while (true) {
+    // Try both webp and jpg extensions
+    const webpUrl = `${baseUrl}${id}.${i}.webp`;
+    const jpgUrl = `${baseUrl}${id}.${i}.jpg`;
+    
+    const webpExists = await checkImageExists(webpUrl);
+    const jpgExists = await checkImageExists(jpgUrl);
+    
+    if (!webpExists && !jpgExists) {
+      break;
+    }
+    
+    // Prefer webp if available, otherwise use jpg
+    if (webpExists) {
+      images.push(webpUrl);
+    } else if (jpgExists) {
+      images.push(jpgUrl);
+    }
+    
+    i++;
+  }
+
+  if(images.length > 0) {
+    console.log("images", images)
+  }
+  
+  return images;
+};
+
+/**
+ * Returns either the provided images array or default images if empty
+ * @param images - The original images array
+ * @param id - The ID to use for default images if needed
+ * @returns Promise<string[]> - Either the original images or default images
+ */
+export const getImagesWithDefaults = async (images: string[], id: string): Promise<string[]> => {
+  if (!images || images.length === 0) {
+    return await getDefaultImages(id);
+  }
+  return images;
 }; 

@@ -10,6 +10,7 @@ import QrCodeSvg from '../assets/serviceIcons/qrcode-icon.svg';
 import SimCardSvg from '../assets/serviceIcons/sim-card-icon.svg';
 // Import navigation types
 import { RootStackParamList } from '../types/navigation';
+import { trackEvent } from '../service/Mixpanel';
 
 const { width } = Dimensions.get('window');
 
@@ -41,18 +42,34 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
   const { currentLanguage } = useLanguage();
 
   const handleESIMPress = () => {
+    trackEvent('Service Clicked', {
+      service_name: 'eSIM',
+      language: currentLanguage
+    });
     navigation.navigate('ESIM');
   };
 
   const handleQRCodesPress = () => {
+    trackEvent('Service Clicked', {
+      service_name: 'QR Codes',
+      language: currentLanguage
+    });
     navigation.navigate('QRCodes');
   };
 
   const handleHotelPickupPress = () => {
+    trackEvent('Service Clicked', {
+      service_name: 'Hotel Pickup',
+      language: currentLanguage
+    });
     navigation.navigate('HotelPickup');
   };
 
   const handleMoneyExchangePress = () => {
+    trackEvent('Service Clicked', {
+      service_name: 'Money Exchange',
+      language: currentLanguage
+    });
     navigation.navigate('MoneyExchange');
   };
 

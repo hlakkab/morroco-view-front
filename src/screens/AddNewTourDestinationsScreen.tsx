@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
@@ -17,6 +17,8 @@ import { fetchBookmarksAsItems, setTourDestinations, setTourItems } from '../sto
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { TourSavedItem } from '../types/tour';
+import { useLanguage } from '../contexts/LanguageContext';
+import { trackEvent } from '../service/Mixpanel';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);

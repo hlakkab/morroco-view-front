@@ -20,6 +20,8 @@ import { saveTour, saveTourThunk, setTourItems } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
 import { TourSavedItem } from '../types/tour';
+import { useLanguage } from '../contexts/LanguageContext';
+import { trackEvent } from '../service/Mixpanel';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -73,6 +75,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
   const selectedItemsByDay = useAppSelector(state => state.tour.currentTour.selectedItemsByDay) || {};
   const cities = useAppSelector(state => state.tour.currentTour.cities) || {};
   const savedItems = useAppSelector(state => state.tour.currentTour.tourItems) || [];
+  const { currentLanguage } = useLanguage();
   
   const [schedule, setSchedule] = useState<DailySchedule[]>([]);
   const [showDurationModal, setShowDurationModal] = useState(false);
@@ -318,6 +321,19 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
         date: daySchedule?.date ? transformDateString(daySchedule.date) : undefined,
         image: images?.[0] || undefined
       };
+    });
+
+    // Track tour save event
+    trackEvent('Tour Saved', {
+      title: title || "My Tour",
+      start_date: formatDate(startDate),
+      end_date: formatDate(endDate),
+      total_days: schedule.length,
+      total_destinations: transformedItems.length,
+      cities: Object.values(cities).filter(Boolean),
+      language: currentLanguage,
+      has_durations: transformedItems.some(item => item.duration),
+      has_times: transformedItems.some(item => item.timeSlot)
     });
     
     // Use the saveTourThunk instead of saveTour

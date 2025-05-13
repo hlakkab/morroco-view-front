@@ -64,7 +64,7 @@ const ESIMScreenContent: React.FC = () => {
 
     // Listen for both stop and finish events
     copilotEvents.on('stop', handleStop);
-    copilotEvents.on('stepChange', (step) => {
+    copilotEvents.on('stepChange', (step: any) => {
       console.log('Step changed to:', step?.name);
     });
     

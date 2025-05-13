@@ -16,10 +16,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.moroccoview.app',
+    bundleIdentifier: 'com.advancedai.moroccoview.travel',
     config: {
       googleMapsApiKey: process.env.GOOGLE_PLACES_API_KEY,
-    }
+    },
+    infoPlist: {
+      NSCameraUsageDescription: "This app uses the camera to scan QR codes and take photos.",
+      NSPhotoLibraryUsageDescription: "This app uses the photo library to select QR code images.",
+      ITSAppUsesNonExemptEncryption: false
+    },
   },
   android: {
     adaptiveIcon: {

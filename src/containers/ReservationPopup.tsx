@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
 import { togglePickupDirection } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
+import { trackEvent } from '../service/Mixpanel';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -103,6 +104,8 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
     }
   }, [startTour, tourStarted]);
 
+
+
   // Handle Copilot events
   useEffect(() => {
     const handleStop = () => {
@@ -115,9 +118,26 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
       copilotEvents.off('stop', handleStop);
     };
   }, [copilotEvents]);
+    // Track when reservation popup is opened
+
+
+  useEffect(() => {
+    trackEvent('Pickup_Reservation_Opened', {
+      pickupId,
+      title,
+      price,
+      direction: pickupDirection
+    });
+  }, []);
+
 
   const handleToggleDirection = () => {
     dispatch(togglePickupDirection());
+    // Track direction toggle
+    trackEvent('Pickup_Direction_Toggled', {
+      pickupId,
+      newDirection: pickupDirection === 'a2h' ? 'h2a' : 'a2h'
+    });
   };
 
   // Custom date picker implementation
@@ -563,12 +583,26 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
         destination,
       })).unwrap();
 
+      // Track successful reservation
+      trackEvent('Pickup_Reservation_Success', {
+        pickupId,
+        pickupDate: format(selectedDate, 'yyyy-MM-dd'),
+        pickupTime: format(selectedTime, 'HH:mm'),
+        direction: pickupDirection,
+        location: hotelLocation
+      });
+
       Alert.alert(
         i18n.t('reservation.success'),
         i18n.t('reservation.bookingConfirmed'),
         [{ text: i18n.t('common.close'), onPress: onClose }]
       );
     } catch (error) {
+      // Track failed reservation
+      trackEvent('Pickup_Reservation_Failed', {
+        pickupId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       console.error('Failed to book pickup:', error);
     }
   };
