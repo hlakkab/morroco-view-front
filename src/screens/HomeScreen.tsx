@@ -26,9 +26,21 @@ interface StepType {
 
 const HomeScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { start, copilotEvents, visible, stop } = useCopilot();
+  const { start: startTour, copilotEvents, visible, stop } = useCopilot();
   const scrollViewRef = useRef<ScrollView>(null);
   const [showTourButton, setShowTourButton] = useState(true);
+  const [tourStarted, setTourStarted] = useState(false);
+
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
 
   const handleMatchesExplore = () => {
     // Navigate to matches screen
@@ -60,7 +72,7 @@ const HomeScreenContent: React.FC = () => {
 
   // Start the tour when the button is pressed
   const handleStartTour = () => {
-    start();
+    startTour();
   };
 
   return (
@@ -144,8 +156,10 @@ const HomeScreenContent: React.FC = () => {
         <View style={styles.bottomPadding} />
       </ScrollView>
 
+      <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
+
       {/* Bottom Navigation Bar */}
-      <CopilotStep
+      {/* <CopilotStep
         text={i18n.t('copilot.navigateApp')}
         order={6}
         name="navbar"
@@ -153,7 +167,7 @@ const HomeScreenContent: React.FC = () => {
         <WalkthroughableView style={styles.navbarHighlight}>
           <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
         </WalkthroughableView>
-      </CopilotStep>
+      </CopilotStep> */}
     </View>
   );
 };
