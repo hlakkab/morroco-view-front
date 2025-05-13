@@ -269,7 +269,7 @@ const RestaurantScreenContent: React.FC = () => {
       </View>
       <View style={styles.content}>
         <CopilotStep
-          text="Search for restaurants and filter by type"
+          text={i18n.t('copilot.searchRestaurants')}
           order={1}
           name="search"
         >
@@ -284,7 +284,7 @@ const RestaurantScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Select a city to filter restaurants"
+          text={i18n.t('copilot.filterRestaurantsByCity')}
           order={2}
           name="citySelector"
         >
@@ -301,7 +301,7 @@ const RestaurantScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Browse and select restaurants to view their details"
+          text={i18n.t('copilot.browseRestaurants')}
           order={3}
           name="restaurantList"
         >
@@ -349,11 +349,13 @@ const RestaurantScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <RestaurantScreenContent />
     </CopilotProvider>

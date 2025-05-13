@@ -296,20 +296,13 @@ const BrokerListScreenContent: React.FC = () => {
 
         {/* === Pagination : afficher si plus d'une page === */}
         {totalPages > 0 && (
-          <CopilotStep
-            text={i18n.t('copilot.navigatePages')}
-            order={4}
-            name="pagination"
-          >
-            <WalkthroughableView style={styles.paginationHighlight}>
-              <Pagination
-                totalItems={filteredBrokers.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
-            </WalkthroughableView>
-          </CopilotStep>
+          
+          <Pagination
+            totalItems={filteredBrokers.length}
+            itemsPerPage={itemsPerPage}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+          />
         )}
         {/* === Fin Pagination === */}
 
@@ -337,11 +330,13 @@ const BrokerListScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <BrokerListScreenContent />
     </CopilotProvider>

@@ -515,10 +515,10 @@ export default {
     enterTourTitle: "Enter a title for your tour",
     proceedToNext: "Proceed to the next step when you're ready",
     viewBrokerImages: "View the broker's images and save them to your favorites",
-    searchBroker: "Search for a broker by name or address",
+    searchBroker: "Search for a broker by name or address and filter by type",
     filterBrokerByCity: "Filter brokers by city",
     navigatePages: "Navigate through pages of results",
-    buyESIM: "Click here to buy a new eSIM",
+    buyESIM: "Buy an eSIM to stay connected during your trip",
     selectDay: "Select the day you want to plan",
     chooseCity: "Choose a city for your selected day",
     checkSpecifications: "Check the vehicle specifications",
@@ -591,5 +591,51 @@ export default {
     saveTour: "Save your tour when you're done organizing",
     addTour: "Create a new custom tour by selecting bookmarked places and events",
     viewTours: "View and manage your existing tours",
+    viewMonumentImages: "Browse through the monument images and save it to your favorites",
+    viewMonumentInfo: "View important information about the monument including type, visiting hours, and entry fee",
+    searchMonuments: "Search for monuments and filter by type",
+    selectCity: "Select a city to filter monuments",
+    browseMonuments: "Browse and select monuments to view details",
+    searchEntertainment: "Search for entertainment venues and filter by type",
+    filterEntertainmentByCity: "Select a city to filter entertainment venues",
+    browseEntertainment: "Browse and select entertainment venues to view details",
+    viewEntertainmentImages: "Browse through the entertainment venue images and save them to your favorites",
+    viewEntertainmentInfo: "View important information about the entertainment venue including type, operating hours, and location",
+    readEntertainmentDetails: "Read detailed information about the venue",
+    findEntertainmentLocation: "Find the venue's location and get directions",
+    bookEntertainment: "Click here to book your reservation",
+    searchRestaurants: "Search for restaurants and filter by type",
+    filterRestaurantsByCity: "Select a city to filter restaurants",
+    browseRestaurants: "Browse and select restaurants to view their details",
+    viewRestaurantImages: "View restaurant images and save to favorites",
+    checkRestaurantHours: "Check restaurant operating hours",
+    learnAboutRestaurant: "Learn more about the restaurant",
+    findRestaurantLocation: "Find the restaurant location",
+    bookRestaurantTable: "Book a table at this restaurant",
+    navigation: {
+      skip: "Skip",
+      previous: "Previous",
+      next: "Next",
+      finish: "Done"
+    },
+    moneyExchange: {
+      currencyConverter: "Currency Converter, enter an amount and select your currency.",
+      airportOption: "Airport exchange booths offer convenience but typically have the lowest rates",
+      bankOption: "Banks offer more security but require more time and sometimes have limited hours",
+      brokerOption: "Money exchange brokers offer the best rates with additional benefits"
+    },
+    esim: {
+      buyESIM: "Buy an eSIM to stay connected during your trip",
+      selectOperator: "Choose your preferred operator for your eSIM",
+      selectOffer: "Select the data plan that best suits your needs",
+      confirmPurchase: "Review your selection and confirm your purchase"
+    },
+    broker: {
+      browseBrokers: "Browse and select a broker to view details and exchange rates"
+    },
+    tickets: {
+      search: "Search for your tickets by team name, stadium, or ticket ID",
+      viewTickets: "View and manage your match and transport tickets"
+    }
   },
 }; 

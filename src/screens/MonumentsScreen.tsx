@@ -265,7 +265,7 @@ const MonumentsScreenContent: React.FC = () => {
       </View>
       <View style={styles.content}>
         <CopilotStep
-          text="Search for monuments and filter by type"
+          text={i18n.t('copilot.searchMonuments')}
           order={1}
           name="search"
         >
@@ -280,7 +280,7 @@ const MonumentsScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Select a city to filter monuments"
+          text={i18n.t('copilot.selectCity')}
           order={2}
           name="citySelector"
         >
@@ -297,7 +297,7 @@ const MonumentsScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Browse and select monuments to view details"
+          text={i18n.t('copilot.browseMonuments')}
           order={3}
           name="monumentList"
         >
@@ -345,11 +345,13 @@ const MonumentsScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <MonumentsScreenContent />
     </CopilotProvider>

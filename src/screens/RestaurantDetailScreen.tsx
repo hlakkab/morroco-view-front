@@ -124,7 +124,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
         
       <ScrollView style={styles.scrollView}>
         <CopilotStep
-          text="View restaurant images and save to favorites"
+          text={i18n.t('copilot.viewRestaurantImages')}
           order={1}
           name="gallery"
         >
@@ -168,7 +168,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
 
         <View style={styles.content}>
           <CopilotStep
-            text="Check restaurant operating hours"
+            text={i18n.t('copilot.checkRestaurantHours')}
             order={2}
             name="operatingHours"
           >
@@ -183,7 +183,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Learn more about the restaurant"
+            text={i18n.t('copilot.learnAboutRestaurant')}
             order={3}
             name="about"
           >
@@ -196,7 +196,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Find the restaurant location"
+            text={i18n.t('copilot.findRestaurantLocation')}
             order={4}
             name="location"
           >
@@ -212,7 +212,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
       </ScrollView>
 
       <CopilotStep
-        text="Book a table at this restaurant"
+        text={i18n.t('copilot.bookRestaurantTable')}
         order={5}
         name="reservation"
       >
@@ -235,11 +235,13 @@ const RestaurantDetailScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <RestaurantDetailScreenContent />
     </CopilotProvider>

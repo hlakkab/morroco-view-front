@@ -200,7 +200,7 @@ const MoneyExchangeScreenContent: React.FC = () => {
         <View style={styles.content}>
           {/* Currency Converter Section */}
           <CopilotStep
-            text="Currency Converter, enter an amount and select your currency."
+            text={i18n.t('copilot.moneyExchange.currencyConverter')}
             order={1}
             name="currency-converter"
           >
@@ -252,7 +252,7 @@ const MoneyExchangeScreenContent: React.FC = () => {
           <View style={styles.optionsContainer}>
             {/* Airport Exchange Option */}
             <CopilotStep
-              text="Airport exchange booths offer convenience but typically have the lowest rates"
+              text={i18n.t('copilot.moneyExchange.airportOption')}
               order={2}
               name="airport-option"
             >
@@ -277,7 +277,7 @@ const MoneyExchangeScreenContent: React.FC = () => {
             
             {/* Bank Exchange Option */}
             <CopilotStep
-              text="Banks offer more security but require more time and sometimes have limited hours"
+              text={i18n.t('copilot.moneyExchange.bankOption')}
               order={3}
               name="bank-option"
             >
@@ -302,7 +302,7 @@ const MoneyExchangeScreenContent: React.FC = () => {
             
             {/* Broker Exchange Option - Highlighted */}
             <CopilotStep
-              text="Money exchange brokers offer the best rates with additional benefits"
+              text={i18n.t('copilot.moneyExchange.brokerOption')}
               order={4}
               name="broker-option"
             >
@@ -427,11 +427,13 @@ const MoneyExchangeScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: i18n.t('common.skip'),
-        previous: i18n.t('common.previous'),
-        next: i18n.t('common.next'),
-        finish: i18n.t('common.done')
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
     >
       <MoneyExchangeScreenContent />
     </CopilotProvider>

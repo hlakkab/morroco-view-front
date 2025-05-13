@@ -217,7 +217,7 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
             {/* Operator Selection */}
             <View style={styles.formField}>
               <CopilotStep
-                text="Choose your preferred operator for your eSIM"
+                text={i18n.t('copilot.esim.selectOperator')}
                 order={1}
                 name="operator-selection"
               >
@@ -253,7 +253,7 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
             {/* Offers Selection */}
             <View style={styles.formField}>
               <CopilotStep
-                text="Select the data plan that best suits your needs"
+                text={i18n.t('copilot.esim.selectOffer')}
                 order={2}
                 name="offer-selection"
               >
@@ -293,9 +293,9 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
             {/* Buy Button */}
             <View style={styles.buttonContainer}>
               <CopilotStep
-                text="Complete your purchase by clicking the buy button"
+                text={i18n.t('copilot.esim.confirmPurchase')}
                 order={3}
-                name="buy-button"
+                name="confirm-purchase"
               >
                 <WalkthroughableView style={styles.enhancedHighlight}>
                   <Button 
@@ -329,13 +329,15 @@ const BuyESIMModal: React.FC<BuyESIMModalProps> = (props) => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
       }}
       androidStatusBarVisible={true} 
-      arrowSize={6}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <BuyESIMModalContent {...props} />
     </CopilotProvider>

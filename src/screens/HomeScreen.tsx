@@ -37,7 +37,7 @@ const HomeScreenContent: React.FC = () => {
 
   const handleCategoryPress = (category: string) => {
     const routeNames = navigation.getState().routeNames;
-  
+
     if (category === 'Restaurant') {
       navigation.navigate('Restaurant'); // Navigation spécifique pour Restaurant
     } else if (routeNames.includes(category as keyof RootStackParamList)) {
@@ -46,12 +46,12 @@ const HomeScreenContent: React.FC = () => {
       console.log(`Invalid navigation destination: ${category}`);
     }
   };
-  
+
   const handleEmergencyContacts = () => {
     // Navigate to emergency contacts screen
     navigation.navigate('Emergency');
   };
-  
+
   const handleNavigation = (routeName: string) => {
     // Use a type assertion to tell TypeScript that routeName is a valid key
     // @ts-ignore - We're handling navigation in a generic way
@@ -73,9 +73,9 @@ const HomeScreenContent: React.FC = () => {
         </TouchableOpacity>
       )}
 
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollContainer} 
+        style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
         {/* Search Bar Section with fixed height */}
@@ -86,11 +86,11 @@ const HomeScreenContent: React.FC = () => {
             name="search"
           >
             <WalkthroughableView style={styles.searchHighlight}>
-              <SearchBarContainer/>
+              <SearchBarContainer />
             </WalkthroughableView>
           </CopilotStep>
         </View>
-        
+
         {/* Africa Cup Banner Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
@@ -103,7 +103,7 @@ const HomeScreenContent: React.FC = () => {
             </WalkthroughableView>
           </CopilotStep>
         </View>
-        
+
         {/* Service Icons Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
@@ -116,7 +116,7 @@ const HomeScreenContent: React.FC = () => {
             </WalkthroughableView>
           </CopilotStep>
         </View>
-        
+
         {/* Explore Morocco Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
@@ -143,7 +143,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
         <View style={styles.bottomPadding} />
       </ScrollView>
-      
+
       {/* Bottom Navigation Bar */}
       <CopilotStep
         text={i18n.t('copilot.navigateApp')}
@@ -190,10 +190,10 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     padding: 16,
-    marginTop:30
+    marginTop: 30
   },
   bottomPadding: {
-    height: 100, 
+    height: 100,
   },
   tooltip: {
     backgroundColor: '#F7F7F7',
