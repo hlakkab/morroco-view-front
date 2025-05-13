@@ -3,7 +3,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import i18n from '../translations/i18n';
 
 import AboutSection from '../components/AboutSection';
@@ -22,11 +23,16 @@ const { width } = Dimensions.get('window');
 // Type pour les paramètres de route
 type EntertainmentDetailRouteProp = RouteProp<RootStackParamList, 'EntertainmentDetail'>;
 
-const EntertainmentDetailScreenVo: React.FC = () => {
-  // Récupération des paramètres de route (productCode et title)
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const EntertainmentDetailScreenContent: React.FC = () => {
   const route = useRoute<EntertainmentDetailRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   const { productCode, title } = route.params;
 
   // Get selected entertainment from Redux state
@@ -102,6 +108,31 @@ const EntertainmentDetailScreenVo: React.FC = () => {
 
     fetchDetail();
   }, [productCode, title, selectedEntertainment]);
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted && !loading) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted, loading]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
 
   if (loading) {
     return (
@@ -206,100 +237,173 @@ const EntertainmentDetailScreenVo: React.FC = () => {
     console.log("Book Now pressed for:", entertainment.productCode);
   };
 
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={entertainment.title} />
       </View>
       <ScrollView style={styles.scrollView}>
-        <View style={styles.imageSection}>
-          <FlatList
-            ref={flatListRef}
-            data={images}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
-            )}
-          />
-          <SaveButton onPress={handleSave} isSaved={entertainment.saved} />
-
-          {/* Indicateurs de pagination pour les images */}
-          {images.length > 1 && (
-            <View style={styles.paginationContainer}>
-              <View style={styles.pagination}>
-                {images.map((_, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.paginationDot,
-                      currentImageIndex === index && styles.activePaginationDot
-                    ]}
-                  />
-                ))}
+        <CopilotStep
+          text={i18n.t('copilot.viewEntertainmentImages')}
+          order={1}
+          name="images"
+        >
+          <WalkthroughableView style={styles.imageSection}>
+            <FlatList
+              ref={flatListRef}
+              data={images}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item }) => (
+                <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
+              )}
+            />
+            <SaveButton onPress={handleSave} isSaved={entertainment.saved} />
+            {images.length > 1 && (
+              <View style={styles.paginationContainer}>
+                <View style={styles.pagination}>
+                  {images.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.paginationDot,
+                        currentImageIndex === index && styles.activePaginationDot
+                      ]}
+                    />
+                  ))}
+                </View>
               </View>
-            </View>
-          )}
-        </View>
-
+            )}
+          </WalkthroughableView>
+        </CopilotStep>
 
         <View style={styles.content}>
-          <View style={styles.ratingContainer}>
-            {renderStars(rating)}
-            <Text style={styles.reviewsText}>({ratingCount} {ratingCount === 1 ? i18n.t('entertainment.review') : i18n.t('entertainment.reviews')})</Text>
-          </View>
+          <CopilotStep
+            text={i18n.t('copilot.viewEntertainmentInfo')}
+            order={2}
+            name="ratingsAndSpecs"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <View style={styles.ratingContainer}>
+                {renderStars(rating)}
+                <Text style={styles.reviewsText}>({ratingCount} {ratingCount === 1 ? i18n.t('entertainment.review') : i18n.t('entertainment.reviews')})</Text>
+              </View>
 
-          <Text style={styles.sectionTitle}>{i18n.t('transport.specifications')}</Text>
-          <View style={styles.specificationsContainer}>
-            {durationText !== '' && (
-              <View style={styles.specItem}>
-                <Ionicons name="time-outline" size={20} color="#666" />
-                <Text style={styles.specText}>{durationText}</Text>
-              </View>
-            )}
-            {pickupOffered !== '' && (
-              <View style={styles.specItem}>
-                <Ionicons name="car-outline" size={20} color="#666" />
-                <Text style={styles.specText}>{pickupOffered}</Text>
-              </View>
-            )}
-            {ticketType !== '' && (
-              <View style={styles.specItem}>
-                <Ionicons name="ticket-outline" size={20} color="#666" />
-                <Text style={styles.specText}>{ticketType}</Text>
-              </View>
-            )}
-            {guideLabel !== '' && (
-              <View style={styles.specItem}>
-                <Ionicons name="person-outline" size={20} color="#666" />
-                <Text style={styles.specText}>{guideLabel}</Text>
-              </View>
-            )}
-            {/* <View style={styles.specItem}>
+              <Text style={styles.sectionTitle}>{i18n.t('transport.specifications')}</Text>
+              <View style={styles.specificationsContainer}>
+                {durationText !== '' && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="time-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>{durationText}</Text>
+                  </View>
+                )}
+                {pickupOffered !== '' && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="car-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>{pickupOffered}</Text>
+                  </View>
+                )}
+                {ticketType !== '' && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="ticket-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>{ticketType}</Text>
+                  </View>
+                )}
+                {guideLabel !== '' && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="person-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>{guideLabel}</Text>
+                  </View>
+                )}
+                {/* <View style={styles.specItem}>
                             <Ionicons name="cash-outline" size={20} color="#666" />
                             <Text style={styles.specText}>
                                 From ${entertainmentHelpers.getFormattedPrice(entertainment)}
                             </Text> 
                         </View> */}
-          </View>
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <AboutSection 
-            text={entertainmentHelpers.cleanDescription(entertainment.description || i18n.t('entertainment.noInformation'))} 
-            title={i18n.t('entertainment.about')} 
-          />
+          <CopilotStep
+            text={i18n.t('copilot.readEntertainmentDetails')}
+            order={3}
+            name="about"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <AboutSection 
+                text={entertainmentHelpers.cleanDescription(entertainment.description || i18n.t('entertainment.noInformation'))} 
+                title={i18n.t('entertainment.about')} 
+              />
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <LocationSection 
-            address={entertainment.location} 
-            mapUrl={entertainment.mapUrl} 
-            title={i18n.t('entertainment.location')} 
-          />
+          <CopilotStep
+            text={i18n.t('copilot.findEntertainmentLocation')}
+            order={4}
+            name="location"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <LocationSection 
+                address={entertainment.location} 
+                mapUrl={entertainment.mapUrl} 
+                title={i18n.t('entertainment.location')} 
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </ScrollView>
-      <ButtonFixe title={i18n.t('entertainment.bookReservation')} onPress={handleBook} />
+
+      <CopilotStep
+        text={i18n.t('copilot.bookEntertainment')}
+        order={5}
+        name="bookButton"
+      >
+        <WalkthroughableView style={styles.walkthroughContainer}>
+          <ButtonFixe title={i18n.t('entertainment.bookReservation')} onPress={handleBook} />
+        </WalkthroughableView>
+      </CopilotStep>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const EntertainmentDetailScreenVo: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+    >
+      <EntertainmentDetailScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -457,6 +561,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     padding: 20
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  walkthroughContainer: {
+    width: '100%',
+    marginBottom: 16,
   },
 });
 

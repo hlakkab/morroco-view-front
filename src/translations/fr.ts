@@ -12,11 +12,17 @@ export default {
     cancel: 'Annuler',
     next: 'Suivant',
     noData: 'Aucune donnée disponible',
+    tourGuide: 'Guide du Tour',
+    skip: 'Passer',
+    previous: 'Précédent',
+    done: 'Terminer',
   },
   onboarding: {
     seeTitle: 'Découvrez le Maroc',
     seeSubtitle: 'Comme Jamais Auparavant.',
     getStarted: 'Commencer',
+    back: 'Retour',
+    next: 'Suivant',
   },
   login: {
     accessAccount: 'Accéder à mon compte',
@@ -34,7 +40,7 @@ export default {
   },
   home: {
     exploreMatches: 'Explorer les Matchs',
-    exploreEvent: 'Explorer l\'événement',
+    exploreEvent: 'Événements à venir',
     exploreMorocco: 'Explorer le Maroc',
     emergencyContacts: 'Contacts d\'urgence',
   },
@@ -147,6 +153,12 @@ export default {
     filterBrokers: 'Filtrer les Bureaux',
     loadingBrokers: 'Chargement des bureaux...',
     failedToLoad: 'Échec du chargement des bureaux',
+    tour: {
+      searchBrokersDesc: 'Recherchez des bureaux par nom ou adresse',
+      cityFilterDesc: 'Filtrez les bureaux par emplacement en ville',
+      brokerListDesc: 'Parcourez et sélectionnez un bureau pour voir les détails et les taux de change',
+      paginationDesc: 'Naviguez à travers plusieurs pages de listes de bureaux'
+    }
   },
   broker: {
     services: 'Services',
@@ -487,5 +499,153 @@ export default {
     delete: 'Supprimer',
     deleteTourConfirmation: 'Êtes-vous sûr de vouloir supprimer "{title}"? Cette action ne peut pas être annulée.',
     loadingRoutes: 'Chargement des itinéraires...',
+    onboarding: {
+      title: 'Bienvenue dans Tours',
+      subtitle: 'Créez des itinéraires personnalisés pour votre aventure marocaine en suivant ces étapes simples:',
+      explore: {
+        title: 'Explorez le Maroc',
+        description: 'Commencez par explorer notre collection de restaurants, monuments, artisans et options de divertissement. Découvrez les meilleurs endroits à visiter pendant votre voyage.'
+      },
+      events: {
+        title: 'Consultez les Événements à Venir',
+        description: 'Parcourez les matchs et événements à venir à inclure dans votre itinéraire. Planifiez votre voyage autour de ces occasions spéciales.'
+      },
+      bookmark: {
+        title: 'Enregistrez Vos Favoris',
+        description: 'Pendant votre exploration, marquez les lieux et événements que vous souhaitez inclure dans votre tour. Vous retrouverez tous vos éléments enregistrés dans l\'onglet Favoris.'
+      },
+      create: {
+        title: 'Créez Votre Tour',
+        description: 'Vous êtes maintenant prêt à créer un tour personnalisé ! Sélectionnez vos éléments favoris, définissez des dates et planifiez votre parfaite aventure marocaine.'
+      }
+    }
+  },
+  copilot: {
+    viewProfile: "Consultez et mettez à jour votre photo de profil et vos informations personnelles",
+    managePersonalInfo: "Gérez vos informations personnelles et vos coordonnées",
+    browseImages: "Parcourez les images des artisans et sauvegardez vos favoris",
+    viewArtisanInfo: "Consultez les informations importantes sur l'artisan",
+    learnArtisanHistory: "Découvrez l'histoire et le travail de l'artisan",
+    findArtisanLocation: "Trouvez l'emplacement de l'artisan et obtenez des directions",
+    trackProgress: "Suivez votre progression dans le processus de création de tour",
+    enterTourTitle: "Entrez un titre pour votre tour",
+    proceedToNext: "Passez à l'étape suivante quand vous êtes prêt",
+    viewBrokerImages: "Consultez les images du courtier et sauvegardez-les dans vos favoris",
+    searchBroker: "Recherchez un courtier par nom ou adresse et filtrer par type ",
+    filterBrokerByCity: "Filtrez les courtiers par ville",
+    navigatePages: "Naviguez à travers les pages de résultats",
+    buyESIM: "Achetez un eSIM pour rester connecté pendant votre voyage",
+    selectDay: "Sélectionnez le jour que vous souhaitez planifier",
+    chooseCity: "Choisissez une ville pour votre jour sélectionné",
+    checkSpecifications: "Vérifiez les spécifications du véhicule",
+    seeBrokerType: "Consultez le type et le statut du courtier",
+    viewServices: "Consultez les services proposés par ce courtier",
+    checkContactInfo: "Vérifiez les informations de contact et les heures d'ouverture du courtier",
+    learnMore: "En savoir plus sur ce courtier",
+    findLocation: "Trouvez l'emplacement du courtier sur la carte",
+    contactBroker: "Contactez directement le courtier",
+    getVisitTips: "Obtenez des conseils utiles pour votre visite",
+    findBrokers: "Appuyez ici pour trouver des courtiers de change près de votre emplacement",
+    readHistory: "Lisez l'histoire et l'importance du monument",
+    findMonumentLocation: "Trouvez l'emplacement du monument et obtenez des directions",
+    purchaseTickets: "Achetez des billets pour votre visite",
+    searchArtisans: "Recherchez des artisans et filtrez par type",
+    filterByCity: "Sélectionnez une ville pour filtrer les artisans",
+    filterByMatchCity: "Sélectionnez une ville pour filtrer les matchs",
+    browseArtisans: "Parcourez et sélectionnez des artisans pour voir leurs détails",
+    getSupport: "Obtenez de l'aide et du support via différentes méthodes de contact",
+    logout: "Déconnectez-vous en toute sécurité de votre compte lorsque vous avez terminé",
+    searchBookmarks: "Recherchez vos éléments favoris et filtrez par type",
+    filterBookmarksByCity: "Sélectionnez une ville pour filtrer vos favoris",
+    manageBookmarks: "Consultez et gérez vos favoris sauvegardés",
+    selectTourDates: "Sélectionnez les dates de début et de fin pour votre tour",
+    viewMatchDetails: "Consultez les détails du match, notamment les équipes, la date, l'heure et le stade",
+    readAboutMatch: "Lisez des informations sur le match et son importance",
+    findMatchLocation: "Trouvez l'emplacement du match et obtenez des directions",
+    viewEventInfo: "Consultez le type d'événement, les dates et les informations sur le site web",
+    readAboutEvent: "En savoir plus sur cet événement",
+    findEventLocation: "Trouvez l'emplacement de l'événement et obtenez des directions",
+    searchMatches: "Recherchez des matchs et filtrez par stade",
+    browseMatches: "Parcourez et sélectionnez des matchs pour voir les détails",
+    searchHotelPickup: "Recherchez des services de transport d'hôtel par nom ou emplacement et filtrez par type",
+    filterHotelsByCity: "Sélectionnez une ville pour trouver les services de transport d'hôtel disponibles",
+    selectDirectionType: "Basculez entre la direction aéroport vers hôtel ou hôtel vers aéroport",
+    selectedDirection: "Votre direction sélectionnée que vous souhaitez aller",
+    browsePickups: "Parcourez et sélectionnez le service de transport qui correspond le mieux à vos besoins",
+    viewVehicleImages: "Faites défiler les images pour vous faire une idée du véhicule et enregistrez-le dans vos favoris",
+    readAboutService: "En savoir plus sur ce service de transport",
+    reservePickup: "Cliquez ici pour réserver votre transport",
+    completeReservation: "Suivez ces étapes pour compléter votre réservation:\n\n" +
+                   "1. Sélectionnez votre date de ramassage\n" +
+                   "2. Choisissez votre heure préférée\n" +
+                   "3. Entrez votre emplacement",
+    confirmReservation: "Cliquez ici pour confirmer votre réservation",
+    exploreDestinations: "Recherchez vos destinations, restaurants ou activités préférés à travers le Maroc",
+    discoverEvents: "Ne manquez pas les événements et matchs passionnants qui se déroulent pendant votre visite au Maroc",
+    accessServices: "Accédez aux services essentiels pour rendre votre séjour au Maroc confortable et agréable",
+    discoverCategories: "Découvrez la beauté du Maroc en explorant différentes catégories d'attractions et de joyaux cachés",
+    findEmergency: "Accédez aux contacts d'urgence importants au Maroc en un seul clic",
+    navigateApp: "Naviguez facilement entre les différentes sections de l'application",
+    searchQRCodes: "Recherchez vos codes QR par titre",
+    manageQRCodes: "Consultez et gérez vos codes QR enregistrés",
+    addNewQRCode: "Ajoutez de nouveaux codes QR à votre collection",
+    selectOperator: "Choisissez votre opérateur préféré pour votre eSIM",
+    selectDataPlan: "Sélectionnez le forfait de données qui convient le mieux à vos besoins",
+    completePurchase: "Complétez votre achat en cliquant sur le bouton d'achat",
+    browseDestinations: "Parcourez et sélectionnez des destinations pour votre circuit dans la ville choisie",
+    viewDaySchedule: "Consultez le programme du jour et la ville",
+    organizeActivities: "Organisez vos activités dans l'ordre de votre choix",
+    organizeNextButton: "Passez à l'organisation de votre circuit lorsque vous avez terminé de sélectionner les destinations",
+    viewOptimalRoute: "Visualisez l'itinéraire optimal entre vos destinations sélectionnées",
+    reviewTourSchedule: "Examinez le programme complet de votre circuit",
+    saveTour: "Enregistrez votre circuit une fois l'organisation terminée",
+    addTour: "Créez un nouveau circuit personnalisé en sélectionnant des lieux et événements favoris",
+    viewTours: "Consultez et gérez vos circuits existants",
+    viewMonumentImages: "Parcourez les images du monument et enregistrez-les dans vos favoris",
+    viewMonumentInfo: "Consultez les informations importantes sur le monument, notamment le type, les heures de visite et les frais d'entrée",
+    searchMonuments: "Recherchez des monuments et filtrez par type",
+    selectCity: "Sélectionnez une ville pour filtrer les monuments",
+    browseMonuments: "Parcourez et sélectionnez des monuments pour voir leurs détails",
+    searchEntertainment: "Recherchez des lieux de divertissement et filtrez par type",
+    filterEntertainmentByCity: "Sélectionnez une ville pour filtrer les lieux de divertissement",
+    browseEntertainment: "Parcourez et sélectionnez des lieux de divertissement pour voir leurs détails",
+    viewEntertainmentImages: "Parcourez les images du lieu de divertissement et enregistrez-les dans vos favoris",
+    viewEntertainmentInfo: "Consultez les informations importantes sur le lieu de divertissement, notamment le type, les heures d'ouverture et l'emplacement",
+    readEntertainmentDetails: "Lisez des informations détaillées sur le lieu",
+    findEntertainmentLocation: "Trouvez l'emplacement du lieu et obtenez des directions",
+    bookEntertainment: "Cliquez ici pour effectuer votre réservation",
+    searchRestaurants: "Recherchez des restaurants et filtrez par type",
+    filterRestaurantsByCity: "Sélectionnez une ville pour filtrer les restaurants",
+    browseRestaurants: "Parcourez et sélectionnez des restaurants pour voir leurs détails",
+    viewRestaurantImages: "Consultez les images du restaurant et enregistrez-les dans vos favoris",
+    checkRestaurantHours: "Vérifiez les heures d'ouverture du restaurant",
+    learnAboutRestaurant: "En savoir plus sur le restaurant",
+    findRestaurantLocation: "Trouvez l'emplacement du restaurant",
+    bookRestaurantTable: "Réservez une table dans ce restaurant",
+    navigation: {
+      skip: "Passer",
+      previous: "Précédent",
+      next: "Suivant",
+      finish: "Terminé"
+    },
+    moneyExchange: {
+      currencyConverter: "Convertisseur de devises, entrez un montant et sélectionnez votre devise",
+      airportOption: "Les bureaux de change à l'aéroport offrent un confort mais ont généralement les taux les plus bas",
+      bankOption: "Les banques offrent plus de sécurité mais nécessitent plus de temps et ont parfois des horaires limités",
+      brokerOption: "Les courtiers de change de monnaie offrent les meilleurs taux avec des avantages supplémentaires"
+    },
+    esim: {
+      buyESIM: "Achetez un eSIM pour rester connecté pendant votre voyage",
+      selectOperator: "Choisissez votre opérateur préféré pour votre eSIM",
+      selectOffer: "Sélectionnez le forfait de données qui convient le mieux à vos besoins",
+      confirmPurchase: "Vérifiez votre sélection et confirmez votre achat"
+    },
+    broker: {
+      browseBrokers: "Parcourez et sélectionnez un courtier pour voir les détails et les taux de change"
+    },
+    tickets: {
+      search: "Recherchez vos billets par nom d'équipe, stade ou ID de billet",
+      viewTickets: "Consultez et gérez vos billets de match et de transport"
+    }
   },
 }; 

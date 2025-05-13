@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AboutSection from '../components/AboutSection';
 import ImageGallery from '../components/ImageGallery';
 import LocationSection from '../components/LocationSection';
@@ -15,11 +16,17 @@ import { getRandomArtisanImages } from '../utils/imageUtils';
 // Default artisan souk images if none are provided
 const DEFAULT_SOUK_IMAGES = getRandomArtisanImages(3);
 
-const ArtisanDetailScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const ArtisanDetailScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as Artisan;
   const dispatch = useAppDispatch();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   const [saved, setSaved] = useState(params.saved || false);
 
@@ -37,87 +44,189 @@ const ArtisanDetailScreen: React.FC = () => {
     dispatch(toggleArtisanBookmark(artisanDetails));
   };
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={artisanDetails.name} onBack={handleBack} />
       </View>
 
       <ScrollView style={styles.scrollView}>
-        <ImageGallery 
-          images={artisanDetails.images && artisanDetails.images.length > 0 
-            ? artisanDetails.images 
-            : DEFAULT_SOUK_IMAGES}
-          isSaved={saved}
-          onSavePress={handleSave}
-        />
+        <CopilotStep
+          text={i18n.t('copilot.browseImages')}
+          order={1}
+          name="gallery"
+        >
+          <WalkthroughableView style={styles.walkthroughContainer}>
+            <ImageGallery 
+              images={artisanDetails.images && artisanDetails.images.length > 0 
+                ? artisanDetails.images 
+                : DEFAULT_SOUK_IMAGES}
+              isSaved={saved}
+              onSavePress={handleSave}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
         <View style={styles.content}>
-          <View style={styles.artisanTypeContainer}>
-            <Text style={styles.artisanType}>
-              {artisanDetails.type} {i18n.t('artisans.souk')}
-            </Text>
-          </View>
-
-          <View style={styles.infoContainer}>
-            <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>
-                {artisanDetails.visitingHours || i18n.t('artisans.visitingHours')}
-              </Text>
-            </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="cash-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{i18n.t('artisans.entryFee')}</Text>
-            </View>
-            
-            {artisanDetails.specialties && artisanDetails.specialties.length > 0 && (
-              <View style={styles.infoItem}>
-                <Ionicons name="star-outline" size={20} color="#666" />
-                <Text style={styles.infoText}>
-                  {i18n.t('artisans.knownFor')} {artisanDetails.specialties.join(', ')}
+          <CopilotStep
+            text={i18n.t('copilot.viewArtisanInfo')}
+            order={2}
+            name="info"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <View style={styles.artisanTypeContainer}>
+                <Text style={styles.artisanType}>
+                  {artisanDetails.type} {i18n.t('artisans.souk')}
                 </Text>
               </View>
-            )}
-            
-            {artisanDetails.website && (
-              <View style={styles.infoItem}>
-                <Ionicons name="globe-outline" size={20} color="#666" />
-                <Text style={styles.infoText}>{artisanDetails.website}</Text>
+
+              <View style={styles.infoContainer}>
+                <View style={styles.infoItem}>
+                  <Ionicons name="time-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>
+                    {artisanDetails.visitingHours || i18n.t('artisans.visitingHours')}
+                  </Text>
+                </View>
+                
+                <View style={styles.infoItem}>
+                  <Ionicons name="cash-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>{i18n.t('artisans.entryFee')}</Text>
+                </View>
+                
+                {artisanDetails.specialties && artisanDetails.specialties.length > 0 && (
+                  <View style={styles.infoItem}>
+                    <Ionicons name="star-outline" size={20} color="#666" />
+                    <Text style={styles.infoText}>
+                      {i18n.t('artisans.knownFor')} {artisanDetails.specialties.join(', ')}
+                    </Text>
+                  </View>
+                )}
+                
+                {artisanDetails.website && (
+                  <View style={styles.infoItem}>
+                    <Ionicons name="globe-outline" size={20} color="#666" />
+                    <Text style={styles.infoText}>{artisanDetails.website}</Text>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <AboutSection 
-            title={i18n.t('artisans.about')} 
-            text={artisanDetails.description || i18n.t('artisans.noInformation')} 
-          />
+          <CopilotStep
+            text={i18n.t('copilot.learnArtisanHistory')}
+            order={3}
+            name="about"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <AboutSection 
+                title={i18n.t('artisans.about')} 
+                text={artisanDetails.description || i18n.t('artisans.noInformation')} 
+              />
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <LocationSection 
-            address={artisanDetails.address} 
-            mapUrl={`https://maps.google.com/?q=${encodeURIComponent(artisanDetails.address)}`}
-            title={i18n.t('artisans.location')}
-          />
+          <CopilotStep
+            text={i18n.t('copilot.findArtisanLocation')}
+            order={4}
+            name="location"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <LocationSection 
+                address={artisanDetails.address} 
+                mapUrl={`https://maps.google.com/?q=${encodeURIComponent(artisanDetails.address)}`}
+                title={i18n.t('artisans.location')}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <View style={styles.tipsContainer}>
-            <Text style={styles.tipsTitle}>{i18n.t('artisans.visitorTips')}</Text>
-            <View style={styles.tipItem}>
-              <Ionicons name="chatbubble-outline" size={20} color="#CE1126" />
-              <Text style={styles.tipText}>{i18n.t('artisans.bargainingTip')}</Text>
-            </View>
-            <View style={styles.tipItem}>
-              <Ionicons name="wallet-outline" size={20} color="#CE1126" />
-              <Text style={styles.tipText}>{i18n.t('artisans.cashTip')}</Text>
-            </View>
-            <View style={styles.tipItem}>
-              <Ionicons name="camera-outline" size={20} color="#CE1126" />
-              <Text style={styles.tipText}>{i18n.t('artisans.photoTip')}</Text>
-            </View>
-          </View>
+          <CopilotStep
+            text={i18n.t('copilot.getVisitTips')}
+            order={5}
+            name="tips"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <View style={styles.tipsContainer}>
+                <Text style={styles.tipsTitle}>{i18n.t('artisans.visitorTips')}</Text>
+                <View style={styles.tipItem}>
+                  <Ionicons name="chatbubble-outline" size={20} color="#CE1126" />
+                  <Text style={styles.tipText}>{i18n.t('artisans.bargainingTip')}</Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <Ionicons name="wallet-outline" size={20} color="#CE1126" />
+                  <Text style={styles.tipText}>{i18n.t('artisans.cashTip')}</Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <Ionicons name="camera-outline" size={20} color="#CE1126" />
+                  <Text style={styles.tipText}>{i18n.t('artisans.photoTip')}</Text>
+                </View>
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const ArtisanDetailScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: "Skip",
+        previous: "Previous",
+        next: "Next",
+        finish: "Done"
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+    >
+      <ArtisanDetailScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -192,6 +301,45 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: '#333',
+  },
+  walkthroughContainer: {
+    width: '100%',
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

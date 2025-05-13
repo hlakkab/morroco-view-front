@@ -151,45 +151,45 @@ const EventBannerContainer: React.FC<EventBannerContainerProps> = ({ onExplore }
   ]
 
   return (
-    <View>
-      <Text style={styles.sectionTitle}>
-           {i18n.t('home.exploreEvent')}
-      </Text>
+    <View> 
       <View style={styles.container}>
-      <View style={styles.imageSection}>
+        <View style={styles.imageSection}>
+          <Text style={styles.sectionTitle}>
+              {i18n.t('home.exploreEvent')}
+          </Text>
 
-        <FlatList
-            data={events}
-            renderItem={({ item }) => <EventBanner {...item} />}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            pagingEnabled
-            onScroll={handleScroll}  // Tu peux garder ça ou remplacer par onMomentumScrollEnd
-            //scrollEventThrottle={16}      // pour recevoir assez d’événements
-            onMomentumScrollEnd={(event) => handleScroll(event)} // Remplacer onScroll par celui-ci
-            style={{
-              borderRadius: 20,
-            }}
-        />
+          <FlatList
+              data={events}
+              renderItem={({ item }) => <EventBanner {...item} />}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              pagingEnabled
+              onScroll={handleScroll}  // Tu peux garder ça ou remplacer par onMomentumScrollEnd
+              //scrollEventThrottle={16}      // pour recevoir assez d’événements
+              onMomentumScrollEnd={(event) => handleScroll(event)} // Remplacer onScroll par celui-ci
+              style={{
+                borderRadius: 20,
+              }}
+          />
 
 
-        <View style={styles.paginationContainer}>
-          <View style={styles.pagination}>
-            {events.map((_, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.paginationDot, 
-                  index === currentIndex && styles.activePaginationDot
-                ]} 
-              />
-            ))}
+          <View style={styles.paginationContainer}>
+            <View style={styles.pagination}>
+              {events.map((_, index) => (
+                <View 
+                  key={index} 
+                  style={[
+                    styles.paginationDot, 
+                    index === currentIndex && styles.activePaginationDot
+                  ]} 
+                />
+              ))}
+            </View>
           </View>
-        </View>
 
+        </View>
       </View>
-    </View>
    </View>
   );
 };
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     width: width,
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 15,
+    // marginBottom: 15,
     paddingHorizontal: 12,
   },
   sectionTitle: {

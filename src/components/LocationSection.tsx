@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
    // marginLeft: 6,
     flex: 1,
     gap: 10,
-    marginBottom: 15,
+    marginBottom: 10,
   },
 
   locationTitle: {

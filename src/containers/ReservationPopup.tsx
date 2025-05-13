@@ -2,6 +2,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import "react-native-get-random-values";
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
@@ -12,6 +13,9 @@ import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupD
 import { togglePickupDirection } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
 
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
 interface ReservationPopupProps {
   onClose: () => void;
   title: string;
@@ -19,7 +23,7 @@ interface ReservationPopupProps {
   pickupId: string;
 }
 
-const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupProps) => {
+const ReservationPopupContent = ({ onClose, title, price, pickupId }: ReservationPopupProps) => {
   const mapRef = useRef<MapView | null>(null);
   const dispatch = useAppDispatch();
   const { bookingStatus, bookingError } = useAppSelector(
@@ -28,6 +32,8 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   const selectedCity = useAppSelector(
     (state) => state.hotelPickup.selectedCity
   );
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   const pickupDirection = useAppSelector(
     (state) => state.hotelPickup.pickupDirection
@@ -84,6 +90,31 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
     console.log('ReservationPopup - Current pickup direction:', pickupDirection);
     console.log('ReservationPopup - City:', selectedCity);
   }, [pickupDirection, selectedCity]);
+
+  useEffect(() => {
+    // Start the Copilot tour when the component mounts
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+
+    copilotEvents.on('stop', handleStop);
+
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
 
   const handleToggleDirection = () => {
     dispatch(togglePickupDirection());
@@ -409,24 +440,24 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
   // Format date for display
   const formatDisplayDate = (dateInput: string | Date) => {
     if (!dateInput) return '';
-    
+
     try {
       let date: Date;
-      
+
       if (typeof dateInput === 'string') {
         const [year, month, day] = dateInput.split('/');
         date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       } else {
         date = dateInput;
       }
-      
+
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      
+
       const dayName = days[date.getDay()];
       const dayNum = date.getDate().toString().padStart(2, '0');
       const monthName = months[date.getMonth()];
-      
+
       return `${dayName} ${dayNum} ${monthName}`;
     } catch (e) {
       return typeof dateInput === 'string' ? dateInput : format(dateInput, 'MMM dd, yyyy');
@@ -447,10 +478,10 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
       longitude: details.geometry.location.lng,
       address: data.description,
     };
-    
+
     setDestination([newLocation.longitude, newLocation.latitude]);
     setHotelLocation(newLocation.address);
-    
+
     // Set the initial map region with appropriate deltas for zoom
     const newRegion = {
       latitude: newLocation.latitude,
@@ -458,11 +489,11 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
       latitudeDelta: 0.01,
       longitudeDelta: 0.01,
     };
-    
+
     setMapRegion(newRegion);
     setMapVisible(true);
     setShowLocationInput(false);
-    
+
     // Dismiss keyboard and scroll to map
     Keyboard.dismiss();
     setTimeout(() => {
@@ -542,12 +573,25 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
     }
   };
 
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <View style={styles.popup}>
+        {/* Manual tour button */}
+        {!visible && (
+          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+          </TouchableOpacity>
+        )}
+        
         <View style={styles.fixedHeader}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
@@ -561,9 +605,9 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
         <View style={styles.divider} />
 
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollContent} 
+          style={styles.scrollContent}
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
@@ -579,57 +623,65 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
             </View>
 
             {/* Direction switch control */}
-            <View style={styles.directionSwitchWrapper}>
-              <View style={styles.directionControls}>
-                {pickupDirection === 'a2h' ? (
-                  // Airport to Hotel layout
-                  <>
-                    <View style={styles.endpointWithLabel}>
-                      <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
-                        <MaterialIcons name="flight" size={16} color="#CE1126" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
-                    </View>
+            <CopilotStep
+              text={i18n.t('copilot.selectedDirection')}
+              order={1}
+              name="directionSelector"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.directionSwitchWrapper}>
+                  <View style={styles.directionControls}>
+                    {pickupDirection === 'a2h' ? (
+                      // Airport to Hotel layout
+                      <>
+                        <View style={styles.endpointWithLabel}>
+                          <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                            <MaterialIcons name="flight" size={16} color="#CE1126" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                        </View>
 
-                    <View style={styles.directionMiddle}>
-                      <Ionicons name="arrow-forward" size={20} color="#666" />
-                      <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
-                    </View>
-
-
-                    <View style={styles.endpointWithLabel}>
-                      <View style={styles.directionEndpoint}>
-                        <MaterialIcons name="hotel" size={16} color="#008060" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
-                    </View>
-                  </>
-                ) : (
-                  // Hotel to Airport layout
-                  <>
-                    <View style={styles.endpointWithLabel}>
-                      <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
-                        <MaterialIcons name="hotel" size={16} color="#008060" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
-                    </View>
-
-                    <View style={styles.directionMiddle}>
-                      <Ionicons name="arrow-forward" size={20} color="#666" />
-                      <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
-                    </View>
+                        <View style={styles.directionMiddle}>
+                          <Ionicons name="arrow-forward" size={20} color="#666" />
+                          <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                        </View>
 
 
-                    <View style={styles.endpointWithLabel}>
-                      <View style={styles.directionEndpoint}>
-                        <MaterialIcons name="flight" size={16} color="#CE1126" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
-                    </View>
-                  </>
-                )}
-              </View>
-            </View>
+                        <View style={styles.endpointWithLabel}>
+                          <View style={styles.directionEndpoint}>
+                            <MaterialIcons name="hotel" size={16} color="#008060" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                        </View>
+                      </>
+                    ) : (
+                      // Hotel to Airport layout
+                      <>
+                        <View style={styles.endpointWithLabel}>
+                          <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                            <MaterialIcons name="hotel" size={16} color="#008060" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                        </View>
+
+                        <View style={styles.directionMiddle}>
+                          <Ionicons name="arrow-forward" size={20} color="#666" />
+                          <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                        </View>
+
+
+                        <View style={styles.endpointWithLabel}>
+                          <View style={styles.directionEndpoint}>
+                            <MaterialIcons name="flight" size={16} color="#CE1126" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
 
             <View style={styles.routeContainer}>
               {pickupDirection === 'a2h' ? (
@@ -678,35 +730,42 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
             </View>
 
             <View style={styles.formContainer}>
-              <Text style={styles.sectionTitle}>{i18n.t('reservation.whenAreYouArriving')}</Text>
+              <CopilotStep
+                text={i18n.t('copilot.completeReservation')}
+                order={2}
+                name="reservationSteps"
+              >
+                <WalkthroughableView style={styles.enhancedHighlight}>
+                  <View>
+                    <Text style={styles.sectionTitle}>{i18n.t('reservation.whenAreYouArriving')}</Text>
 
-              <View style={styles.dateTimeContainer}>
-                <View style={styles.dateContainer}>
-                  <Text style={styles.inputLabel}>{i18n.t('reservation.date')}</Text>
-                  <TouchableOpacity
-                    style={styles.dateInput}
-                    onPress={() => setShowModernDatePicker(true)}
-                  >
-                    <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
-                    <Text style={styles.dateTimeText}>
-                      {selectedDate ? formatDisplayDate(selectedDate) : i18n.t('reservation.selectDate')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                    <View style={styles.dateTimeContainer}>
+                      <View style={styles.dateContainer}>
+                        <Text style={styles.inputLabel}>{i18n.t('reservation.date')}</Text>
+                        <TouchableOpacity
+                          style={styles.dateInput}
+                          onPress={() => setShowModernDatePicker(true)}
+                        >
+                          <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
+                          <Text style={styles.dateTimeText}>
+                            {selectedDate ? formatDisplayDate(selectedDate) : i18n.t('reservation.selectDate')}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
 
-                <View style={styles.timeContainer}>
-                  <Text style={styles.inputLabel}>{i18n.t('reservation.time')}</Text>
-                  <TouchableOpacity
-                    style={styles.timeInput}
-                    onPress={() => setShowTimePicker(true)}
-                  >
-                    <Ionicons name="time" size={20} color="#666" style={styles.inputIcon} />
-                    <Text style={styles.dateTimeText}>
-                      {selectedTime ? format(selectedTime, 'hh:mm a') : i18n.t('reservation.selectTime')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+                      <View style={styles.timeContainer}>
+                        <Text style={styles.inputLabel}>{i18n.t('reservation.time')}</Text>
+                        <TouchableOpacity
+                          style={styles.timeInput}
+                          onPress={() => setShowTimePicker(true)}
+                        >
+                          <Ionicons name="time" size={20} color="#666" style={styles.inputIcon} />
+                          <Text style={styles.dateTimeText}>
+                            {selectedTime ? format(selectedTime, 'hh:mm a') : i18n.t('reservation.selectTime')}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
 
               <Text style={styles.sectionTitle}>{i18n.t('reservation.whereAreYouStaying')}</Text>
               
@@ -717,7 +776,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                   placeholder={i18n.t('reservation.searchForLocation')}
                   onPress={handleLocationSelect}
                   query={{
-                    key: 'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek',
+                    key: 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY',
                     language: 'en',
                     components: 'country:ma',
                   }}
@@ -751,75 +810,76 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
                 />
               </View>
 
-              {/* Map display section - always visible, just shows placeholder when no location */}
-              {mapVisible && destination ? (
-                <View style={styles.mapContainer}>
-                  <MapView
-                    ref={mapRef}
-                    provider={PROVIDER_DEFAULT}
-                    style={styles.map}
-                    initialRegion={mapRegion || undefined}
-                    showsUserLocation={true}
-                    showsCompass={true}
-                    rotateEnabled={true}
-                    scrollEnabled={true}
-                    zoomEnabled={true}
-                    pitchEnabled={Platform.OS !== 'ios'}
-                  >
-                    <Marker
-                      coordinate={{
-                        latitude: destination[1],
-                        longitude: destination[0],
-                      }}
-                      title={i18n.t('reservation.selectedLocation')}
-                      description={hotelLocation}
-                    />
-                  </MapView>
-                  
-                  {/* Zoom controls */}
-                  <View style={styles.zoomControls}>
-                    <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
-                      <Ionicons name="add" size={24} color="#333" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
-                      <Ionicons name="remove" size={24} color="#333" />
-                    </TouchableOpacity>
+                    {mapVisible && destination ? (
+                      <View style={styles.mapContainer}>
+                        <MapView
+                          ref={mapRef}
+                          provider={PROVIDER_DEFAULT}
+                          style={styles.map}
+                          initialRegion={mapRegion || undefined}
+                          showsUserLocation={true}
+                          showsCompass={true}
+                          rotateEnabled={true}
+                          scrollEnabled={true}
+                          zoomEnabled={true}
+                          pitchEnabled={Platform.OS !== 'ios'}
+                        >
+                          <Marker
+                            coordinate={{
+                              latitude: destination[1],
+                              longitude: destination[0],
+                            }}
+                            title={i18n.t('reservation.selectedLocation')}
+                            description={hotelLocation}
+                          />
+                        </MapView>
+
+                        <View style={styles.zoomControls}>
+                          <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
+                            <Ionicons name="add" size={24} color="#333" />
+                          </TouchableOpacity>
+                          <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
+                            <Ionicons name="remove" size={24} color="#333" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={styles.mapPlaceholderContainer}>
+                        <View style={styles.mapPlaceholderContent}>
+                          <Ionicons name="map-outline" size={50} color="#CE1126" />
+                          <Text style={styles.mapPlaceholderText}>{i18n.t('reservation.searchToSeeMapLocation') || "Search for a location to see it on the map"}</Text>
+                        </View>
+                        <View style={styles.mapPlaceholderGrid}>
+                          <View style={styles.mapPlaceholderGridRow}>
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                            <View style={styles.mapPlaceholderGridItem} />
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                            <View style={styles.mapPlaceholderGridItem} />
+                          </View>
+                          <View style={styles.mapPlaceholderGridRow}>
+                            <View style={styles.mapPlaceholderGridItem} />
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                            <View style={styles.mapPlaceholderGridItem} />
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                          </View>
+                          <View style={styles.mapPlaceholderGridRow}>
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                            <View style={styles.mapPlaceholderGridItem} />
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                            <View style={styles.mapPlaceholderGridItem} />
+                          </View>
+                          <View style={styles.mapPlaceholderGridRow}>
+                            <View style={styles.mapPlaceholderGridItem} />
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                            <View style={styles.mapPlaceholderGridItem} />
+                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                          </View>
+                        </View>
+                      </View>
+                    )}
                   </View>
-                </View>
-              ) : (
-                <View style={styles.mapPlaceholderContainer}>
-                  <View style={styles.mapPlaceholderContent}>
-                    <Ionicons name="map-outline" size={50} color="#CE1126" />
-                    <Text style={styles.mapPlaceholderText}>{i18n.t('reservation.searchToSeeMapLocation') || "Search for a location to see it on the map"}</Text>
-                  </View>
-                  <View style={styles.mapPlaceholderGrid}>
-                    <View style={styles.mapPlaceholderGridRow}>
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                      <View style={styles.mapPlaceholderGridItem} />
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                      <View style={styles.mapPlaceholderGridItem} />
-                    </View>
-                    <View style={styles.mapPlaceholderGridRow}>
-                      <View style={styles.mapPlaceholderGridItem} />
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                      <View style={styles.mapPlaceholderGridItem} />
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                    </View>
-                    <View style={styles.mapPlaceholderGridRow}>
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                      <View style={styles.mapPlaceholderGridItem} />
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                      <View style={styles.mapPlaceholderGridItem} />
-                    </View>
-                    <View style={styles.mapPlaceholderGridRow}>
-                      <View style={styles.mapPlaceholderGridItem} />
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                      <View style={styles.mapPlaceholderGridItem} />
-                      <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                    </View>
-                  </View>
-                </View>
-              )}
+                </WalkthroughableView>
+              </CopilotStep>
 
               {bookingError && (
                 <Text style={styles.errorText}>{bookingError}</Text>
@@ -830,14 +890,22 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
 
         {/* Fixed footer with confirm button */}
         <View style={styles.fixedFooter}>
-          <Button
-            title={i18n.t('reservation.confirmReservation')}
-            style={styles.confirmButton}
-            icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
-            onPress={handleSubmit}
-            loading={bookingStatus === 'loading'}
-            disabled={bookingStatus === 'loading' || !destination}
-          />
+          <CopilotStep
+            text={i18n.t('copilot.confirmReservation')}
+            order={3}
+            name="confirmButton"
+          >
+            <WalkthroughableView style={styles.enhancedHighlight}>
+              <Button
+                title={i18n.t('reservation.confirmReservation')}
+                style={styles.confirmButton}
+                icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
+                onPress={handleSubmit}
+                loading={bookingStatus === 'loading'}
+                disabled={bookingStatus === 'loading' || !destination}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </View>
 
@@ -846,7 +914,7 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
         visible={showModernDatePicker}
         onClose={() => setShowModernDatePicker(false)}
         pickerMode="start"
-        setPickerMode={() => {}}
+        setPickerMode={() => { }}
         startDate={format(selectedDate, 'yyyy/MM/dd')}
         endDate=""
         onDateSelect={handleDateSelect}
@@ -858,6 +926,32 @@ const ReservationPopup = ({ onClose, title, price, pickupId }: ReservationPopupP
       {showDatePicker && renderCustomDatePicker()}
       {showTimePicker && renderCustomTimePicker()}
     </KeyboardAvoidingView>
+  );
+};
+
+// Wrap the content with CopilotProvider
+const ReservationPopup = (props: ReservationPopupProps) => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+      androidStatusBarVisible={true}
+    >
+      <ReservationPopupContent {...props} />
+    </CopilotProvider>
   );
 };
 
@@ -1276,7 +1370,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 14,
-   // backgroundColor: '#fff',
+    // backgroundColor: '#fff',
     marginBottom: 4,
     //borderWidth: 1,
     //borderColor: '#eee',
@@ -1451,6 +1545,55 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
     paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Add extra padding for iOS
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  walkthroughContainer: {
+    // flex: 1,
+    width: '100%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 10,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  enhancedHighlight: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'visible',
+    backgroundColor: 'transparent',
+    padding: 2,
+    marginBottom: 0,
+    zIndex: 100,
   },
 });
 

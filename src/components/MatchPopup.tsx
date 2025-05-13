@@ -1,8 +1,9 @@
 import Fontisto from '@expo/vector-icons/Fontisto';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useSelector } from 'react-redux';
 import CloseButton from '../assets/img/CloseButton.svg';
 import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
@@ -23,11 +24,16 @@ export interface MatchPopupProps {
   onClose: () => void;
 }
 
-const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
   const { currentLanguage } = useLanguage();
   const { currentMatch, ticketPurchaseStatus, ticketPurchaseError } 
     = useSelector((state: RootState) => state.match);
+  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   // Reset ticket purchase status when component unmounts
   useEffect(() => {
@@ -85,6 +91,29 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
     })
   ).current;
 
+  // Start the tour automatically when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+
+    copilotEvents.on('stop', handleStop);
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
   const handleSave = () => {
     if (currentMatch) {
       dispatch(toggleMatchBookmark(currentMatch));
@@ -110,6 +139,11 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
     }
   };
 
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   // If no current match is available, return null or a loading state
   if (!currentMatch) {
     return (
@@ -121,11 +155,18 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
     );
   }
 
-
   return (
     <Animated.View
       style={[styles.container, { transform: [{ translateY: pan.y }] }]}>
       <View style={[styles.popup]}>
+        {/* Manual tour button */}
+        {!tourVisible && (
+          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Header blanc */}
         <View style={styles.headerSection}>
           {/* Drag handle */}
@@ -156,112 +197,159 @@ const MatchPopup: React.FC<MatchPopupProps> = ({ onClose }) => {
           bounces={true}
           nestedScrollEnabled={true}
         >
-          
           <View style={styles.content}>
+            <CopilotStep
+              text={i18n.t('copilot.viewMatchDetails')}
+              order={1}
+              name="match-details"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.grandContainer}>
+                  <TouchableOpacity
+                    style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
+                    onPress={handleSave}
+                  >
+                    <Ionicons
+                      name={currentMatch.saved ? "bookmark" : "bookmark-outline"}
+                      size={24}
+                      color={currentMatch.saved ? "#888888" : "#000"}
+                    />
+                  </TouchableOpacity>
 
-          
-            <View style={styles.grandContainer}>
-              <TouchableOpacity
-                style={[styles.saveButton, currentMatch.saved && styles.savedButton]}
-                onPress={handleSave}
-              >
-                <Ionicons
-                  name={currentMatch.saved ? "bookmark" : "bookmark-outline"}
-                  size={24}
-                  color={currentMatch.saved ? "#888888" : "#000"}
+                  <View style={styles.teamsContainer}>
+                    <View style={styles.teamContainer}>
+                      <View style={styles.flagContainer}>
+                        <Image
+                          source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
+                          style={styles.flag}
+                        />
+                      </View>
+                    </View>
+
+                    <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
+
+                    <View style={styles.teamContainer}>
+                      <View style={styles.flagContainer}>
+                        <Image
+                          source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
+                          style={styles.flag}
+                        />
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    {/* Date */}
+                    <View style={styles.detailItem}>
+                      <View style={styles.iconTitleContainer}>
+                        <Fontisto name="date" size={16} color="#656565" />
+                        <Text style={styles.detailTitle}>{i18n.t('matches.date')}</Text>
+                      </View>
+                      <Text style={styles.detailValue}>
+                        {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </Text>
+                    </View>
+
+                    {/* Séparateur 1 */}
+                    <View style={styles.separator}></View>
+
+                    {/* Time */}
+                    <View style={styles.detailItem}>
+                      <View style={styles.iconTitleContainer}>
+                        <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
+                        <Text style={styles.detailTitle}>{i18n.t('matches.time')}</Text>
+                      </View>
+                      <Text style={styles.detailValue}>
+                        {currentMatch.date.includes("T")
+                          ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                          : "21:00"}
+                      </Text>
+                    </View>
+
+                    {/* Séparateur 2 */}
+                    <View style={styles.separator}></View>
+
+                    {/* Stadium */}
+                    <View style={styles.detailItem}>
+                      <View style={styles.iconTitleContainer}>
+                        <StadiumIconPopup width={16} height={16} />
+                        <Text style={styles.detailTitle}>{i18n.t('matches.stadium')}</Text>
+                      </View>
+                      <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
+                    </View>
+                  </View>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
+
+            <CopilotStep
+              text={i18n.t('copilot.readAboutMatch')}
+              order={2}
+              name="about-section"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <AboutSection
+                  text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
                 />
-              </TouchableOpacity>
+              </WalkthroughableView>
+            </CopilotStep>
 
+            <CopilotStep
+              text={i18n.t('copilot.findMatchLocation')}
+              order={3}
+              name="location-section"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <LocationSection
+                  address={currentMatch.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
+                  mapUrl={currentMatch.spot?.mapId}
+                />
+              </WalkthroughableView>
+            </CopilotStep>
 
-              
-              <View style={styles.teamsContainer}>
-                <View style={styles.teamContainer}>
-                  <View style={styles.flagContainer}>
-                    <Image
-                      source={{ uri: getFlagUrl(currentMatch.homeTeam) }}
-                      style={styles.flag}
-                    />
-                  </View>
-                </View>
-
-                <Text style={styles.vsText}>{i18n.t('matches.vs')}</Text>
-
-                <View style={styles.teamContainer}>
-                  <View style={styles.flagContainer}>
-                    <Image
-                      source={{ uri: getFlagUrl(currentMatch.awayTeam) }}
-                      style={styles.flag}
-                    />
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.detailRow}>
-                {/* Date */}
-                <View style={styles.detailItem}>
-                  <View style={styles.iconTitleContainer}>
-                    <Fontisto name="date" size={16} color="#656565" />
-                    <Text style={styles.detailTitle}>{i18n.t('matches.date')}</Text>
-                  </View>
-                  <Text style={styles.detailValue}>
-                    {new Date(currentMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </Text>
-                </View>
-
-                {/* Séparateur 1 */}
-                <View style={styles.separator}></View>
-
-                {/* Time */}
-                <View style={styles.detailItem}>
-                  <View style={styles.iconTitleContainer}>
-                    <MaterialCommunityIcons name="clock-outline" size={16} color="#656565" />
-                    <Text style={styles.detailTitle}>{i18n.t('matches.time')}</Text>
-                  </View>
-                  <Text style={styles.detailValue}>
-                    {currentMatch.date.includes("T")
-                      ? new Date(currentMatch.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-                      : "21:00"}
-                  </Text>
-                </View>
-
-                {/* Séparateur 2 */}
-                <View style={styles.separator}></View>
-
-                {/* Stadium */}
-                <View style={styles.detailItem}>
-                  <View style={styles.iconTitleContainer}>
-                    <StadiumIconPopup width={16} height={16} />
-                    <Text style={styles.detailTitle}>{i18n.t('matches.stadium')}</Text>
-                  </View>
-                  <Text style={styles.detailValue}>{currentMatch.spot?.name || "Unknown"}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* About Section */}
-            <AboutSection
-              text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
-            />
-
-            {/* Location Section */}
-            <LocationSection
-              address={currentMatch.spot?.address || "175, Rue Mohamed El Begal, Marrakech 40000 Morocco"}
-              mapUrl={currentMatch.spot?.mapId}
-            />
-
-            {/* Ticket Purchase Status */}
             <TicketPurchaseStatus
               status={ticketPurchaseStatus}
               error={ticketPurchaseError}
             />
           </View>
-
         </ScrollView>
 
-        {/* Bottom Section: Boutons Add to Tour & Buy Tickets */}
-        <ButtonFixe title={i18n.t('matches.buyTickets')} onPress={handleBuyTicket} />
+        <CopilotStep
+          text={i18n.t('copilot.purchaseTickets')}
+          order={4}
+          name="buy-tickets"
+        >
+          <WalkthroughableView style={styles.enhancedHighlight}>
+            <ButtonFixe title={i18n.t('matches.buyTickets')} onPress={handleBuyTicket} />
+          </WalkthroughableView>
+        </CopilotStep>
       </View>
     </Animated.View>
+  );
+};
+
+const MatchPopup: React.FC<MatchPopupProps> = (props) => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      androidStatusBarVisible={true}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <MatchPopupContent {...props} />
+    </CopilotProvider>
   );
 };
 
@@ -312,7 +400,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   matchTitle: {
-
     fontFamily: 'Raleway',
     fontWeight: '700',
     fontSize: 24,
@@ -339,6 +426,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6FAFF',
     alignItems: 'center',
     borderRadius: 11,
+    width: '100%',
+    position: 'relative',
   },
   teamsContainer: {
     width: 215,
@@ -382,13 +471,14 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    //   alignItems: 'center',
     backgroundColor: '#F8F9FF',
-    marginBottom: 10
+    marginBottom: 10,
+    width: '100%',
+    justifyContent: 'space-around',
   },
   detailItem: {
-    //alignItems: 'center',
     justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   iconTitleContainer: {
     flexDirection: 'row',
@@ -435,7 +525,6 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
   },
-
   bottomContainer: {
     borderRadius: 4,
     alignItems: 'center',
@@ -483,7 +572,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    //backgroundColor: 'white',
     opacity: 0.5,
     borderRadius: 20,
     borderWidth: 1.7,
@@ -491,17 +579,55 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.2,
-    //shadowRadius: 4,
-    //elevation: 4,
   },
   savedButton: {
-    // backgroundColor: 'grey',
     backgroundColor: '#E6E6E6',
     borderColor: '#E6E6E6',
     opacity: 1,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  enhancedHighlight: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'visible',
+    backgroundColor: 'transparent',
+    padding: 2,
+    zIndex: 100,
   },
 });
 

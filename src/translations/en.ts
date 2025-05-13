@@ -12,11 +12,17 @@ export default {
     cancel: 'Cancel',
     next: 'Next',
     noData: 'No data available',
+    tourGuide: 'Tour Guide',
+    skip: 'Skip',
+    previous: 'Previous',
+    done: 'Done',
   },
   onboarding: {
     seeTitle: 'See Morocco',
     seeSubtitle: 'Like Never Before.',
     getStarted: 'Get Started',
+    back: 'Back',
+    next: 'Next',
   },
   login: {
     accessAccount: 'Access my account',
@@ -34,7 +40,7 @@ export default {
   },
   home: {
     exploreMatches: 'Explore Matches',
-    exploreEvent: 'Explore Event',
+    exploreEvent: 'Upcoming Events',
     exploreMorocco: 'Explore Morocco',
     emergencyContacts: 'Emergency Contacts',
   },
@@ -147,6 +153,12 @@ export default {
     filterBrokers: 'Filter Brokers',
     loadingBrokers: 'Loading brokers...',
     failedToLoad: 'Failed to load brokers',
+    tour: {
+      searchBrokersDesc: 'Search for brokers by name or address',
+      cityFilterDesc: 'Filter brokers by city location',
+      brokerListDesc: 'Browse and select a broker to view details and exchange rates',
+      paginationDesc: 'Navigate through multiple pages of broker listings'
+    }
   },
   broker: {
     services: 'Services',
@@ -478,5 +490,153 @@ export default {
     delete: 'Delete',
     deleteTourConfirmation: 'Are you sure you want to delete "{title}"? This action cannot be undone.',
     loadingRoutes: 'Loading routes...',
+    onboarding: {
+      title: 'Welcome to Tours',
+      subtitle: 'Create personalized itineraries for your Moroccan adventure by following these simple steps:',
+      explore: {
+        title: 'Explore Morocco',
+        description: 'Start by exploring our collection of restaurants, monuments, artisans, and entertainment options. Discover the best spots to visit during your trip.'
+      },
+      events: {
+        title: 'Check Upcoming Events',
+        description: 'Browse upcoming matches and events to include in your itinerary. Plan your trip around these special occasions.'
+      },
+      bookmark: {
+        title: 'Save Your Favorites',
+        description: 'As you explore, bookmark the places and events you want to include in your tour. You can find all your saved items in the Bookmark tab.'
+      },
+      create: {
+        title: 'Create Your Tour',
+        description: 'Now you are ready to create a customized tour! Select your bookmarked items, set dates, and plan your perfect Moroccan adventure.'
+      }
+    }
+  },
+  copilot: {
+    trackProgress: "Track your progress through the tour creation process",
+    enterTourTitle: "Enter a title for your tour",
+    proceedToNext: "Proceed to the next step when you're ready",
+    viewBrokerImages: "View the broker's images and save them to your favorites",
+    searchBroker: "Search for a broker by name or address and filter by type",
+    filterBrokerByCity: "Filter brokers by city",
+    navigatePages: "Navigate through pages of results",
+    buyESIM: "Buy an eSIM to stay connected during your trip",
+    selectDay: "Select the day you want to plan",
+    chooseCity: "Choose a city for your selected day",
+    checkSpecifications: "Check the vehicle specifications",
+    seeBrokerType: "See the broker's type and status",
+    viewServices: "View the services offered by this broker",
+    checkContactInfo: "Check the broker's contact information and operating hours",
+    learnMore: "Learn more about this broker",
+    findLocation: "Find the broker's location on the map",
+    contactBroker: "Contact the broker directly",
+    getVisitTips: "Get helpful tips for your visit",
+    findBrokers: "Tap here to find money exchange brokers near your location",
+    readHistory: "Read more about the monument's history and significance",
+    findMonumentLocation: "Find the monument's location and get directions",
+    purchaseTickets: "Purchase tickets for your visit",
+    browseImages: "Browse through event images and save your favorite events",
+    viewArtisanInfo: "View important information about the artisan",
+    learnArtisanHistory: "Learn more about the artisan's work and history",
+    findArtisanLocation: "Find the artisan's location and get directions",
+    viewProfile: "View and update your profile picture and personal information",
+    managePersonalInfo: "Manage your personal information and contact details",
+    searchArtisans: "Search for artisans and filter by type",
+    filterByCity: "Select a city to filter artisans",
+    filterByMatchCity: "Select a city to filter matches",
+    browseArtisans: "Browse and select artisans to view their details",
+    getSupport: "Get help and support through various contact methods",
+    logout: "Safely log out of your account when you're done",
+    searchBookmarks: "Search for your bookmarked items and filter by type",
+    filterBookmarksByCity: "Select a city to filter your bookmarks",
+    manageBookmarks: "View and manage your saved bookmarks",
+    selectTourDates: "Select the start and end dates for your tour",
+    viewMatchDetails: "View match details including teams, date, time and venue",
+    readAboutMatch: "Read about the match and its significance",
+    findMatchLocation: "Find the match location and get directions",
+    viewEventInfo: "View event type, dates, and website information",
+    readAboutEvent: "Read more about this event",
+    findEventLocation: "Find the event location and get directions",
+    searchMatches: "Search for matches and filter by stadium",
+    browseMatches: "Browse and select matches to view details",
+    searchHotelPickup: "Search for hotel pickup services by name or location and filter by pickup type",
+    filterHotelsByCity: "Select a city to find available hotel pickup services",
+    selectDirectionType: "Toggle between airport to hotel or hotel to airport direction",
+    selectedDirection: "Your selected direction you want to go",
+    browsePickups: "Browse and select the pickup service that best fits your needs",
+    viewVehicleImages: "Scroll through the images to get an idea of the vehicle and save it to your bookmarks",
+    readAboutService: "Read more about this pickup service",
+    reservePickup: "Click here to reserve your pickup",
+    completeReservation: "Follow these steps to complete your reservation:\n\n" +
+                  "1. Select your pickup date\n" +
+                  "2. Choose your preferred time\n" +
+                  "3. Enter your location",
+    confirmReservation: "Click here to confirm your reservation",
+    exploreDestinations: "Search for your favorite destinations, restaurants, or activities across Morocco",
+    discoverEvents: "Don't miss exciting events and matches happening during your visit to Morocco",
+    accessServices: "Access essential services to make your stay in Morocco comfortable and enjoyable",
+    discoverCategories: "Discover Morocco's beauty by exploring different categories of attractions and hidden gems",
+    findEmergency: "Access important emergency contacts in Morocco with just one tap",
+    navigateApp: "Navigate easily between different sections of the app",
+    searchQRCodes: "Search for your QR codes by title",
+    manageQRCodes: "View and manage your saved QR codes",
+    addNewQRCode: "Add new QR codes to your collection",
+    selectOperator: "Choose your preferred operator for your eSIM",
+    selectDataPlan: "Select the data plan that best suits your needs",
+    completePurchase: "Complete your purchase by clicking the buy button",
+    browseDestinations: "Browse and select destinations for your tour in the chosen city",
+    viewDaySchedule: "View the current day's schedule and city",
+    organizeActivities: "Organize your activities in the order of your choice",
+    organizeNextButton: "Proceed to organize your tour when you're done selecting destinations",
+    viewOptimalRoute: "View the optimal route between your selected destinations",
+    reviewTourSchedule: "Review your complete tour schedule",
+    saveTour: "Save your tour when you're done organizing",
+    addTour: "Create a new custom tour by selecting bookmarked places and events",
+    viewTours: "View and manage your existing tours",
+    viewMonumentImages: "Browse through the monument images and save it to your favorites",
+    viewMonumentInfo: "View important information about the monument including type, visiting hours, and entry fee",
+    searchMonuments: "Search for monuments and filter by type",
+    selectCity: "Select a city to filter monuments",
+    browseMonuments: "Browse and select monuments to view details",
+    searchEntertainment: "Search for entertainment venues and filter by type",
+    filterEntertainmentByCity: "Select a city to filter entertainment venues",
+    browseEntertainment: "Browse and select entertainment venues to view details",
+    viewEntertainmentImages: "Browse through the entertainment venue images and save them to your favorites",
+    viewEntertainmentInfo: "View important information about the entertainment venue including type, operating hours, and location",
+    readEntertainmentDetails: "Read detailed information about the venue",
+    findEntertainmentLocation: "Find the venue's location and get directions",
+    bookEntertainment: "Click here to book your reservation",
+    searchRestaurants: "Search for restaurants and filter by type",
+    filterRestaurantsByCity: "Select a city to filter restaurants",
+    browseRestaurants: "Browse and select restaurants to view their details",
+    viewRestaurantImages: "View restaurant images and save to favorites",
+    checkRestaurantHours: "Check restaurant operating hours",
+    learnAboutRestaurant: "Learn more about the restaurant",
+    findRestaurantLocation: "Find the restaurant location",
+    bookRestaurantTable: "Book a table at this restaurant",
+    navigation: {
+      skip: "Skip",
+      previous: "Previous",
+      next: "Next",
+      finish: "Done"
+    },
+    moneyExchange: {
+      currencyConverter: "Currency Converter, enter an amount and select your currency.",
+      airportOption: "Airport exchange booths offer convenience but typically have the lowest rates",
+      bankOption: "Banks offer more security but require more time and sometimes have limited hours",
+      brokerOption: "Money exchange brokers offer the best rates with additional benefits"
+    },
+    esim: {
+      buyESIM: "Buy an eSIM to stay connected during your trip",
+      selectOperator: "Choose your preferred operator for your eSIM",
+      selectOffer: "Select the data plan that best suits your needs",
+      confirmPurchase: "Review your selection and confirm your purchase"
+    },
+    broker: {
+      browseBrokers: "Browse and select a broker to view details and exchange rates"
+    },
+    tickets: {
+      search: "Search for your tickets by team name, stadium, or ticket ID",
+      viewTickets: "View and manage your match and transport tickets"
+    }
   },
 }; 

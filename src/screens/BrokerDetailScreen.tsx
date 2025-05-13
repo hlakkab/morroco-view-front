@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
 import { Dimensions, FlatList, Image, Linking, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AboutSection from '../components/AboutSection';
 import Button from '../components/Button';
 import LocationSection from '../components/LocationSection';
@@ -32,10 +33,18 @@ interface RouteParams {
 
 const { width } = Dimensions.get('window');
 
-const BrokerDetailScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
+
+// Content component with Copilot functionality
+const BrokerDetailScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useAppDispatch();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -48,6 +57,36 @@ const BrokerDetailScreen: React.FC = () => {
   const { brokers } = useAppSelector(state => state.exchangeBroker);
   const currentBroker = brokers.find(b => b.id === brokerDetails.id);
   const isSaved = currentBroker?.saved || brokerDetails.saved;
+
+  // Start the Copilot tour when the component mounts
+  React.useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  React.useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   const handleBack = () => {
     navigation.goBack();
@@ -95,41 +134,60 @@ const BrokerDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={brokerDetails.name} onBack={handleBack} />
       </View>
 
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.imageSection}>
-          <FlatList
-            ref={flatListRef}
-            data={brokerDetails.images}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item }) => (
-              <Image 
-                source={{ uri: item }} 
-                style={styles.image} 
-                resizeMode="cover"
-              />
-            )}
-          />
-          
-          <TouchableOpacity 
-            style={[styles.saveButton, isSaved && styles.savedButton, {borderColor: isSaved ? "white" : "#666"}]} 
-            onPress={handleSave}
-          >
-            <Ionicons 
-              name={isSaved ? "bookmark" : "bookmark-outline"} 
-              size={24} 
-              color={isSaved ? "white" : "#666" }
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        scrollEventThrottle={16}
+        onScroll={(event) => {
+          // Handle scroll events if needed
+        }}
+      >
+        <CopilotStep
+          text={i18n.t('copilot.viewBrokerImages')}
+          order={1}
+          name="images"
+        >
+          <WalkthroughableView style={styles.imageSection}>
+            <FlatList
+              ref={flatListRef}
+              data={brokerDetails.images}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item }) => (
+                <Image 
+                  source={{ uri: item }} 
+                  style={styles.image} 
+                  resizeMode="cover"
+                />
+              )}
             />
-          </TouchableOpacity>
-          
-          <View style={styles.paginationContainer}>
+            
+            <TouchableOpacity 
+              style={[styles.saveButton, isSaved && styles.savedButton, {borderColor: isSaved ? "white" : "#666"}]} 
+              onPress={handleSave}
+            >
+              <Ionicons 
+                name={isSaved ? "bookmark" : "bookmark-outline"} 
+                size={24} 
+                color={isSaved ? "white" : "#666" }
+              />
+            </TouchableOpacity>
+            
             <View style={styles.pagination}>
               {brokerDetails.images.map((_, index) => (
                 <View 
@@ -141,70 +199,112 @@ const BrokerDetailScreen: React.FC = () => {
                 />
               ))}
             </View>
-          </View>
-        </View>
+          </WalkthroughableView>
+        </CopilotStep>
 
         <View style={styles.content}>
-          <View style={styles.brokerTypeContainer}>
-            <Text style={styles.brokerType}>
-              {brokerDetails.isFeatured ? i18n.t('broker.featuredBroker') : i18n.t('broker.broker')}
-            </Text>
-          </View>
-
-          <Text style={styles.sectionTitle}>{i18n.t('broker.services')}</Text>
-          
-          <View style={styles.servicesContainer}>
-            {(brokerDetails.services && brokerDetails.services.length > 0 ? brokerDetails.services : [
-              'Currency Exchange (USD, EUR, GBP)',
-              'Wire Transfer Services',
-              'Travel Insurance',
-              '24/7 Customer Support'
-            ]).map((service: string, index: number) => (
-              <View key={index} style={styles.serviceItem}>
-                <Ionicons name="checkmark-circle-outline" size={20} color="#008060" />
-                <Text style={styles.serviceText}>{service}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.infoContainer}>
-            <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>
-                {brokerDetails.startTime && brokerDetails.endTime 
-                  ? `${brokerDetails.startTime} - ${brokerDetails.endTime}`
-                  : "09:00 - 21:00"}
+          <CopilotStep
+            text={i18n.t('copilot.seeBrokerType')}
+            order={2}
+            name="brokerType"
+          >
+            <WalkthroughableView style={styles.brokerTypeContainer}>
+              <Text style={styles.brokerType}>
+                {brokerDetails.isFeatured ? i18n.t('broker.featuredBroker') : i18n.t('broker.broker')}
               </Text>
-            </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="call-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{brokerDetails.phoneNumber}</Text>
-            </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="globe-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{brokerDetails.website}</Text>
-            </View>
-          </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <AboutSection 
-            title={i18n.t('broker.about')} 
-            text={brokerDetails.description || i18n.t('broker.noInformation')} 
-          />
+          <CopilotStep
+            text={i18n.t('copilot.viewServices')}
+            order={3}
+            name="services"
+          >
+            <WalkthroughableView>
+              <Text style={styles.sectionTitle}>{i18n.t('broker.services')}</Text>
+              
+              <View style={styles.servicesContainer}>
+                {(brokerDetails.services && brokerDetails.services.length > 0 ? brokerDetails.services : [
+                  'Currency Exchange (USD, EUR, GBP)',
+                  'Wire Transfer Services',
+                  'Travel Insurance',
+                  '24/7 Customer Support'
+                ]).map((service: string, index: number) => (
+                  <View key={index} style={styles.serviceItem}>
+                    <Ionicons name="checkmark-circle-outline" size={20} color="#008060" />
+                    <Text style={styles.serviceText}>{service}</Text>
+                  </View>
+                ))}
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <LocationSection address={brokerDetails.address} mapUrl={brokerDetails.mapId} />
+          <CopilotStep
+            text={i18n.t('copilot.checkContactInfo')}
+            order={4}
+            name="contactInfo"
+          >
+            <WalkthroughableView style={styles.infoContainer}>
+              <View style={styles.infoItem}>
+                <Ionicons name="time-outline" size={20} color="#666" />
+                <Text style={styles.infoText}>
+                  {brokerDetails.startTime && brokerDetails.endTime 
+                    ? `${brokerDetails.startTime} - ${brokerDetails.endTime}`
+                    : "09:00 - 21:00"}
+                </Text>
+              </View>
+              
+              <View style={styles.infoItem}>
+                <Ionicons name="call-outline" size={20} color="#666" />
+                <Text style={styles.infoText}>{brokerDetails.phoneNumber}</Text>
+              </View>
+              
+              <View style={styles.infoItem}>
+                <Ionicons name="globe-outline" size={20} color="#666" />
+                <Text style={styles.infoText}>{brokerDetails.website}</Text>
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
+
+          <CopilotStep
+            text={i18n.t('copilot.learnMore')}
+            order={5}
+            name="about"
+          >
+            <WalkthroughableView>
+              <AboutSection 
+                title={i18n.t('broker.about')} 
+                text={brokerDetails.description || i18n.t('broker.noInformation')} 
+              />
+            </WalkthroughableView>
+          </CopilotStep>
+
+          <CopilotStep
+            text={i18n.t('copilot.findLocation')}
+            order={6}
+            name="location"
+          >
+            <WalkthroughableView>
+              <LocationSection address={brokerDetails.address} mapUrl={brokerDetails.mapId} />
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Button 
-          title={i18n.t('broker.contactBroker')}
-          style={styles.contactButton}
-          icon={<Ionicons name="call" size={20} color="#fff" style={{ marginRight: 8 }} />}
-          onPress={handleContactPress}
-        />
-      </View>
+      <CopilotStep
+        text={i18n.t('copilot.contactBroker')}
+        order={7}
+        name="contact"
+      >
+        <WalkthroughableView style={styles.footer}>
+          <Button 
+            title={i18n.t('broker.contactBroker')}
+            style={styles.contactButton}
+            icon={<Ionicons name="call" size={20} color="#fff" style={{ marginRight: 8 }} />}
+            onPress={handleContactPress}
+          />
+        </WalkthroughableView>
+      </CopilotStep>
 
       <Modal
         visible={showContactModal}
@@ -252,6 +352,30 @@ const BrokerDetailScreen: React.FC = () => {
   );
 };
 
+// Main component with CopilotProvider
+const BrokerDetailScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+    >
+      <BrokerDetailScreenContent />
+    </CopilotProvider>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -294,9 +418,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   savedButton: {
-      opacity: 1,
-      backgroundColor: '#888888',
-      borderColor: '#fff',
+    opacity: 1,
+    backgroundColor: '#888888',
+    borderColor: '#fff',
   },
   paginationContainer: {
     position: 'absolute',
@@ -341,49 +465,6 @@ const styles = StyleSheet.create({
     color: '#008060',
     fontWeight: '600',
     fontSize: 14,
-    
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  ratingText: {
-    marginLeft: 4,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  ratesContainer: {
-    marginBottom: 16,
-  },
-  ratesTable: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginTop: 8,
-  },
-  rateRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  rateHeader: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    fontWeight: '600',
-    textAlign: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#ddd',
-  },
-  rateCell: {
-    flex: 1,
-    padding: 10,
-    textAlign: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#ddd',
   },
   sectionTitle: {
     fontSize: 24,
@@ -424,8 +505,6 @@ const styles = StyleSheet.create({
   footer: {
     padding: 16,
     backgroundColor: '#fff',
-    // borderTopWidth: 1,
-    // borderTopColor: '#eee',
   },
   contactButton: {
     backgroundColor: '#008060',
@@ -468,6 +547,42 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: 8,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

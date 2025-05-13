@@ -1,6 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
 // Import components and containers
 import Button from '../components/Button';
@@ -16,10 +18,16 @@ import QRCode from '../types/qrcode';
 import { useAppDispatch, useAppSelector } from '../hooks/reduxHooks';
 import { createQRCode, fetchQRCodes } from '../store/qrCodeSlice';
 
-const QRCodesScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const QRCodesScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   
   // Redux state and dispatch
   const dispatch = useAppDispatch();
@@ -30,12 +38,41 @@ const QRCodesScreen: React.FC = () => {
     dispatch(fetchQRCodes());
   }, [dispatch]);
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleAddQrCode = () => {
-    // Show the add QR code modal
     setAddModalVisible(true);
   };
 
@@ -44,10 +81,7 @@ const QRCodesScreen: React.FC = () => {
   };
 
   const handleSaveQrCode = (data: Omit<QRCode, 'id' |'createdAt'>) => {
-    // Dispatch the createQRCode action
     dispatch(createQRCode(data));
-    
-    // Close the modal after saving
     setAddModalVisible(false);
   };
 
@@ -56,13 +90,19 @@ const QRCodesScreen: React.FC = () => {
   };
 
   const handleFilterPress = () => {
-    // Handle filter button press
     console.log('Filter pressed');
-    // Could show a filter modal or navigate to a filter screen
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Header with back button and title */}
       <View style={styles.headerContainer}>
         <ScreenHeader title={i18n.t('qrcode.title')} onBack={handleBack} />
@@ -70,12 +110,20 @@ const QRCodesScreen: React.FC = () => {
 
       {/* Search bar component */}
       <View style={styles.content}>
-        <SearchBar 
-          placeholder={i18n.t('qrcode.search')}
-          onChangeText={handleSearch}
-          onFilterPress={handleFilterPress}
-          value={searchQuery}
-        />
+        <CopilotStep
+          text={i18n.t('copilot.searchQRCodes')}
+          order={1}
+          name="search"
+        >
+          <WalkthroughableView style={styles.searchHighlight}>
+            <SearchBar 
+              placeholder={i18n.t('qrcode.search')}
+              onChangeText={handleSearch}
+              onFilterPress={handleFilterPress}
+              value={searchQuery}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
       </View>
 
       {/* Loading indicator */}
@@ -93,12 +141,28 @@ const QRCodesScreen: React.FC = () => {
       )}
 
       {/* Container for QR code items */}
-      <QRCodesContainer searchQuery={searchQuery} />
+      <CopilotStep
+        text={i18n.t('copilot.manageQRCodes')}
+        order={2}
+        name="qrCodesList"
+      >
+        <WalkthroughableView style={styles.qrCodesListHighlight}>
+          <QRCodesContainer searchQuery={searchQuery} />
+        </WalkthroughableView>
+      </CopilotStep>
 
       {/* Footer with add button */}
-      <View style={styles.footer}>
-        <Button title={i18n.t('qrcode.addQrCode')} onPress={handleAddQrCode} />
-      </View>
+      <CopilotStep
+        text={i18n.t('copilot.addNewQRCode')}
+        order={3}
+        name="addButton"
+      >
+        <WalkthroughableView style={styles.addButtonHighlight}>
+          <View style={styles.footer}>
+            <Button title={i18n.t('qrcode.addQrCode')} onPress={handleAddQrCode} />
+          </View>
+        </WalkthroughableView>
+      </CopilotStep>
 
       {/* Add QR Code Modal */}
       <AddQRCodeModal
@@ -107,6 +171,31 @@ const QRCodesScreen: React.FC = () => {
         onSave={handleSaveQrCode}
       />
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const QRCodesScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <QRCodesScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -146,6 +235,51 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  searchHighlight: {
+    marginBottom: 16,
+  },
+  qrCodesListHighlight: {
+    flex: 1,
+  },
+  addButtonHighlight: {
+    marginBottom: 16,
   },
 });
 

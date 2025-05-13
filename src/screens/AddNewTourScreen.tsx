@@ -2,6 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
 import StepProgress from '../components/StepProgress';
@@ -10,6 +11,9 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchBookmarksAsItems, setTourInfo } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 interface FormData {
   title: string;
@@ -20,10 +24,13 @@ interface FormData {
 // Define a type for the picker mode
 type DatePickerMode = 'start' | 'end';
 
-const AddNewTourScreen: React.FC = () => {
+// Content component with Copilot functionality
+const AddNewTourScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
   const tourData = useAppSelector(state => state.tour.currentTour);
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
     title: tourData.title,
@@ -43,6 +50,36 @@ const AddNewTourScreen: React.FC = () => {
       endDate: tourData.endDate,
     });
   }, [tourData]);
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   const steps = [
     { id: '01', label: i18n.t('tours.basicInfos') },
@@ -110,90 +147,114 @@ const AddNewTourScreen: React.FC = () => {
       setFormData(prev => ({ ...prev, endDate: date }));
       setShowDatePicker(false);
     }
-    
-    // Close the picker after selection
-    
   };
 
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Feather name="info" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
-      <TourFlowHeader title={i18n.t('tours.addNewTour')} />
+        <TourFlowHeader title={i18n.t('tours.addNewTour')} />
       </View>
       
       <View style={styles.content}>
-        <StepProgress steps={steps} currentStep={0} />
+        <CopilotStep
+          text={i18n.t('copilot.trackProgress')}
+          order={1}
+          name="stepProgress"
+        >
+          <WalkthroughableView>
+            <StepProgress steps={steps} currentStep={0} />
+          </WalkthroughableView>
+        </CopilotStep>
         
         <Text style={styles.subtitle}>
           {i18n.t('tours.basicInfosSubtitle')}
         </Text>
 
         <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{i18n.t('tours.title')}<Text style={styles.required}>*</Text></Text>
-            <View style={[styles.inputWithIcon, formData.title ? styles.inputFilled : null]}>
-              <TextInput
-                style={styles.input}
-                value={formData.title}
-                onChangeText={(text) => setFormData({ ...formData, title: text })}
-                placeholder={i18n.t('tours.titlePlaceholder')}
-                placeholderTextColor="#999"
-              />
-              <Feather name="edit-3" size={20} color={formData.title ? "#E53935" : "#666"} style={styles.inputIcon} />
-            </View>
-          </View>
+          <CopilotStep
+            text={i18n.t('copilot.enterTourTitle')}
+            order={2}
+            name="titleInput"
+          >
+            <WalkthroughableView style={styles.inputGroup}>
+              <Text style={styles.label}>{i18n.t('tours.title')}<Text style={styles.required}>*</Text></Text>
+              <View style={[styles.inputWithIcon, formData.title ? styles.inputFilled : null]}>
+                <TextInput
+                  style={styles.input}
+                  value={formData.title}
+                  onChangeText={(text) => setFormData({ ...formData, title: text })}
+                  placeholder={i18n.t('tours.titlePlaceholder')}
+                  placeholderTextColor="#999"
+                />
+                <Feather name="edit-3" size={20} color={formData.title ? "#E53935" : "#666"} style={styles.inputIcon} />
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{i18n.t('tours.duration')}<Text style={styles.required}>*</Text></Text>
-            <View style={styles.durationContainer}>
-              <View style={styles.dateInput}>
-                <Text style={styles.dateLabel}>{i18n.t('tours.from')}</Text>
-                <TouchableOpacity 
-                  style={[styles.inputWithIcon, formData.startDate ? styles.inputFilled : null]}
-                  onPress={() => openDatePicker('start')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={formData.startDate ? styles.dateText : styles.placeholderText}>
-                    {formData.startDate ? formatDisplayDate(formData.startDate) : i18n.t('tours.startDate')}
-                  </Text>
-                  <Feather 
-                    name="calendar" 
-                    size={20} 
-                    color={formData.startDate ? "#E53935" : "#666"} 
-                    style={styles.inputIcon} 
-                  />
-                </TouchableOpacity>
+          <CopilotStep
+            text={i18n.t('copilot.selectTourDates')}
+            order={3}
+            name="dateSelection"
+          >
+            <WalkthroughableView style={styles.inputGroup}>
+              <Text style={styles.label}>{i18n.t('tours.duration')}<Text style={styles.required}>*</Text></Text>
+              <View style={styles.durationContainer}>
+                <View style={styles.dateInput}>
+                  <Text style={styles.dateLabel}>{i18n.t('tours.from')}</Text>
+                  <TouchableOpacity 
+                    style={[styles.inputWithIcon, formData.startDate ? styles.inputFilled : null]}
+                    onPress={() => openDatePicker('start')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={formData.startDate ? styles.dateText : styles.placeholderText}>
+                      {formData.startDate ? formatDisplayDate(formData.startDate) : i18n.t('tours.startDate')}
+                    </Text>
+                    <Feather 
+                      name="calendar" 
+                      size={20} 
+                      color={formData.startDate ? "#E53935" : "#666"} 
+                      style={styles.inputIcon} 
+                    />
+                  </TouchableOpacity>
+                </View>
+                
+                <View style={styles.dateInput}>
+                  <Text style={styles.dateLabel}>{i18n.t('tours.to')}</Text>
+                  <TouchableOpacity 
+                    style={[styles.inputWithIcon, formData.endDate ? styles.inputFilled : null]}
+                    onPress={() => openDatePicker('end')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={formData.endDate ? styles.dateText : styles.placeholderText}>
+                      {formData.endDate ? formatDisplayDate(formData.endDate) : i18n.t('tours.endDate')}
+                    </Text>
+                    <Feather 
+                      name="calendar" 
+                      size={20} 
+                      color={formData.endDate ? "#E53935" : "#666"} 
+                      style={styles.inputIcon} 
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
-              
-              <View style={styles.dateInput}>
-                <Text style={styles.dateLabel}>{i18n.t('tours.to')}</Text>
-                <TouchableOpacity 
-                  style={[styles.inputWithIcon, formData.endDate ? styles.inputFilled : null]}
-                  onPress={() => openDatePicker('end')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={formData.endDate ? styles.dateText : styles.placeholderText}>
-                    {formData.endDate ? formatDisplayDate(formData.endDate) : i18n.t('tours.endDate')}
-                  </Text>
-                  <Feather 
-                    name="calendar" 
-                    size={20} 
-                    color={formData.endDate ? "#E53935" : "#666"} 
-                    style={styles.inputIcon} 
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-            <Text style={styles.dateHint}>
-              <Feather name="info" size={12} color="#666" style={{ marginRight: 4 }} />
-              {i18n.t('tours.dateHint')}
-            </Text>
-          </View>
+              <Text style={styles.dateHint}>
+                <Feather name="info" size={12} color="#666" style={{ marginRight: 4 }} />
+                {i18n.t('tours.dateHint')}
+              </Text>
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </View>
 
-      {/* Use the new DatePickerModal component */}
       <DatePickerModal
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
@@ -205,14 +266,45 @@ const AddNewTourScreen: React.FC = () => {
         formatDisplayDate={formatDisplayDate}
       />
 
-      <View style={styles.footer}>
-        <Button 
-          title={i18n.t('common.next')}
-          onPress={handleNext}
-          disabled={!formData.title || !formData.startDate || !formData.endDate}
-        />
-      </View>
+      <CopilotStep
+        text={i18n.t('copilot.proceedToNext')}
+        order={4}
+        name="nextButton"
+      >
+        <WalkthroughableView style={styles.footer}>
+          <Button 
+            title={i18n.t('common.next')}
+            onPress={handleNext}
+            disabled={!formData.title || !formData.startDate || !formData.endDate}
+          />
+        </WalkthroughableView>
+      </CopilotStep>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const AddNewTourScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <AddNewTourScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -306,6 +398,43 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     flexDirection: 'row',
     alignItems: 'center',
+  },
+
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

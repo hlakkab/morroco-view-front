@@ -5,6 +5,7 @@ import LanguageSelector from '../components/LanguageSelector';
 import { useLanguage } from '../contexts/LanguageContext';
 import i18n from '../translations/i18n';
 
+
 interface SearchBarContainerProps {}
 
 const SearchBarContainer: React.FC<SearchBarContainerProps> = () => {
@@ -36,8 +37,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 36,
-    marginBottom: 15,
+    // marginTop: 36,
+    // marginBottom: 15,
   },
   searchBar: {
     flex: 1,

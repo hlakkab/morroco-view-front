@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -9,8 +9,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View
 } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useDispatch, useSelector } from 'react-redux';
 import MatchTicketCard from '../components/cards/MatchTicketCard';
 import PickupTicketCard from '../components/cards/PickupTicketCard';
@@ -23,15 +25,51 @@ import { Match } from '../types/match';
 import { Ticket } from '../types/ticket';
 import { HotelPickup } from '../types/transport';
 
-const TicketsScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Content component with Copilot functionality
+const TicketsScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
   const { tickets, loading, error } = useSelector((state: RootState) => state.ticket);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   useEffect(() => {
     dispatch(fetchTickets());
   }, [dispatch]);
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   const filteredTickets = tickets.filter(ticket => {
     if (!searchQuery) return true;
@@ -60,20 +98,36 @@ const TicketsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>Tour Guide</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
-      <ScreenHeader title={i18n.t('tickets.title')} onBack={() => navigation.goBack()} />
+        <ScreenHeader title={i18n.t('tickets.title')} onBack={() => navigation.goBack()} />
       </View>
 
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={i18n.t('tickets.searchPlaceholder')}
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+      <CopilotStep
+        text={i18n.t('copilot.tickets.search')}
+        order={1}
+        name="search"
+      >
+        <WalkthroughableView style={styles.searchHighlight}>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={i18n.t('tickets.searchPlaceholder')}
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </WalkthroughableView>
+      </CopilotStep>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -84,25 +138,57 @@ const TicketsScreen: React.FC = () => {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : (
-        <ScrollView style={styles.ticketsContainer}>
-          {filteredTickets.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{i18n.t('tickets.noTickets')}</Text>
-            </View>
-          ) : (
-            filteredTickets.filter(ticket => ticket.type !== 'E_SIM').map(ticket => (
-              ticket.type === 'MATCH' 
-                ? <MatchTicketCard key={ticket.id} ticket={ticket} /> 
-                : <PickupTicketCard key={ticket.id} ticket={ticket} />
-            ))
-          )}
-        </ScrollView>
+        <CopilotStep
+          text={i18n.t('copilot.tickets.viewTickets')}
+          order={2}
+          name="ticketsList"
+        >
+          <WalkthroughableView style={styles.ticketsListHighlight}>
+            <ScrollView style={styles.ticketsContainer}>
+              {filteredTickets.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>{i18n.t('tickets.noTickets')}</Text>
+                </View>
+              ) : (
+                filteredTickets.filter(ticket => ticket.type !== 'E_SIM').map(ticket => (
+                  ticket.type === 'MATCH' 
+                    ? <MatchTicketCard key={ticket.id} ticket={ticket} /> 
+                    : <PickupTicketCard key={ticket.id} ticket={ticket} />
+                ))
+              )}
+            </ScrollView>
+          </WalkthroughableView>
+        </CopilotStep>
       )}
 
       <BottomNavBar activeRoute="Tickets" onNavigate={
         (routeName: string) => navigation.navigate(routeName as never)
       } />
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const TicketsScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('copilot.navigation.skip'),
+        previous: i18n.t('copilot.navigation.previous'),
+        next: i18n.t('copilot.navigation.next'),
+        finish: i18n.t('copilot.navigation.finish')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+    >
+      <TicketsScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -166,6 +252,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  searchHighlight: {
+    marginBottom: 16,
+  },
+  ticketsListHighlight: {
+    flex: 1,
   },
 });
 

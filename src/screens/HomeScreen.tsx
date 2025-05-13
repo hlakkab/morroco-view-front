@@ -1,18 +1,46 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 // Import Container Components
+import { Ionicons } from '@expo/vector-icons';
 import BottomNavBar from '../containers/BottomNavBar';
 import EmergencyContactsButton from '../containers/EmergencyContactsButton';
 import EventBannerContainer from '../containers/EventBannerContainer';
 import ExploreCardsContainer from '../containers/ExploreCardsContainer';
 import SearchBarContainer from '../containers/SearchBarContainer';
 import ServiceCardsContainer from '../containers/ServiceCardsContainer';
-import { clearTokens } from '../service/KeycloakService';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
-const HomeScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+// Step interface from react-native-copilot
+interface StepType {
+  name: string;
+  order: number;
+  visible: boolean;
+  text: string;
+}
+
+const HomeScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { start: startTour, copilotEvents, visible, stop } = useCopilot();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [showTourButton, setShowTourButton] = useState(true);
+  const [tourStarted, setTourStarted] = useState(false);
+
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
 
   const handleMatchesExplore = () => {
     // Navigate to matches screen
@@ -21,7 +49,7 @@ const HomeScreen: React.FC = () => {
 
   const handleCategoryPress = (category: string) => {
     const routeNames = navigation.getState().routeNames;
-  
+
     if (category === 'Restaurant') {
       navigation.navigate('Restaurant'); // Navigation spécifique pour Restaurant
     } else if (routeNames.includes(category as keyof RootStackParamList)) {
@@ -30,46 +58,141 @@ const HomeScreen: React.FC = () => {
       console.log(`Invalid navigation destination: ${category}`);
     }
   };
-  
 
   const handleEmergencyContacts = () => {
     // Navigate to emergency contacts screen
     navigation.navigate('Emergency');
   };
-  
+
   const handleNavigation = (routeName: string) => {
     // Use a type assertion to tell TypeScript that routeName is a valid key
     // @ts-ignore - We're handling navigation in a generic way
     navigation.navigate(routeName);
   };
 
+  // Start the tour when the button is pressed
+  const handleStartTour = () => {
+    startTour();
+  };
+
   return (
     <View style={styles.mainContainer}>
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Search Bar Section */}
-        <SearchBarContainer />
-        
-        {/* Africa Cup Banner Section */}
-        <EventBannerContainer onExplore={handleMatchesExplore} />
-        
-        {/* Service Icons Section */}
-        <ServiceCardsContainer />
-        
-        {/* Explore Morocco Section */}
-        <ExploreCardsContainer onCategoryPress={handleCategoryPress} />
+      {/* Always show tour button (for reusability) */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+        </TouchableOpacity>
+      )}
 
-        {/* Emergency Contacts Button */}
-        <EmergencyContactsButton onPress={handleEmergencyContacts} />
-        
-    
-        
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Search Bar Section with fixed height */}
+        <View style={styles.componentSearchContainer}>
+          <CopilotStep
+            text={i18n.t('copilot.exploreDestinations')}
+            order={1}
+            name="search"
+          >
+            <WalkthroughableView style={styles.searchHighlight}>
+              <SearchBarContainer />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
+
+        {/* Africa Cup Banner Section with fixed height */}
+        <View style={styles.componentContainer}>
+          <CopilotStep
+            text={i18n.t('copilot.discoverEvents')}
+            order={2}
+            name="event"
+          >
+            <WalkthroughableView style={styles.bannerHighlight}>
+              <EventBannerContainer onExplore={handleMatchesExplore} />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
+
+        {/* Service Icons Section with fixed height */}
+        <View style={styles.componentContainer}>
+          <CopilotStep
+            text={i18n.t('copilot.accessServices')}
+            order={3}
+            name="services"
+          >
+            <WalkthroughableView style={styles.servicesHighlight}>
+              <ServiceCardsContainer />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
+
+        {/* Explore Morocco Section with fixed height */}
+        <View style={styles.componentContainer}>
+          <CopilotStep
+            text={i18n.t('copilot.discoverCategories')}
+            order={4}
+            name="explore"
+          >
+            <WalkthroughableView style={styles.exploreHighlight}>
+              <ExploreCardsContainer onCategoryPress={handleCategoryPress} />
+            </WalkthroughableView>
+          </CopilotStep>
+        </View>
+
+        {/* Emergency Contacts Button - Removed from tour */}
+        <CopilotStep
+          text={i18n.t('copilot.findEmergency')}
+          order={5}
+          name="emergency"
+        >
+          <WalkthroughableView style={styles.emergencyHighlight}>
+            <EmergencyContactsButton onPress={handleEmergencyContacts} />
+          </WalkthroughableView>
+        </CopilotStep>
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
         <View style={styles.bottomPadding} />
       </ScrollView>
-      
-      {/* Bottom Navigation Bar */}
+
       <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
+
+      {/* Bottom Navigation Bar */}
+      {/* <CopilotStep
+        text={i18n.t('copilot.navigateApp')}
+        order={6}
+        name="navbar"
+      >
+        <WalkthroughableView style={styles.navbarHighlight}>
+          <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
+        </WalkthroughableView>
+      </CopilotStep> */}
     </View>
+  );
+};
+
+const HomeScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <HomeScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -81,22 +204,74 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     padding: 16,
+    marginTop: 30
   },
   bottomPadding: {
-    height: 80, 
+    height: 100,
   },
-  testButton: {
-    backgroundColor: '#6200EE',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 20,
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
     alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  testButtonText: {
-    color: 'white',
-    fontSize: 16,
+  tourButtonText: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
-  }
+    marginLeft: 5,
+  },
+  searchHighlight: {
+    height: 65, 
+    
+  },
+  bannerHighlight: {
+    
+    paddingBottom: 10
+
+  },
+  servicesHighlight: {
+    
+    paddingBottom: 10
+
+  },
+  exploreHighlight: {
+
+  },
+  componentSearchContainer: {
+  },
+  componentContainer: {
+  },
+  emergencyHighlight: {
+
+  },
+  navbarHighlight: {
+
+  },
 });
 
 export default HomeScreen;

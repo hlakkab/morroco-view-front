@@ -1,16 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
@@ -28,6 +20,9 @@ import { saveTour, saveTourThunk, setTourItems } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
 import { TourSavedItem } from '../types/tour';
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -61,13 +56,17 @@ const mapTourItemToSavedItem = (item: TourSavedItem): SavedItem => {
   };
 };
 
-const AddNewTourOrganizeScreen: React.FC = () => {
+// Content component with Copilot functionality
+const AddNewTourOrganizeScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'AddNewTourOrganize'>>();
   // Only read viewMode from route params
   const { viewMode } = route.params;
   
   // Get the rest from Redux store
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
+  
   const dispatch = useAppDispatch();
   // Read tour data from Redux store
   const { title, startDate, endDate } = useAppSelector(state => state.tour.currentTour);
@@ -402,9 +401,47 @@ const AddNewTourOrganizeScreen: React.FC = () => {
     }
   }, [schedule, selectedDayIndex, navigation]);
 
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
+        {/* Manual tour button */}
+        {!visible && !viewMode && (
+          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+          </TouchableOpacity>
+        )}
+
         {!viewMode ? (
           <View style={styles.headerContainer}>
             <TourFlowHeader title={i18n.t('tours.addNewTour')} />
@@ -416,27 +453,39 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         )}
         
         {!viewMode && (
-          <View style={styles.stepProgressContainer}>
-            <StepProgress 
-              steps={steps} 
-              currentStep={2}
-            />
-          </View>
+          <CopilotStep
+            text={i18n.t('copilot.trackProgress')}
+            order={1}
+            name="stepProgress"
+          >
+            <WalkthroughableView style={styles.stepProgressContainer}>
+              <StepProgress 
+                steps={steps} 
+                currentStep={2}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         )}
         
         {schedule.length > 0 ? (
           <>
-            <View style={styles.dayHeaderContainer}>
-              <TourDayHeader
-                title={title || i18n.t('tours.myTour')}
-                days={dayOptions}
-                selectedDay={selectedDayIndex + 1}
-                onSelectDay={handleSelectDay}
-                onPrevDay={handlePrevDay}
-                onNextDay={handleNextDay}
-                startDate={startDate}
-              />
-            </View>
+            <CopilotStep
+              text={i18n.t('copilot.selectDay')}
+              order={2}
+              name="dayHeader"
+            >
+              <WalkthroughableView style={styles.dayHeaderContainer}>
+                <TourDayHeader
+                  title={title || i18n.t('tours.myTour')}
+                  days={dayOptions}
+                  selectedDay={selectedDayIndex + 1}
+                  onSelectDay={handleSelectDay}
+                  onPrevDay={handlePrevDay}
+                  onNextDay={handleNextDay}
+                  startDate={startDate}
+                />
+              </WalkthroughableView>
+            </CopilotStep>
             
             <ScrollView 
               style={styles.content}
@@ -445,26 +494,58 @@ const AddNewTourOrganizeScreen: React.FC = () => {
               contentContainerStyle={styles.scrollContent}
             >
               <View style={styles.dayContainer}>
-                <DayHeader 
-                  date={schedule[selectedDayIndex].date}
-                  dayNumber={selectedDayIndex + 1}
-                  city={schedule[selectedDayIndex].city}
-                />
+                <CopilotStep
+                  text={i18n.t('copilot.viewDaySchedule')}
+                  order={3}
+                  name="dayInfo"
+                >
+                  <WalkthroughableView>
+                    <DayHeader 
+                      date={schedule[selectedDayIndex].date}
+                      dayNumber={selectedDayIndex + 1}
+                      city={schedule[selectedDayIndex].city}
+                    />
+                  </WalkthroughableView>
+                </CopilotStep>
                 
-                <Timeline 
-                  items={schedule[selectedDayIndex].items.map(mapTourItemToSavedItem)}
-                  onSetTime={(itemIndex: number) => handleSetTime(selectedDayIndex, itemIndex)}
-                  onSetDuration={(itemIndex: number) => handleSetDuration(selectedDayIndex, itemIndex)}
-                  onReorderItems={(newItems: SavedItem[]) => handleReorderItems(selectedDayIndex, newItems)}
-                />
+                <CopilotStep
+                  text={i18n.t('copilot.organizeActivities')}
+                  order={4}
+                  name="timeline"
+                >
+                  <WalkthroughableView>
+                    <Timeline 
+                      items={schedule[selectedDayIndex].items.map(mapTourItemToSavedItem)}
+                      onSetTime={(itemIndex: number) => handleSetTime(selectedDayIndex, itemIndex)}
+                      onSetDuration={(itemIndex: number) => handleSetDuration(selectedDayIndex, itemIndex)}
+                      onReorderItems={(newItems: SavedItem[]) => handleReorderItems(selectedDayIndex, newItems)}
+                    />
+                  </WalkthroughableView>
+                </CopilotStep>
                 
-                <TrajectoryButton
-                  onPress={handleViewTrajectory}
-                  itemCount={schedule[selectedDayIndex].items.length}
-                />
+                <CopilotStep
+                  text={i18n.t('copilot.viewOptimalRoute')}
+                  order={5}
+                  name="trajectory"
+                >
+                  <WalkthroughableView>
+                    <TrajectoryButton
+                      onPress={handleViewTrajectory}
+                      itemCount={schedule[selectedDayIndex].items.length}
+                    />
+                  </WalkthroughableView>
+                </CopilotStep>
               </View>
               
-              <TourSummary schedule={schedule} />
+              <CopilotStep
+                text={i18n.t('copilot.reviewTourSchedule')}
+                order={6}
+                name="summary"
+              >
+                <WalkthroughableView>
+                  <TourSummary schedule={schedule} />
+                </WalkthroughableView>
+              </CopilotStep>
             </ScrollView>
           </>
         ) : (
@@ -478,15 +559,21 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         )}
         
         {!viewMode && (
-          <View style={styles.footer}>
-            <Button 
-              title={i18n.t('tours.saveTour')}
-              onPress={handleSaveTour}
-            />
-          </View>
+          <CopilotStep
+            text={i18n.t('copilot.saveTour')}
+            order={7}
+            name="saveButton"
+          >
+            <WalkthroughableView style={styles.footer}>
+              <Button 
+                title={i18n.t('tours.saveTour')}
+                onPress={handleSaveTour}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         )}
         
-        {/* Duration Modal - now using the component */}
+        {/* Duration Modal */}
         <DurationModal
           visible={showDurationModal}
           onClose={() => setShowDurationModal(false)}
@@ -495,7 +582,7 @@ const AddNewTourOrganizeScreen: React.FC = () => {
           onSave={saveDuration}
         />
         
-        {/* Time Modal - now using the component */}
+        {/* Time Modal */}
         <TimeModal
           visible={showTimeModal}
           onClose={() => setShowTimeModal(false)}
@@ -505,6 +592,31 @@ const AddNewTourOrganizeScreen: React.FC = () => {
         />
       </SafeAreaView>
     </GestureHandlerRootView>
+  );
+};
+
+// Main component with CopilotProvider
+const AddNewTourOrganizeScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <AddNewTourOrganizeScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -558,6 +670,42 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 24,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

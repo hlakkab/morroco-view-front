@@ -6,13 +6,32 @@
   <component name="ChangeListManager">
     <list default="true" id="fa2f817d-5ac6-41d6-b6f1-0738996dd195" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Pagination.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Pagination.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/tour/ItemList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/MatchPopup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/MatchPopup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/containers/BuyESIMModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/containers/BuyESIMModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AccountScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AccountScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourDestinationsScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourOrganizeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourOrganizeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/AddNewTourScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/AddNewTourScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ArtisanDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ArtisanDetailScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/ArtisansScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ArtisansScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/BookmarkScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/BookmarkScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/BrokerDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/BrokerDetailScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/BrokerListScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ESIMScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ESIMScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentDetailScreenVo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EntertainmentScreenVo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/EventDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/EventDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ExploreMatchesScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/HotelPickupScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/MoneyExchangeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MoneyExchangeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/MonumentDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentDetailScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/MonumentsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MonumentsScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/QRCodesScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/QRCodesScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantDetailScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/RestaurantScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/TicketsScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/TicketsScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/ToursScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/ToursScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/TransportDetailScreen.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,7 +105,13 @@
       <workItem from="1745483564950" duration="600000" />
       <workItem from="1745840719986" duration="14449000" />
       <workItem from="1745914557903" duration="4130000" />
-      <workItem from="1746001456018" duration="20319000" />
+      <workItem from="1746001456018" duration="21351000" />
+      <workItem from="1746178781673" duration="17683000" />
+      <workItem from="1746433792638" duration="23047000" />
+      <workItem from="1746519935570" duration="13249000" />
+      <workItem from="1746629793713" duration="7717000" />
+      <workItem from="1746691668945" duration="2757000" />
+      <workItem from="1747128364459" duration="6270000" />
     </task>
     <servers />
   </component>

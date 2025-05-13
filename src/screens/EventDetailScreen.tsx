@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dimensions, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AboutSection from '../components/AboutSection';
 import Button from '../components/Button';
 import ImageGallery from '../components/ImageGallery';
@@ -12,16 +13,47 @@ import { Event } from '../types/Event';
 
 const { width } = Dimensions.get('window');
 
-const EventDetailScreen: React.FC = () => {
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+const EventDetailScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as Event;
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   
   const [isSaved, setIsSaved] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
 
   // Get event details from route params
   const eventDetails = params;
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted) {
+      // Delay starting the tour until after the UI has rendered
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -37,6 +69,11 @@ const EventDetailScreen: React.FC = () => {
 
   const handleCloseTicketModal = () => {
     setShowTicketModal(false);
+  };
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
   };
 
   // Format date range for display
@@ -57,72 +94,120 @@ const EventDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={eventDetails.name} onBack={handleBack} />
       </View>
 
       <ScrollView style={styles.scrollView}>
-        <ImageGallery 
-          images={eventDetails.images || []}
-          isSaved={isSaved}
-          onSavePress={handleSave}
-        />
+        <CopilotStep
+          text={i18n.t('copilot.browseImages')}
+          order={1}
+          name="imageGallery"
+        >
+          <WalkthroughableView style={styles.imageGalleryHighlight}>
+            <ImageGallery 
+              images={eventDetails.images || []}
+              isSaved={isSaved}
+              onSavePress={handleSave}
+            />
+          </WalkthroughableView>
+        </CopilotStep>
 
         <View style={styles.content}>
-          <View style={styles.eventTypeContainer}>
-            <Text style={styles.eventType}>
-              {eventDetails.type}
-            </Text>
-          </View>
-
-          <View style={styles.infoContainer}>
-            <View style={styles.infoItem}>
-              <Ionicons name="calendar-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{formatDateRange()}</Text>
-            </View>
-            
-            {eventDetails.entryFee && (
-              <View style={styles.infoItem}>
-                <Ionicons name="cash-outline" size={20} color="#666" />
-                <Text style={styles.infoText}>{i18n.t('eventDetail.entryFee', { fee: eventDetails.entryFee })}</Text>
+          <CopilotStep
+            text={i18n.t('copilot.viewEventInfo')}
+            order={2}
+            name="eventInfo"
+          >
+            <WalkthroughableView style={styles.eventInfoHighlight}>
+              <View style={styles.eventTypeContainer}>
+                <Text style={styles.eventType}>
+                  {eventDetails.type}
+                </Text>
               </View>
-            )}
-            
-            {eventDetails.website && (
-              <View style={styles.infoItem}>
-                <Ionicons name="globe-outline" size={20} color="#666" />
-                <Text style={styles.infoText}>{eventDetails.website}</Text>
-              </View>
-            )}
-            
-            {eventDetails.organizer && (
-              <View style={styles.infoItem}>
-                <Ionicons name="people-outline" size={20} color="#666" />
-                <Text style={styles.infoText}>{i18n.t('eventDetail.organizer', { organizer: eventDetails.organizer })}</Text>
-              </View>
-            )}
-          </View>
 
-          <AboutSection 
-            title={i18n.t('eventDetail.about')} 
-            text={eventDetails.description || i18n.t('eventDetail.noInfo')} 
-          />
+              <View style={styles.infoContainer}>
+                <View style={styles.infoItem}>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>{formatDateRange()}</Text>
+                </View>
+                
+                {eventDetails.entryFee && (
+                  <View style={styles.infoItem}>
+                    <Ionicons name="cash-outline" size={20} color="#666" />
+                    <Text style={styles.infoText}>{i18n.t('eventDetail.entryFee', { fee: eventDetails.entryFee })}</Text>
+                  </View>
+                )}
+                
+                {eventDetails.website && (
+                  <View style={styles.infoItem}>
+                    <Ionicons name="globe-outline" size={20} color="#666" />
+                    <Text style={styles.infoText}>{eventDetails.website}</Text>
+                  </View>
+                )}
+                
+                {eventDetails.organizer && (
+                  <View style={styles.infoItem}>
+                    <Ionicons name="people-outline" size={20} color="#666" />
+                    <Text style={styles.infoText}>{i18n.t('eventDetail.organizer', { organizer: eventDetails.organizer })}</Text>
+                  </View>
+                )}
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <LocationSection 
-            address={eventDetails.address} 
-            mapUrl={eventDetails.mapUrl || `https://maps.google.com/?q=${eventDetails.address}`}
-          />
+          <CopilotStep
+            text={i18n.t('copilot.readAboutEvent')}
+            order={3}
+            name="aboutSection"
+          >
+            <WalkthroughableView style={styles.aboutHighlight}>
+              <AboutSection 
+                title={i18n.t('eventDetail.about')} 
+                text={eventDetails.description || i18n.t('eventDetail.noInfo')} 
+              />
+            </WalkthroughableView>
+          </CopilotStep>
+
+          <CopilotStep
+            text={i18n.t('copilot.findEventLocation')}
+            order={4}
+            name="locationSection"
+          >
+            <WalkthroughableView style={styles.locationHighlight}>
+              <LocationSection 
+                address={eventDetails.address} 
+                mapUrl={eventDetails.mapUrl || `https://maps.google.com/?q=${eventDetails.address}`}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Button 
-          title={i18n.t('eventDetail.buyTickets')} 
-          style={styles.ticketButton}
-          icon={<Ionicons name="ticket" size={20} color="#fff" style={{ marginRight: 8 }} />}
-          onPress={handleBuyTicket}
-        />
-      </View>
+      <CopilotStep
+        text={i18n.t('copilot.purchaseTickets')}
+        order={5}
+        name="buyTickets"
+      >
+        <WalkthroughableView style={styles.ticketButtonHighlight}>
+          <View style={styles.footer}>
+            <Button 
+              title={i18n.t('eventDetail.buyTickets')} 
+              style={styles.ticketButton}
+              icon={<Ionicons name="ticket" size={20} color="#fff" style={{ marginRight: 8 }} />}
+              onPress={handleBuyTicket}
+            />
+          </View>
+        </WalkthroughableView>
+      </CopilotStep>
 
       <Modal
         visible={showTicketModal}
@@ -184,6 +269,31 @@ const EventDetailScreen: React.FC = () => {
         </View>
       </Modal>
     </SafeAreaView>
+  );
+};
+
+// Main component with CopilotProvider
+const EventDetailScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <EventDetailScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -260,11 +370,12 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     flex: 1,
-    paddingRight: 8,
+    marginRight: 8,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#333',
   },
   closeButton: {
     padding: 4,
@@ -276,10 +387,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   ticketDetails: {
     flex: 1,
@@ -287,6 +397,7 @@ const styles = StyleSheet.create({
   ticketType: {
     fontSize: 16,
     fontWeight: '500',
+    color: '#333',
     marginBottom: 4,
   },
   ticketPrice: {
@@ -297,14 +408,74 @@ const styles = StyleSheet.create({
     backgroundColor: '#AE1913',
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 20,
   },
   buyButtonText: {
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 14,
   },
   closeModalButton: {
-    backgroundColor: '#AE1913',
+    backgroundColor: '#666',
+  },
+  imageGalleryHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  eventInfoHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  aboutHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  locationHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  ticketButtonHighlight: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

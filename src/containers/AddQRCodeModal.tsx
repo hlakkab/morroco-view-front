@@ -17,11 +17,15 @@ import {
   TouchableWithoutFeedback,
   View
 } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import QRCodeSVG from 'react-native-qrcode-svg';
 import Button from '../components/Button';
 import { useCamera } from '../hooks/useCamera';
 import i18n from '../translations/i18n';
 import QRCode from '../types/qrcode';
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 interface AddQRCodeModalProps {
   visible: boolean;
@@ -43,7 +47,8 @@ const QRCodeDisplay: React.FC<{ value: string, size: number }> = ({ value, size 
   );
 };
 
-const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({ 
+// Content component with Copilot functionality
+const AddQRCodeModalContent: React.FC<AddQRCodeModalProps> = ({ 
   visible, 
   onClose,
   onSave
@@ -55,6 +60,9 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
+  
+  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
   
   // Use the camera hook
   const {
@@ -74,6 +82,34 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
     takePictureWithCamera,
     pickImageFromGallery
   } = useCamera();
+
+  // Start the tour automatically when the modal becomes visible
+  useEffect(() => {
+    if (visible && !tourStarted) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [visible, startTour, tourStarted]);
+
+  // Handle copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+
+    copilotEvents.on('stop', handleStop);
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
 
   // Create animated value for drag gesture
   const pan = React.useRef(new Animated.ValueXY()).current;
@@ -317,6 +353,13 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
         >
           {/* White header with drag handle */}
           <View style={styles.headerContainer} {...panResponder.panHandlers}>
+            {/* Manual tour button */}
+            {!tourVisible && (
+              <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+                <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+              </TouchableOpacity>
+            )}
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
@@ -331,62 +374,119 @@ const AddQRCodeModal: React.FC<AddQRCodeModalProps> = ({
           
           <View style={styles.modalContent}>
             {/* Form Fields */}
-            <View style={styles.formField}>
-              <Text style={styles.label}>{i18n.t('qrcode.titleField')} <Text style={styles.required}>*</Text></Text>
-              <TextInput
-                style={styles.input}
-                placeholder={i18n.t('qrcode.enterTitle')}
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
-
-            <View style={styles.formField}>
-              <Text style={styles.label}>{i18n.t('qrcode.descriptionField')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={i18n.t('qrcode.enterDescription')}
-                value={description}
-                onChangeText={setDescription}
-              />
-            </View>
-
-            <View style={styles.formField}>
-              <Text style={styles.label}>{i18n.t('qrcode.pickImage')} <Text style={styles.required}>*</Text></Text>
-              <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
-               
-                {!data ? (
-                  <>
-                    <Ionicons name="image-outline" size={48} color="#777" />
-                    <Text style={styles.imagePickerText}>{i18n.t('qrcode.pickQrCodeImage')}</Text>
-                  </>
-                ) : (
-                  <View style={styles.qrCodeWrapper}>
-                    <QRCodeSVG
-                      value={data}
-                      size={130}
-                      color="black"
-                      backgroundColor="white"
-                    />
+            <CopilotStep
+              text="Enter a title for your QR code"
+              order={1}
+              name="title-field"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>{i18n.t('qrcode.titleField')} <Text style={styles.required}>*</Text></Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={i18n.t('qrcode.enterTitle')}
+                    value={title}
+                    onChangeText={setTitle}
+                  />
                 </View>
-                )}
-              </TouchableOpacity>
-            </View>
+              </WalkthroughableView>
+            </CopilotStep>
+
+            <CopilotStep
+              text="Add a description for your QR code"
+              order={2}
+              name="description-field"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>{i18n.t('qrcode.descriptionField')}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={i18n.t('qrcode.enterDescription')}
+                    value={description}
+                    onChangeText={setDescription}
+                  />
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
+
+            <CopilotStep
+              text="Scan a QR code or pick an image containing a QR code"
+              order={3}
+              name="qr-picker"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>{i18n.t('qrcode.pickImage')} <Text style={styles.required}>*</Text></Text>
+                  <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+                  
+                    {!data ? (
+                      <>
+                        <Ionicons name="image-outline" size={48} color="#777" />
+                        <Text style={styles.imagePickerText}>{i18n.t('qrcode.pickQrCodeImage')}</Text>
+                      </>
+                    ) : (
+                      <View style={styles.qrCodeWrapper}>
+                        <QRCodeSVG
+                          value={data}
+                          size={130}
+                          color="black"
+                          backgroundColor="white"
+                        />
+                    </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
 
             {/* Save Button */}
-            <View style={styles.buttonContainer}>
-              <Button 
-                title={i18n.t('qrcode.save')}
-                onPress={handleSave} 
-                disabled={!title.trim() || !data}
-                style={(!title.trim() || !data) ? styles.disabledButton : styles.button}
-              />
-            </View>
-
+            <CopilotStep
+              text="Save your QR code to your collection"
+              order={4}
+              name="save-button"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.buttonContainer}>
+                  <Button 
+                    title={i18n.t('qrcode.save')}
+                    onPress={handleSave} 
+                    disabled={!title.trim() || !data}
+                    style={(!title.trim() || !data) ? styles.disabledButton : styles.button}
+                  />
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
           </View>
         </Animated.View>
       </View>
     </Modal>
+  );
+};
+
+// Wrap content with CopilotProvider
+const AddQRCodeModal: React.FC<AddQRCodeModalProps> = (props) => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      androidStatusBarVisible={true}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <AddQRCodeModalContent {...props} />
+    </CopilotProvider>
   );
 };
 
@@ -606,6 +706,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.7,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 10,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  enhancedHighlight: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'visible',
+    backgroundColor: 'transparent',
+    padding: 2,
+    marginBottom: 0,
+    zIndex: 100,
   },
 });
 

@@ -1,20 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import ReservationPopup from '../containers/ReservationPopup';
@@ -22,6 +10,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearPickupDetails, fetchPickupDetails, toggleSavedStatus } from '../store/hotelPickupDetailsSlice';
 import i18n from '../translations/i18n';
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 interface RouteParams {
   id: string;
@@ -31,16 +22,17 @@ interface RouteParams {
   isPrivate: boolean;
 }
 
+const { width, height } = Dimensions.get('window');
 
-const { width } = Dimensions.get('window');
-
-const TransportDetailScreen: React.FC = () => {
+const TransportDetailScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { id, title, price } = route.params as RouteParams;
   const dispatch = useAppDispatch();
   const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
   const { currentLanguage } = useLanguage();
+  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showReservation, setShowReservation] = useState(false);
@@ -52,6 +44,32 @@ const TransportDetailScreen: React.FC = () => {
       dispatch(clearPickupDetails());
     };
   }, [dispatch, id]);
+
+  // Start the Copilot tour when the component mounts
+  useEffect(() => {
+    if (!tourStarted && !loading) {
+      // Delay starting the tour until after the UI has rendered
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [startTour, tourStarted, loading]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+    };
+    
+    copilotEvents.on('stop', handleStop);
+    
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -72,6 +90,11 @@ const TransportDetailScreen: React.FC = () => {
 
   const handleCloseReservation = () => {
     setShowReservation(false);
+  };
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
   };
 
   if (loading) {
@@ -100,28 +123,45 @@ const TransportDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Manual tour button */}
+      {!visible && (
+        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.headerContainer}>
         <ScreenHeader title={title} onBack={handleBack} />
       </View>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.imageSection}>
-          <FlatList
-            ref={flatListRef}
-            data={currentPickup.images}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item }) => (
-              <Image
-                source={{ uri: item }}
-                style={styles.image}
-                resizeMode="cover"
+          {/* Step 1: Image Gallery */}
+          <CopilotStep
+            text={i18n.t('copilot.viewVehicleImages')}
+            order={1}
+            name="imagesStep"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <FlatList
+                ref={flatListRef}
+                data={currentPickup.images}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleScroll}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <Image
+                    source={{ uri: item }}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
+                )}
               />
-            )}
-          />
+            </WalkthroughableView>
+          </CopilotStep>
 
           <TouchableOpacity
             style={[styles.saveButton, currentPickup.saved && styles.savedButton]}
@@ -156,50 +196,77 @@ const TransportDetailScreen: React.FC = () => {
             </Text>
           </View>
 
-          <Text style={styles.sectionTitle}>{i18n.t('transport.specifications')}</Text>
+          {/* Step 2: Specifications */}
+          <CopilotStep
+            text={i18n.t('copilot.checkSpecifications')}
+            order={2}
+            name="specsStep"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <Text style={styles.sectionTitle}>{i18n.t('transport.specifications')}</Text>
 
-          <View style={styles.specificationsContainer}>
-            <View style={styles.specItem}>
-              <Ionicons name="people-outline" size={20} color="#666" />
-              <Text style={styles.specText}>{currentPickup.nbSeats} {i18n.t('transport.seats')}</Text>
-            </View>
+              <View style={styles.specificationsContainer}>
+                <View style={styles.specItem}>
+                  <Ionicons name="people-outline" size={20} color="#666" />
+                  <Text style={styles.specText}>{currentPickup.nbSeats} {i18n.t('transport.seats')}</Text>
+                </View>
 
-            <View style={styles.specItem}>
-              <Ionicons name="briefcase-outline" size={20} color="#666" />
-              <Text style={styles.specText}>{currentPickup.bagCapacity} {i18n.t('transport.largeBags')}</Text>
-            </View>
+                <View style={styles.specItem}>
+                  <Ionicons name="briefcase-outline" size={20} color="#666" />
+                  <Text style={styles.specText}>{currentPickup.bagCapacity} {i18n.t('transport.largeBags')}</Text>
+                </View>
 
-            <View style={styles.specItem}>
-              <Ionicons name="car-outline" size={20} color="#666" />
-              <Text style={styles.specText}>{currentPickup.nbDoors} {i18n.t('transport.doors')}</Text>
-            </View>
+                <View style={styles.specItem}>
+                  <Ionicons name="car-outline" size={20} color="#666" />
+                  <Text style={styles.specText}>{currentPickup.nbDoors} {i18n.t('transport.doors')}</Text>
+                </View>
 
-            <View style={styles.specItem}>
-              <Ionicons name="snow-outline" size={20} color="#666" />
-              <Text style={styles.specText}>
-                {currentPickup.airConditioning ? i18n.t('transport.airConditioning') : i18n.t('transport.noAirConditioning')}
-              </Text>
-            </View>
+                <View style={styles.specItem}>
+                  <Ionicons name="snow-outline" size={20} color="#666" />
+                  <Text style={styles.specText}>
+                    {currentPickup.airConditioning ? i18n.t('transport.airConditioning') : i18n.t('transport.noAirConditioning')}
+                  </Text>
+                </View>
 
-            <View style={styles.specItem}>
-              <Ionicons name="time-outline" size={20} color="#666" />
-              <Text style={styles.specText}>60 {i18n.t('transport.minutes')}</Text>
-            </View>
-          </View>
+                <View style={styles.specItem}>
+                  <Ionicons name="time-outline" size={20} color="#666" />
+                  <Text style={styles.specText}>60 {i18n.t('transport.minutes')}</Text>
+                </View>
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
 
-          <Text style={styles.sectionTitle}>{i18n.t('broker.about')}</Text>
-          <Text style={styles.aboutText}>{currentPickup.about}</Text>
+          {/* Step 3: About Section */}
+          <CopilotStep
+            text={i18n.t('copilot.readAboutService')}
+            order={3}
+            name="aboutStep"
+          >
+            <WalkthroughableView style={styles.walkthroughContainer}>
+              <Text style={styles.sectionTitle}>{i18n.t('broker.about')}</Text>
+              <Text style={styles.aboutText}>{currentPickup.about}</Text>
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Button
-          title={i18n.t('pickup.reservePickup')}
-          style={styles.reserveButton}
-          icon={<Ionicons name="car" size={20} color="#fff" style={{ marginRight: 8 }} />}
-          onPress={handleReservePress}
-        />
-      </View>
+      {/* Step 4: Reserve Button */}
+      <CopilotStep
+        text={i18n.t('copilot.reservePickup')}
+        order={4}
+        name="reserveStep"
+      >
+        <WalkthroughableView style={styles.walkthroughContainer}>
+          <View style={styles.footer}>
+            <Button
+              title={i18n.t('pickup.reservePickup')}
+              style={styles.reserveButton}
+              icon={<Ionicons name="car" size={20} color="#fff" style={{ marginRight: 8 }} />}
+              onPress={handleReservePress}
+            />
+          </View>
+        </WalkthroughableView>
+      </CopilotStep>
 
       <Modal
         visible={showReservation}
@@ -215,6 +282,31 @@ const TransportDetailScreen: React.FC = () => {
         />
       </Modal>
     </SafeAreaView>
+  );
+};
+
+// Wrap the screen content with CopilotProvider
+const TransportDetailScreen: React.FC = () => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+    >
+      <TransportDetailScreenContent />
+    </CopilotProvider>
   );
 };
 
@@ -299,8 +391,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   content: {
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
+    height: '100%',
     backgroundColor: '#FFFFFF',
     padding: 16,
   },
@@ -351,6 +442,45 @@ const styles = StyleSheet.create({
   },
   reserveButton: {
     backgroundColor: '#CE1126',
+  },
+  walkthroughContainer: {
+    width: '100%',
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 
