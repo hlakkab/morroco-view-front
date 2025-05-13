@@ -80,7 +80,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Search Bar Section with fixed height */}
         <View style={styles.componentSearchContainer}>
           <CopilotStep
-            text="Search for destinations, restaurants, or activities"
+            text="Search for your favorite destinations, restaurants, or activities across Morocco!"
             order={1}
             name="search"
           >
@@ -93,7 +93,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Africa Cup Banner Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
-            text="Check out upcoming events and matches"
+            text="Don't miss exciting events and matches happening during your visit to Morocco!"
             order={2}
             name="event"
           >
@@ -106,7 +106,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Service Icons Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
-            text="Access essential services for your stay"
+            text="Access essential services to make your stay in Morocco comfortable and enjoyable!"
             order={3}
             name="services"
           >
@@ -119,7 +119,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Explore Morocco Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
-            text="Explore different categories of attractions"
+            text="Discover Morocco's beauty by exploring different categories of attractions and hidden gems!"
             order={4}
             name="explore"
           >
@@ -150,16 +150,16 @@ const HomeScreen: React.FC = () => {
       backdropColor="rgba(0, 0, 0, 0.7)"
       animationDuration={300}
       overlay="svg"
-      stopOnOutsideClick={false}
+      stopOnOutsideClick={true}
       labels={{
         skip: "Skip",
-        previous: "Previous",
+        previous: "Back",
         next: "Next",
         finish: "Done"
       }}
-      arrowSize={5} // Smaller arrow for better precision
-      arrowColor="#CE1126" // Match the tooltip color
-      verticalOffset={0} // Remove any vertical offset
+      arrowSize={8}
+      arrowColor="#CE1126"
+      verticalOffset={0}
     >
       <HomeScreenContent />
     </CopilotProvider>
@@ -179,30 +179,28 @@ const styles = StyleSheet.create({
   bottomPadding: {
     height: 100, 
   },
-  // testButton: {
-  //   backgroundColor: '#6200EE',
-  //   padding: 15,
-  //   borderRadius: 10,
-  //   marginVertical: 20,
-  //   alignItems: 'center',
-  // },
-  // testButtonText: {
-  //   color: 'white',
-  //   fontSize: 16,
-  //   fontWeight: 'bold',
-  // },
   tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

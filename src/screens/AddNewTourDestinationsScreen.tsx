@@ -617,6 +617,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
+    backgroundColor: '#FFF7F7',
   },
   loadingContainer: {
     flex: 1,
