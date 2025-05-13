@@ -142,7 +142,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
         {!tourVisible && (
           <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
             <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.tourButtonText}>Tour Guide</Text>
+            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
           </TouchableOpacity>
         )}
 
@@ -178,7 +178,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
         >
           <View style={styles.content}>
             <CopilotStep
-              text="View match details including teams, date, time and venue"
+              text={i18n.t('copilot.viewMatchDetails')}
               order={1}
               name="match-details"
             >
@@ -262,7 +262,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
             </CopilotStep>
 
             <CopilotStep
-              text="Read about the match and its significance"
+              text={i18n.t('copilot.readAboutMatch')}
               order={2}
               name="about-section"
             >
@@ -274,7 +274,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
             </CopilotStep>
 
             <CopilotStep
-              text="Find the match location and get directions"
+              text={i18n.t('copilot.findMatchLocation')}
               order={3}
               name="location-section"
             >
@@ -294,7 +294,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
         </ScrollView>
 
         <CopilotStep
-          text="Purchase tickets for the match"
+          text={i18n.t('copilot.purchaseTickets')}
           order={4}
           name="buy-tickets"
         >
@@ -317,13 +317,15 @@ const MatchPopup: React.FC<MatchPopupProps> = (props) => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
       androidStatusBarVisible={true}
-      arrowSize={6}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <MatchPopupContent {...props} />
     </CopilotProvider>
@@ -563,9 +565,17 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
     width: '85%',
   },
   tourButton: {
@@ -573,9 +583,9 @@ const styles = StyleSheet.create({
     top: 50,
     right: 16,
     backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

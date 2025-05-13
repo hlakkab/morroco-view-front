@@ -111,7 +111,7 @@ const ItemList: React.FC<ItemListProps> = ({
   };
 
   return (
-    <>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{i18n.t('tours.itemsInCity').replace('{city}', selectedCity)}</Text>
         <Text style={styles.selectedCount}>{i18n.t('tours.selectedCount').replace('{count}', totalSelectedCount.toString())}</Text>
@@ -122,6 +122,7 @@ const ItemList: React.FC<ItemListProps> = ({
         renderItem={renderSavedItem}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
+        style={styles.list}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -129,11 +130,15 @@ const ItemList: React.FC<ItemListProps> = ({
           </View>
         }
       />
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -177,8 +182,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
     resizeMode: 'cover',
   },
+  list: {
+    flex: 1,
+    width: '100%',
+  },
   listContent: {
-    paddingBottom: 16,
+    paddingBottom: 8,
+    flexGrow: 1,
   },
   emptyContainer: {
     alignItems: 'center',

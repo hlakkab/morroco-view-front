@@ -113,7 +113,7 @@ const ExploreMatchesScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -122,7 +122,7 @@ const ExploreMatchesScreenContent: React.FC = () => {
       </View>
       <View style={styles.content}>
         <CopilotStep
-          text="Search for matches and filter by stadium"
+          text={i18n.t('copilot.searchMatches')}
           order={1}
           name="search"
         >
@@ -137,7 +137,7 @@ const ExploreMatchesScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Select a city to filter matches"
+          text={i18n.t('copilot.filterByMatchCity')}
           order={2}
           name="citySelector"
         >
@@ -157,7 +157,7 @@ const ExploreMatchesScreenContent: React.FC = () => {
         {filteredMatches.length > 0 ? (
           <>
             <CopilotStep
-              text="Browse and select matches to view details"
+              text={i18n.t('copilot.browseMatches')}
               order={3}
               name="matchList"
             >
@@ -234,11 +234,14 @@ const ExploreMatchesScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <ExploreMatchesScreenContent />
     </CopilotProvider>
@@ -285,10 +288,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
-  },
   searchHighlight: {
     width: '100%',
     marginBottom: 16,
@@ -305,14 +304,28 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
   },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
     backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

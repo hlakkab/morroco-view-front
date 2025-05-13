@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
@@ -10,7 +10,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearPickupDetails, fetchPickupDetails, toggleSavedStatus } from '../store/hotelPickupDetailsSlice';
 import i18n from '../translations/i18n';
-import { Platform } from 'react-native';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -128,7 +127,7 @@ const TransportDetailScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -140,7 +139,7 @@ const TransportDetailScreenContent: React.FC = () => {
         <View style={styles.imageSection}>
           {/* Step 1: Image Gallery */}
           <CopilotStep
-            text="Scroll through the images to get an idea of the vehicle"
+            text={i18n.t('copilot.viewVehicleImages')}
             order={1}
             name="imagesStep"
           >
@@ -199,7 +198,7 @@ const TransportDetailScreenContent: React.FC = () => {
 
           {/* Step 2: Specifications */}
           <CopilotStep
-            text="Check the vehicle specifications"
+            text={i18n.t('copilot.checkSpecifications')}
             order={2}
             name="specsStep"
           >
@@ -239,7 +238,7 @@ const TransportDetailScreenContent: React.FC = () => {
 
           {/* Step 3: About Section */}
           <CopilotStep
-            text="Read more about this pickup service"
+            text={i18n.t('copilot.readAboutService')}
             order={3}
             name="aboutStep"
           >
@@ -253,7 +252,7 @@ const TransportDetailScreenContent: React.FC = () => {
 
       {/* Step 4: Reserve Button */}
       <CopilotStep
-        text="Click here to reserve your pickup"
+        text={i18n.t('copilot.reservePickup')}
         order={4}
         name="reserveStep"
       >
@@ -297,11 +296,14 @@ const TransportDetailScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <TransportDetailScreenContent />
     </CopilotProvider>
@@ -445,17 +447,27 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

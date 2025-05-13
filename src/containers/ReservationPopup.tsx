@@ -573,12 +573,25 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
     }
   };
 
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    startTour();
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <View style={styles.popup}>
+        {/* Manual tour button */}
+        {!visible && (
+          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+          </TouchableOpacity>
+        )}
+        
         <View style={styles.fixedHeader}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
@@ -610,57 +623,65 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
             </View>
 
             {/* Direction switch control */}
-            <View style={styles.directionSwitchWrapper}>
-              <View style={styles.directionControls}>
-                {pickupDirection === 'a2h' ? (
-                  // Airport to Hotel layout
-                  <>
-                    <View style={styles.endpointWithLabel}>
-                      <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
-                        <MaterialIcons name="flight" size={16} color="#CE1126" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
-                    </View>
+            <CopilotStep
+              text={i18n.t('copilot.selectedDirection')}
+              order={1}
+              name="directionSelector"
+            >
+              <WalkthroughableView style={styles.enhancedHighlight}>
+                <View style={styles.directionSwitchWrapper}>
+                  <View style={styles.directionControls}>
+                    {pickupDirection === 'a2h' ? (
+                      // Airport to Hotel layout
+                      <>
+                        <View style={styles.endpointWithLabel}>
+                          <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                            <MaterialIcons name="flight" size={16} color="#CE1126" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                        </View>
 
-                    <View style={styles.directionMiddle}>
-                      <Ionicons name="arrow-forward" size={20} color="#666" />
-                      <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
-                    </View>
-
-
-                    <View style={styles.endpointWithLabel}>
-                      <View style={styles.directionEndpoint}>
-                        <MaterialIcons name="hotel" size={16} color="#008060" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
-                    </View>
-                  </>
-                ) : (
-                  // Hotel to Airport layout
-                  <>
-                    <View style={styles.endpointWithLabel}>
-                      <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
-                        <MaterialIcons name="hotel" size={16} color="#008060" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
-                    </View>
-
-                    <View style={styles.directionMiddle}>
-                      <Ionicons name="arrow-forward" size={20} color="#666" />
-                      <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
-                    </View>
+                        <View style={styles.directionMiddle}>
+                          <Ionicons name="arrow-forward" size={20} color="#666" />
+                          <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                        </View>
 
 
-                    <View style={styles.endpointWithLabel}>
-                      <View style={styles.directionEndpoint}>
-                        <MaterialIcons name="flight" size={16} color="#CE1126" />
-                      </View>
-                      <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
-                    </View>
-                  </>
-                )}
-              </View>
-            </View>
+                        <View style={styles.endpointWithLabel}>
+                          <View style={styles.directionEndpoint}>
+                            <MaterialIcons name="hotel" size={16} color="#008060" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                        </View>
+                      </>
+                    ) : (
+                      // Hotel to Airport layout
+                      <>
+                        <View style={styles.endpointWithLabel}>
+                          <View style={[styles.directionEndpoint, styles.activeEndpoint]}>
+                            <MaterialIcons name="hotel" size={16} color="#008060" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.hotel')}</Text>
+                        </View>
+
+                        <View style={styles.directionMiddle}>
+                          <Ionicons name="arrow-forward" size={20} color="#666" />
+                          <Text style={styles.toLabel}>{i18n.t('pickup.toDirection')}</Text>
+                        </View>
+
+
+                        <View style={styles.endpointWithLabel}>
+                          <View style={styles.directionEndpoint}>
+                            <MaterialIcons name="flight" size={16} color="#CE1126" />
+                          </View>
+                          <Text style={styles.endpointLabel}>{i18n.t('pickup.airport')}</Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
 
             <View style={styles.routeContainer}>
               {pickupDirection === 'a2h' ? (
@@ -710,16 +731,11 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
 
             <View style={styles.formContainer}>
               <CopilotStep
-                text={
-                  "Follow these steps to complete your reservation:\n\n" +
-                  "1. Select your pickup date\n" +
-                  "2. Choose your preferred time\n" +
-                  "3. Enter your location\n" +
-                  "4. Review and confirm your booking"
-                } order={1}
+                text={i18n.t('copilot.completeReservation')}
+                order={2}
                 name="reservationSteps"
               >
-                <WalkthroughableView>
+                <WalkthroughableView style={styles.enhancedHighlight}>
                   <View>
                     <Text style={styles.sectionTitle}>{i18n.t('reservation.whenAreYouArriving')}</Text>
 
@@ -873,14 +889,22 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
 
         {/* Fixed footer with confirm button */}
         <View style={styles.fixedFooter}>
-          <Button
-            title={i18n.t('reservation.confirmReservation')}
-            style={styles.confirmButton}
-            icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
-            onPress={handleSubmit}
-            loading={bookingStatus === 'loading'}
-            disabled={bookingStatus === 'loading' || !destination}
-          />
+          <CopilotStep
+            text={i18n.t('copilot.confirmReservation')}
+            order={3}
+            name="confirmButton"
+          >
+            <WalkthroughableView style={styles.enhancedHighlight}>
+              <Button
+                title={i18n.t('reservation.confirmReservation')}
+                style={styles.confirmButton}
+                icon={<Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />}
+                onPress={handleSubmit}
+                loading={bookingStatus === 'loading'}
+                disabled={bookingStatus === 'loading' || !destination}
+              />
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </View>
 
@@ -915,11 +939,15 @@ const ReservationPopup = (props: ReservationPopupProps) => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+      androidStatusBarVisible={true}
     >
       <ReservationPopupContent {...props} />
     </CopilotProvider>
@@ -1518,12 +1546,53 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Add extra padding for iOS
   },
   tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   walkthroughContainer: {
     // flex: 1,
     width: '100%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 10,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  enhancedHighlight: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'visible',
+    backgroundColor: 'transparent',
+    padding: 2,
+    marginBottom: 0,
+    zIndex: 100,
   },
 });
 

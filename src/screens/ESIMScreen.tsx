@@ -125,7 +125,7 @@ const ESIMScreenContent: React.FC = () => {
       <View style={styles.footer}>
         <View style={styles.buttonContainer}>
           <CopilotStep
-            text="Click here to buy a new eSIM"
+            text={i18n.t('copilot.buyESIM')}
             order={1}
             name="buyEsim"
           >
@@ -199,8 +199,40 @@ const styles = StyleSheet.create({
     width: '100%', // Ensure the wrapper takes full width
   },
   tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tourButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
   buttonContainer: {
     width: '100%',

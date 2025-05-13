@@ -173,7 +173,7 @@ const AccountScreenContent: React.FC = () => {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <CopilotStep
-          text="View and update your profile picture and personal information"
+          text={i18n.t('copilot.viewProfile')}
           order={1}
           name="profileCard"
         >
@@ -198,7 +198,7 @@ const AccountScreenContent: React.FC = () => {
 
         {/* Personal Information Section */}
         <CopilotStep
-          text="Manage your personal information and contact details"
+          text={i18n.t('copilot.managePersonalInfo')}
           order={2}
           name="personalInfo"
         >
@@ -283,7 +283,7 @@ const AccountScreenContent: React.FC = () => {
 
         {/* Support Section */}
         <CopilotStep
-          text="Get help and support through various contact methods"
+          text={i18n.t('copilot.getSupport')}
           order={3}
           name="support"
         >
@@ -304,7 +304,7 @@ const AccountScreenContent: React.FC = () => {
 
         {/* Logout Button */}
         <CopilotStep
-          text="Safely log out of your account when you're done"
+          text={i18n.t('copilot.logout')}
           order={4}
           name="logout"
         >
@@ -671,28 +671,41 @@ const styles = StyleSheet.create({
   retryButton: {
     backgroundColor: '#CE1126',
   },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
   tourButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 40,
+    top: 50,
     right: 16,
-    backgroundColor: '#CE1126',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1000,
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   tourButtonText: {
     color: '#FFFFFF',
-    marginLeft: 4,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 8,
-    padding: 12,
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
   profileCardHighlight: {
     marginBottom: 16,

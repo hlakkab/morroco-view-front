@@ -10,6 +10,7 @@ import EventBannerContainer from '../containers/EventBannerContainer';
 import ExploreCardsContainer from '../containers/ExploreCardsContainer';
 import SearchBarContainer from '../containers/SearchBarContainer';
 import ServiceCardsContainer from '../containers/ServiceCardsContainer';
+import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
 // Create walkthroughable components
@@ -68,7 +69,7 @@ const HomeScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -80,7 +81,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Search Bar Section with fixed height */}
         <View style={styles.componentSearchContainer}>
           <CopilotStep
-            text="Search for your favorite destinations, restaurants, or activities across Morocco!"
+            text={i18n.t('copilot.exploreDestinations')}
             order={1}
             name="search"
           >
@@ -93,7 +94,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Africa Cup Banner Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
-            text="Don't miss exciting events and matches happening during your visit to Morocco!"
+            text={i18n.t('copilot.discoverEvents')}
             order={2}
             name="event"
           >
@@ -106,7 +107,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Service Icons Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
-            text="Access essential services to make your stay in Morocco comfortable and enjoyable!"
+            text={i18n.t('copilot.accessServices')}
             order={3}
             name="services"
           >
@@ -119,7 +120,7 @@ const HomeScreenContent: React.FC = () => {
         {/* Explore Morocco Section with fixed height */}
         <View style={styles.componentContainer}>
           <CopilotStep
-            text="Discover Morocco's beauty by exploring different categories of attractions and hidden gems!"
+            text={i18n.t('copilot.discoverCategories')}
             order={4}
             name="explore"
           >
@@ -131,7 +132,7 @@ const HomeScreenContent: React.FC = () => {
 
         {/* Emergency Contacts Button - Removed from tour */}
         <CopilotStep
-          text="Access important emergency contacts in Morocco with just one tap!"
+          text={i18n.t('copilot.findEmergency')}
           order={5}
           name="emergency"
         >
@@ -145,7 +146,7 @@ const HomeScreenContent: React.FC = () => {
       
       {/* Bottom Navigation Bar */}
       <CopilotStep
-        text="Navigate easily between different sections of the app!"
+        text={i18n.t('copilot.navigateApp')}
         order={6}
         name="navbar"
       >
@@ -167,13 +168,13 @@ const HomeScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Back",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
       arrowSize={8}
-      arrowColor="#CE1126"
+      arrowColor="#FFF7F7"
       verticalOffset={0}
     >
       <HomeScreenContent />

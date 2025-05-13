@@ -98,7 +98,7 @@ const EventDetailScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -108,7 +108,7 @@ const EventDetailScreenContent: React.FC = () => {
 
       <ScrollView style={styles.scrollView}>
         <CopilotStep
-          text="Browse through event images and save your favorite events"
+          text={i18n.t('copilot.browseImages')}
           order={1}
           name="imageGallery"
         >
@@ -123,7 +123,7 @@ const EventDetailScreenContent: React.FC = () => {
 
         <View style={styles.content}>
           <CopilotStep
-            text="View event type, dates, and website information"
+            text={i18n.t('copilot.viewEventInfo')}
             order={2}
             name="eventInfo"
           >
@@ -165,7 +165,7 @@ const EventDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Read more about this event"
+            text={i18n.t('copilot.readAboutEvent')}
             order={3}
             name="aboutSection"
           >
@@ -178,7 +178,7 @@ const EventDetailScreenContent: React.FC = () => {
           </CopilotStep>
 
           <CopilotStep
-            text="Find the event location and get directions"
+            text={i18n.t('copilot.findEventLocation')}
             order={4}
             name="locationSection"
           >
@@ -193,7 +193,7 @@ const EventDetailScreenContent: React.FC = () => {
       </ScrollView>
 
       <CopilotStep
-        text="Click here to purchase tickets for the event"
+        text={i18n.t('copilot.purchaseTickets')}
         order={5}
         name="buyTickets"
       >
@@ -283,11 +283,14 @@ const EventDetailScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <EventDetailScreenContent />
     </CopilotProvider>
@@ -415,10 +418,6 @@ const styles = StyleSheet.create({
   closeModalButton: {
     backgroundColor: '#666',
   },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
-  },
   imageGalleryHighlight: {
     width: '100%',
     overflow: 'hidden',
@@ -442,14 +441,28 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
   },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
     backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

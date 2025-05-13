@@ -134,7 +134,7 @@ const HotelPickupListContainer: React.FC<
         <View style={styles.filtersContainer}>
           <View style={styles.filterFromSection}>
             <CopilotStep
-              text="Select the city for your pickup"
+              text={i18n.t('copilot.filterHotelsByCity')}
               order={2}
               name="citySelector"
             >
@@ -157,7 +157,7 @@ const HotelPickupListContainer: React.FC<
 
           <View style={styles.directionContainer}>
             <CopilotStep
-              text="Toggle between airport to hotel or hotel to airport direction"
+              text={i18n.t('copilot.selectDirectionType')}
               order={3}
               name="directionToggle"
             >
@@ -244,7 +244,7 @@ const HotelPickupListContainer: React.FC<
             </View>
         ) : (
             <CopilotStep
-              text="Browse and select the pickup service that best fits your needs"
+              text={i18n.t('copilot.browsePickups')}
               order={4}
               name="pickupList"
             >

@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import StepProgress from '../components/StepProgress';
@@ -417,7 +417,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
         {!visible && !viewMode && (
           <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
             <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.tourButtonText}>Tour Guide</Text>
+            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
           </TouchableOpacity>
         )}
 
@@ -433,7 +433,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
         
         {!viewMode && (
           <CopilotStep
-            text="Track your progress through the tour creation process"
+            text={i18n.t('copilot.trackProgress')}
             order={1}
             name="stepProgress"
           >
@@ -449,7 +449,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
         {schedule.length > 0 ? (
           <>
             <CopilotStep
-              text="Navigate between days and see your tour schedule"
+              text={i18n.t('copilot.selectDay')}
               order={2}
               name="dayHeader"
             >
@@ -474,7 +474,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
             >
               <View style={styles.dayContainer}>
                 <CopilotStep
-                  text="View the current day's schedule and city"
+                  text={i18n.t('copilot.viewDaySchedule')}
                   order={3}
                   name="dayInfo"
                 >
@@ -488,7 +488,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
                 </CopilotStep>
                 
                 <CopilotStep
-                  text="Organize your activities by setting times and durations"
+                  text={i18n.t('copilot.organizeActivities')}
                   order={4}
                   name="timeline"
                 >
@@ -503,7 +503,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
                 </CopilotStep>
                 
                 <CopilotStep
-                  text="View the optimal route between your selected destinations"
+                  text={i18n.t('copilot.viewOptimalRoute')}
                   order={5}
                   name="trajectory"
                 >
@@ -517,7 +517,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
               </View>
               
               <CopilotStep
-                text="Review your complete tour schedule"
+                text={i18n.t('copilot.reviewTourSchedule')}
                 order={6}
                 name="summary"
               >
@@ -539,7 +539,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
         
         {!viewMode && (
           <CopilotStep
-            text="Save your tour when you're done organizing"
+            text={i18n.t('copilot.saveTour')}
             order={7}
             name="saveButton"
           >
@@ -585,11 +585,14 @@ const AddNewTourOrganizeScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <AddNewTourOrganizeScreenContent />
     </CopilotProvider>
@@ -647,44 +650,41 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 24,
   },
-  tourButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 45,
-    right: 16,
-    backgroundColor: '#E53935',
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1000,
-    elevation: 5,
+    zIndex: 999,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    elevation: 5,
   },
   tourButtonText: {
     color: '#FFFFFF',
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  tooltip: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

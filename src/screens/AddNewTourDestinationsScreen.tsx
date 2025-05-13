@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -15,7 +16,6 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchBookmarksAsItems, setTourDestinations, TourItem } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
-import { Feather } from '@expo/vector-icons';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -453,7 +453,7 @@ const AddNewTourDestinationsScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Feather name="info" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -462,7 +462,7 @@ const AddNewTourDestinationsScreenContent: React.FC = () => {
       </View>
       
       <CopilotStep
-        text="Track your progress through the tour creation process"
+        text={i18n.t('copilot.trackProgress')}
         order={1}
         name="stepProgress"
       >
@@ -476,7 +476,7 @@ const AddNewTourDestinationsScreenContent: React.FC = () => {
 
       <View style={styles.content}>
         <CopilotStep
-          text="Select the day you want to plan"
+          text={i18n.t('copilot.selectDay')}
           order={2}
           name="daySelector"
         >
@@ -492,7 +492,7 @@ const AddNewTourDestinationsScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Choose a city for your selected day"
+          text={i18n.t('copilot.chooseCity')}
           order={3}
           name="citySelector"
         >
@@ -523,11 +523,11 @@ const AddNewTourDestinationsScreenContent: React.FC = () => {
           /* Item List or Empty State */
           selectedCities[selectedDay] ? (
             <CopilotStep
-              text="Select destinations for your tour in the chosen city"
+              text={i18n.t('copilot.browseDestinations')}
               order={4}
               name="itemList"
             >
-              <WalkthroughableView>
+              <WalkthroughableView style={styles.listContainer}>
                 <ItemList
                   items={filteredItems}
                   selectedCity={selectedCities[selectedDay]}
@@ -545,7 +545,7 @@ const AddNewTourDestinationsScreenContent: React.FC = () => {
       </View>
 
       <CopilotStep
-        text="Proceed to organize your tour when you're done selecting destinations"
+        text={i18n.t('copilot.organizeNextButton')}
         order={5}
         name="nextButton"
       >
@@ -586,11 +586,14 @@ const AddNewTourDestinationsScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <AddNewTourDestinationsScreenContent />
     </CopilotProvider>
@@ -639,44 +642,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#E53935',
   },
-  tourButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 45,
-    right: 16,
-    backgroundColor: '#E53935',
+
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
+  tourButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1000,
-    elevation: 5,
+    zIndex: 999,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    elevation: 5,
   },
   tourButtonText: {
     color: '#FFFFFF',
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '500',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
-  tooltip: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  listContainer: {
+    flex: 1,
+    flexGrow: 1,
+    width: '100%',
   },
 });
 

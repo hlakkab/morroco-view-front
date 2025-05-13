@@ -126,7 +126,7 @@ const ToursScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -136,7 +136,7 @@ const ToursScreenContent: React.FC = () => {
       
       <View style={styles.content}>
         <CopilotStep
-          text="Create a new custom tour by selecting bookmarked places and events"
+          text={i18n.t('copilot.addTour')}
           order={1}
           name="add-tour"
         >
@@ -152,7 +152,7 @@ const ToursScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="View and manage your existing tours"
+          text={i18n.t('copilot.viewTours')}
           order={2}
           name="tour-list"
         >
@@ -166,8 +166,8 @@ const ToursScreenContent: React.FC = () => {
         visible={showOnboarding}
         onClose={handleOnboardingClose}
         steps={onboardingSteps}
-        title={i18n.t('tours.onboarding.title') || "Welcome to Tours"}
-        subtitle={i18n.t('tours.onboarding.subtitle') || "Create personalized itineraries for your Moroccan adventure by following these simple steps:"}
+        title={i18n.t('tours.onboarding.title')}
+        subtitle={i18n.t('tours.onboarding.subtitle')}
       />
 
       <BottomNavBar activeRoute="Tours" onNavigate={handleNavigation} />
@@ -186,11 +186,14 @@ const ToursScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <ToursScreenContent />
     </CopilotProvider>
@@ -235,17 +238,27 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B', 
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

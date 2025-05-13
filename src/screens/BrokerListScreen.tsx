@@ -261,7 +261,7 @@ const BrokerListScreenContent: React.FC = () => {
 
       <View style={styles.content}>
         <CopilotStep
-          text="Search for a broker by name or address"
+          text={i18n.t('copilot.searchBroker')}
           order={1}
           name="search"
         >
@@ -276,7 +276,7 @@ const BrokerListScreenContent: React.FC = () => {
         </CopilotStep>
 
         <CopilotStep
-          text="Filter brokers by city"
+          text={i18n.t('copilot.filterBrokerByCity')}
           order={2}
           name="cityFilter"
         >
@@ -297,7 +297,7 @@ const BrokerListScreenContent: React.FC = () => {
         {/* === Pagination : afficher si plus d'une page === */}
         {totalPages > 0 && (
           <CopilotStep
-            text="Navigate through pages of results"
+            text={i18n.t('copilot.navigatePages')}
             order={4}
             name="pagination"
           >
@@ -411,14 +411,28 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   // Tour-specific styles
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
   tourButton: {
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,
@@ -432,10 +446,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     marginLeft: 5,
-  },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 10,
   },
   searchHighlight: {
     width: '100%',

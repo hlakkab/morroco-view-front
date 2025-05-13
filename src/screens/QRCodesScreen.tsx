@@ -1,8 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
-import { Ionicons } from '@expo/vector-icons';
 
 // Import components and containers
 import Button from '../components/Button';
@@ -99,7 +99,7 @@ const QRCodesScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -111,7 +111,7 @@ const QRCodesScreenContent: React.FC = () => {
       {/* Search bar component */}
       <View style={styles.content}>
         <CopilotStep
-          text="Search for your QR codes by name or description"
+          text={i18n.t('copilot.searchQRCodes')}
           order={1}
           name="search"
         >
@@ -142,7 +142,7 @@ const QRCodesScreenContent: React.FC = () => {
 
       {/* Container for QR code items */}
       <CopilotStep
-        text="View and manage your saved QR codes"
+        text={i18n.t('copilot.manageQRCodes')}
         order={2}
         name="qrCodesList"
       >
@@ -153,7 +153,7 @@ const QRCodesScreenContent: React.FC = () => {
 
       {/* Footer with add button */}
       <CopilotStep
-        text="Add new QR codes to your collection"
+        text={i18n.t('copilot.addNewQRCode')}
         order={3}
         name="addButton"
       >
@@ -185,11 +185,14 @@ const QRCodesScreen: React.FC = () => {
       overlay="svg"
       stopOnOutsideClick={true}
       labels={{
-        skip: "Skip",
-        previous: "Previous",
-        next: "Next",
-        finish: "Done"
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
       }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
     >
       <QRCodesScreenContent />
     </CopilotProvider>
@@ -233,28 +236,41 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
   },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
+  },
   tourButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 40,
+    top: 50,
     right: 16,
-    backgroundColor: '#CE1126',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: '#008060',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1000,
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   tourButtonText: {
     color: '#FFFFFF',
-    marginLeft: 4,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  tooltip: {
-    backgroundColor: '#CE1126',
-    borderRadius: 8,
-    padding: 12,
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
   searchHighlight: {
     marginBottom: 16,
