@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as BarCodeScanner from 'expo-barcode-scanner';
 import { CameraView } from 'expo-camera';
 import React, { useEffect, useState } from 'react';
 import {
