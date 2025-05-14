@@ -6,6 +6,21 @@ import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, TouchableO
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import i18n from '../translations/i18n';
 
+// Development-only reset function
+if (__DEV__) {
+  const resetTour = async () => {
+    try {
+      console.log('Resetting tour status...');
+      await AsyncStorage.removeItem(TOUR_FLAG);
+      console.log('Tour status reset successfully');
+    } catch (error) {
+      console.error('Error resetting tour:', error);
+    }
+  };
+  // Uncomment the line below to reset the tour
+  resetTour();
+}
+
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchMonuments, setSelectedMonumentType } from '../store/index';
@@ -29,6 +44,11 @@ import {
 import { Monument, MonumentType } from '../types/Monument';
 import { RootStackParamList } from '../types/navigation';
 import Pagination from "../components/Pagination";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+
+const TOUR_FLAG = '@monumentsTourSeen';
 
 type MonumentsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Monuments'>;
 
@@ -41,28 +61,89 @@ const MonumentsScreenContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
-  
+  // ⬇️ nouvel état
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   // Get data from Redux store
-  const { 
-    monuments, 
-    loading, 
-    error, 
-    selectedType 
-  } = useAppSelector(state => state.monument);
+  const { monuments, loading, error, selectedType } = useAppSelector(state => state.monument);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const [selectedCity, setSelectedCity] = useState('all');
-
   // ─── Hooks pagination ─────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   // reset page on search / filters / city change
   useEffect(() => {
     setCurrentPage(1);
-  }, [ searchQuery, selectedCity, filterOptions]);
+  }, [searchQuery, selectedCity, filterOptions]);
   // ────────────────────────────────────────────────────
+
+
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
+  useEffect(() => {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeenTour, loading, startTour, tourStarted, visible]);
+
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
+  useEffect(() => {
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
+    copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
+    return () => {
+      copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
+    };
+  }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
 
   // Add icons to filter categories - only include monument_type for FilterPopup
   const categoriesWithIcons = {
@@ -89,10 +170,10 @@ const MonumentsScreenContent: React.FC = () => {
 
   // Create city options for FilterSelector
   const cityOptions = [
-    { 
-      id: 'all', 
-      label: i18n.t('monuments.allCities'), 
-      icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} /> 
+    {
+      id: 'all',
+      label: i18n.t('monuments.allCities'),
+      icon: <Ionicons name="globe-outline" size={16} color="#888" style={{ marginRight: 4 }} />
     },
     ...cities.map(city => ({
       id: normalizeString(city.id),
@@ -129,7 +210,7 @@ const MonumentsScreenContent: React.FC = () => {
       const matchingType = Object.values(MonumentType).find(
         type => normalizeString(type) === selectedTypeId
       );
-      
+
       if (matchingType) {
         dispatch(setSelectedMonumentType(matchingType as MonumentType));
       }
@@ -153,7 +234,7 @@ const MonumentsScreenContent: React.FC = () => {
     // Convert 'All Types' to 'All' to match our Redux state type
     const reduxType = type === 'All Types' ? 'All' : type;
     dispatch(setSelectedMonumentType(reduxType));
-    
+
     // Update filter options to reflect the selected type
     setFilterOptions(prevOptions =>
       prevOptions.map(option => {
@@ -171,15 +252,15 @@ const MonumentsScreenContent: React.FC = () => {
   // Apply search and city filters
   const filteredMonuments = monuments.filter(monument => {
     // Search match
-    const searchMatch = searchQuery.trim() === '' || 
+    const searchMatch = searchQuery.trim() === '' ||
       normalizeString(monument.name).includes(normalizeString(searchQuery)) ||
       (monument.description && normalizeString(monument.description).includes(normalizeString(searchQuery))) ||
       normalizeString(monument.address).includes(normalizeString(searchQuery));
-    
+
     // City filter
     const cityFilter = selectedCity === 'all' ||
       normalizeString(monument.city) === selectedCity;
-    
+
     return searchMatch && cityFilter;
   });
 
@@ -190,41 +271,32 @@ const MonumentsScreenContent: React.FC = () => {
   const currentMonuments = filteredMonuments.slice(start, start + itemsPerPage);
   // === FIN PAGINATION ===
 
-  // Start the Copilot tour when the component mounts
-  useEffect(() => {
-    if (!tourStarted && !loading) {
-      const timer = setTimeout(() => {
-        startTour();
-        setTourStarted(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+  // Add reset function for manual testing
+  const handleResetTour = async () => {
+    try {
+      console.log('Manually resetting tour status...');
+      await AsyncStorage.removeItem(TOUR_FLAG);
+      setHasSeenTour(false);
+      setTourStarted(false);
+      console.log('Tour status reset successfully');
+      // Start the tour immediately after reset
+      startTour();
+    } catch (error) {
+      console.error('Error resetting tour:', error);
     }
-  }, [startTour, tourStarted, loading]);
-
-  // Handle Copilot events
-  useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
-    };
-    
-    copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
-  }, [copilotEvents]);
-
-  // Add a button to manually start the tour
-  const handleStartTour = () => {
-    startTour();
   };
 
   // Render loading state
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={i18n.t('monuments.title')} />
+        <ScreenHeader
+          title={i18n.t('monuments.title')}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+          showReset={__DEV__} // Only show in development
+          onResetPress={handleResetTour}
+        />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#008060" />
           <Text style={styles.loadingText}>{i18n.t('monuments.loading')}</Text>
@@ -237,12 +309,18 @@ const MonumentsScreenContent: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={i18n.t('monuments.title')} />
+        <ScreenHeader
+          title={i18n.t('monuments.title')}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+          showReset={__DEV__} // Only show in development
+          onResetPress={handleResetTour}
+        />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
-          <ButtonFixe 
+          <ButtonFixe
             title={i18n.t('monuments.tryAgain')}
-            onPress={() => dispatch(fetchMonuments())} 
+            onPress={() => dispatch(fetchMonuments())}
             style={styles.retryButton}
           />
         </View>
@@ -252,16 +330,14 @@ const MonumentsScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('monuments.title')} />
+        <ScreenHeader
+          title={i18n.t('monuments.title')}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+          showReset={__DEV__} // Only show in development
+          onResetPress={handleResetTour}
+        />
       </View>
       <View style={styles.content}>
         <CopilotStep
@@ -457,4 +533,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MonumentsScreen; 
+export default MonumentsScreen;

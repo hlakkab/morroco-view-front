@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import i18n from '../translations/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import Redux hooks and actions
 import { fetchArtisans, setSelectedType } from '../store/artisanSlice';
@@ -34,12 +35,15 @@ type ArtisansScreenNavigationProp = NativeStackNavigationProp<RootStackParamList
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
 
+const TOUR_FLAG = '@artisansTourSeen';
+
 // Content component with Copilot functionality
 const ArtisansScreenContent: React.FC = () => {
   const navigation = useNavigation<ArtisansScreenNavigationProp>();
   const dispatch = useAppDispatch();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
   // Get data from Redux store
   const { 
@@ -189,29 +193,33 @@ const ArtisansScreenContent: React.FC = () => {
   const currentArtisans = filteredArtisans.slice(start, start + itemsPerPage);
   // === FIN PAGINATION ===
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted && !loading) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => setHasSeenTour(value === 'true'))
+      .catch(() => setHasSeenTour(false));
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    if (hasSeenTour === false && !loading) {
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted, loading]);
+  }, [hasSeenTour, loading, startTour]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
+    const handleStop = async () => {
+      await AsyncStorage.setItem(TOUR_FLAG, 'true');
+      setHasSeenTour(true);
       console.log('Tour completed or stopped');
     };
-    
     copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
+    return () => copilotEvents.off('stop', handleStop);
   }, [copilotEvents]);
 
   // Add a button to manually start the tour
@@ -251,16 +259,12 @@ const ArtisansScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('artisans.title')} />
+        <ScreenHeader
+          title={i18n.t('artisans.title')}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       <View style={styles.content}>
         <CopilotStep

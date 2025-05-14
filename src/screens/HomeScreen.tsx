@@ -81,7 +81,6 @@ const HomeScreenContent: React.FC = () => {
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
 
@@ -229,8 +228,8 @@ const styles = StyleSheet.create({
     right: 16,
     backgroundColor: '#FF6B6B',
     borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,
