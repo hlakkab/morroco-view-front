@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import Pagination from "../components/Pagination";
@@ -19,6 +20,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchHotelPickups, setSearchQuery, setSelectedCity } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
 
+const TOUR_FLAG = '@hotelPickupTourSeen';
 const CITIES = ['Marrakech', 'Rabat', 'Agadir', 'Casablanca', 'Fez', 'Tangier'];
 
 // Create walkthroughable components
@@ -37,6 +39,7 @@ const HotelPickupScreenContent: React.FC = () => {
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   // Pagination hooks déplacés ici, avant tout return conditionnel
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,29 +76,62 @@ const HotelPickupScreenContent: React.FC = () => {
     fetchData();
   }, [dispatch, selectedCity]);
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted && !loading) {
-      // Delay starting the tour until after the UI has rendered
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted, loading]);
+  }, [hasSeenTour, loading, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
@@ -117,6 +153,7 @@ const HotelPickupScreenContent: React.FC = () => {
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -168,16 +205,13 @@ const HotelPickupScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
-      
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('pickup.title')} onBack={handleBack} />
+        <ScreenHeader 
+          title={i18n.t('pickup.title')} 
+          onBack={handleBack}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
 
       <View style={styles.content}>
@@ -296,29 +330,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
+  }
 });
 
 export default HotelPickupScreen;

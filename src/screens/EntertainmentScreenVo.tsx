@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
@@ -16,6 +17,8 @@ import i18n from '../translations/i18n';
 import { Entertainment } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
 
+const TOUR_FLAG = '@entertainmentTourSeen';
+
 type EntertainmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Entertainment'>;
 
 // Create walkthroughable components
@@ -27,6 +30,7 @@ const EntertainmentScreenContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
@@ -79,6 +83,65 @@ const EntertainmentScreenContent: React.FC = () => {
     }
   }, [entertainments]);
 
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
+  useEffect(() => {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeenTour, loading, startTour, tourStarted, visible]);
+
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
+  useEffect(() => {
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
+    copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
+    return () => {
+      copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
+    };
+  }, [copilotEvents]);
+
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
@@ -105,6 +168,12 @@ const EntertainmentScreenContent: React.FC = () => {
     setFilterPopupVisible(false);
   };
 
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
+
   // Get active location filters
   const activeLocationFilters = filterOptions
     .filter(option => option.category === 'location' && option.selected)
@@ -127,41 +196,15 @@ const EntertainmentScreenContent: React.FC = () => {
     return searchMatch && cityMatch && locationMatch;
   });
 
-  // Start the Copilot tour when the component mounts
-  useEffect(() => {
-    if (!tourStarted && !loading) {
-      const timer = setTimeout(() => {
-        startTour();
-        setTourStarted(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [startTour, tourStarted, loading]);
-
-  // Handle Copilot events
-  useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
-    };
-    
-    copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
-  }, [copilotEvents]);
-
-  // Add a button to manually start the tour
-  const handleStartTour = () => {
-    startTour();
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headerContainer}>
-          <ScreenHeader title={i18n.t('entertainment.title')} />
+          <ScreenHeader 
+            title={i18n.t('entertainment.title')}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#CE1126" />
@@ -175,7 +218,11 @@ const EntertainmentScreenContent: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headerContainer}>
-          <ScreenHeader title={i18n.t('entertainment.title')} />
+          <ScreenHeader 
+            title={i18n.t('entertainment.title')}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -186,16 +233,12 @@ const EntertainmentScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('entertainment.title')} />
+        <ScreenHeader 
+          title={i18n.t('entertainment.title')}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       <View style={styles.content}>
         <CopilotStep
@@ -346,29 +389,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
+  }
 });
 
 export default EntertainmentScreenVo;

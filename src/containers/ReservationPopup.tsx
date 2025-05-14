@@ -6,6 +6,7 @@ import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react
 import "react-native-get-random-values";
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -13,6 +14,8 @@ import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupD
 import { togglePickupDirection } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
 import { trackEvent } from '../service/Mixpanel';
+
+const TOUR_FLAG = '@reservationPopupTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -35,6 +38,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
   );
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const pickupDirection = useAppSelector(
     (state) => state.hotelPickup.pickupDirection
@@ -92,35 +96,65 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
     console.log('ReservationPopup - City:', selectedCity);
   }, [pickupDirection, selectedCity]);
 
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    // Start the Copilot tour when the component mounts
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Reservation Popup Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading Reservation Popup tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting Reservation Popup tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
 
-
-
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Reservation Popup Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Reservation Popup Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving Reservation Popup tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
     };
 
     copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
 
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
-    // Track when reservation popup is opened
-
-
+  
+  // Track when reservation popup is opened
   useEffect(() => {
     trackEvent('Pickup_Reservation_Opened', {
       pickupId,
@@ -609,6 +643,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -618,23 +653,23 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
       style={styles.container}
     >
       <View style={styles.popup}>
-        {/* Manual tour button */}
-        {!visible && (
-          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-          </TouchableOpacity>
-        )}
-        
         <View style={styles.fixedHeader}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
               {i18n.t('reservation.reservePickup')}
             </Text>
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#666" />
-          </TouchableOpacity>
+          <View style={styles.headerRightContainer}>
+            {/* Manual tour button styled like in ScreenHeader */}
+            {!visible && (
+              <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                <Ionicons name="information-circle-outline" size={20} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.divider} />
@@ -1019,6 +1054,11 @@ const styles = StyleSheet.create({
     marginRight: 16,
     flexDirection: 'row',
   },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: 18,
     fontWeight: '700',
@@ -1034,8 +1074,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#f5f5f5',
   },
+  tourButton: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 25,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
   scrollContent: {
     flexGrow: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 30,
   },
   divider: {
     height: 1,
@@ -1044,6 +1102,29 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 16,
+  },
+  enhancedHighlight: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'visible',
+    backgroundColor: 'transparent',
+    padding: 2,
+    marginBottom: 0,
+    zIndex: 100,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   transportInfo: {
     flexDirection: 'row',
@@ -1521,10 +1602,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 80, // Add padding to account for fixed footer
-  },
   mapPlaceholderContainer: {
     height: 200,
     borderRadius: 12,
@@ -1579,55 +1656,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
     paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Add extra padding for iOS
-  },
-  tooltip: {
-    backgroundColor: '#F7F7F7',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    shadowColor: '#333',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    borderWidth: 4,
-    borderColor: '#CE1126',
-    width: '85%',
-  },
-  walkthroughContainer: {
-    // flex: 1,
-    width: '100%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 10,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
-  enhancedHighlight: {
-    width: '100%',
-    borderRadius: 8,
-    overflow: 'visible',
-    backgroundColor: 'transparent',
-    padding: 2,
-    marginBottom: 0,
-    zIndex: 100,
   },
 });
 

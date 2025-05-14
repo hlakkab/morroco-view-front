@@ -158,8 +158,6 @@ const TicketsScreenContent: React.FC = () => {
           onBack={() => navigation.goBack()}
           showTour={!visible}
           onTourPress={handleStartTour}
-          showReset={__DEV__}
-          onResetPress={handleResetTour}
         />
       </View>
 

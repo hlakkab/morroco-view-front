@@ -294,8 +294,6 @@ const MonumentsScreenContent: React.FC = () => {
           title={i18n.t('monuments.title')}
           showTour={!visible}
           onTourPress={handleStartTour}
-          showReset={__DEV__} // Only show in development
-          onResetPress={handleResetTour}
         />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#008060" />
@@ -313,8 +311,6 @@ const MonumentsScreenContent: React.FC = () => {
           title={i18n.t('monuments.title')}
           showTour={!visible}
           onTourPress={handleStartTour}
-          showReset={__DEV__} // Only show in development
-          onResetPress={handleResetTour}
         />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
@@ -335,8 +331,6 @@ const MonumentsScreenContent: React.FC = () => {
           title={i18n.t('monuments.title')}
           showTour={!visible}
           onTourPress={handleStartTour}
-          showReset={__DEV__} // Only show in development
-          onResetPress={handleResetTour}
         />
       </View>
       <View style={styles.content}>

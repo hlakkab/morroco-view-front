@@ -3,6 +3,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilterPopup, { FilterOption } from '../components/FilterPopup';
 import FilterSelector from '../components/FilterSelector';
 import ScreenHeader from '../components/ScreenHeader';
@@ -14,6 +15,8 @@ import { fetchBookmarks } from '../store/bookmarkSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
+
+const TOUR_FLAG = '@bookmarkTourSeen';
 
 // Define all possible service types
 const ALL_SERVICE_TYPES = [
@@ -35,6 +38,7 @@ const BookmarkScreenContent: React.FC = () => {
   const { bookmarks, loading, error } = useAppSelector((state) => state.bookmark);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
@@ -91,30 +95,85 @@ const BookmarkScreenContent: React.FC = () => {
     dispatch(fetchBookmarks());
   }, [dispatch]);
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, loading, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
+
+  // Add reset function for manual testing
+  const handleResetTour = async () => {
+    try {
+      console.log('Manually resetting tour status...');
+      await AsyncStorage.removeItem(TOUR_FLAG);
+      setHasSeenTour(false);
+      setTourStarted(false);
+      console.log('Tour status reset successfully');
+      // Start the tour immediately after reset
+      startTour();
+    } catch (error) {
+      console.error('Error resetting tour:', error);
+    }
+  };
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
 
   const handleBack = () => {
     navigation.goBack();
@@ -145,11 +204,6 @@ const BookmarkScreenContent: React.FC = () => {
 
   const handleCitySelect = (cityId: string) => {
     setSelectedCityId(cityId);
-  };
-
-  // Add a button to manually start the tour
-  const handleStartTour = () => {
-    startTour();
   };
 
   // Filter bookmarks based on search query and selected filters
@@ -194,16 +248,13 @@ const BookmarkScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('bookmark.title')} onBack={handleBack} />
+        <ScreenHeader 
+          title={i18n.t('bookmark.title')} 
+          onBack={handleBack}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       <View style={styles.content}>
         <CopilotStep

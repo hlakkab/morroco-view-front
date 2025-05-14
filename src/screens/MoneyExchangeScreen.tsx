@@ -3,10 +3,13 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import i18n from '../translations/i18n';
+
+const TOUR_FLAG = '@moneyExchangeTourSeen';
 
 // Define a type for currency codes
 type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY' | 'CHF';
@@ -62,6 +65,7 @@ const MoneyExchangeScreenContent: React.FC = () => {
 
   const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleBack = () => {
@@ -83,60 +87,67 @@ const MoneyExchangeScreenContent: React.FC = () => {
     navigation.navigate('BrokerList');
   };
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
-      setTimeout(() => {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      tourVisible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !tourVisible) {
+      console.log('Starting tour automatically...');
+      const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, tourVisible]);
 
-  // Handle Copilot events for scrolling
-  // useEffect(() => {
-  //   const scrollToPosition = (step: any) => {
-  //     if (!scrollViewRef.current) return;
-      
-  //     const stepName = step?.name || '';
-      
-  //     switch (stepName) {
-  //       case 'currency-converter':
-  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
-  //         break;
-  //       case 'airport-option':
-  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
-  //         break;
-  //       case 'bank-option':
-  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
-  //         break;
-  //       case 'broker-option':
-  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
-  //         break;
-  //       case 'view-brokers':
-  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
-  //         break;
-  //       default:
-  //         break;
-  //     }
-  //   };
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
+  useEffect(() => {
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
 
-  //   const handleStepChange = (stepObject: any) => {
-  //     // Add a small delay to ensure the UI has updated before scrolling
-  //     setTimeout(() => {
-  //       scrollToPosition(stepObject);
-  //     }, 100);
-  //   };
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
 
-  //   copilotEvents.on('stepChange', handleStepChange);
+    copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
 
-  //   return () => {
-  //     copilotEvents.off('stepChange', handleStepChange);
-  //   };
-  // }, [copilotEvents]);
+    return () => {
+      copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
+    };
+  }, [copilotEvents]);
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
     // Reset scroll position when starting the tour
     if (scrollViewRef.current) {
@@ -179,16 +190,13 @@ const MoneyExchangeScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!tourVisible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('exchange.title')} onBack={handleBack} />
+        <ScreenHeader 
+          title={i18n.t('exchange.title')} 
+          onBack={handleBack} 
+          showTour={!tourVisible}
+          onTourPress={handleStartTour}
+        />
       </View>
       
       <ScrollView 

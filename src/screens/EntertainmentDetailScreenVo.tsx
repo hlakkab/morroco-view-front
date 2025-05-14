@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, Image, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../translations/i18n';
 
 import AboutSection from '../components/AboutSection';
@@ -20,6 +21,8 @@ import { RootStackParamList } from '../types/navigation';
 
 const { width } = Dimensions.get('window');
 
+const TOUR_FLAG = '@entertainmentDetailTourSeen';
+
 // Type pour les paramètres de route
 type EntertainmentDetailRouteProp = RouteProp<RootStackParamList, 'EntertainmentDetail'>;
 
@@ -33,6 +36,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const { productCode, title } = route.params;
 
   // Get selected entertainment from Redux state
@@ -109,35 +113,79 @@ const EntertainmentDetailScreenContent: React.FC = () => {
     fetchDetail();
   }, [productCode, title, selectedEntertainment]);
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted && !loading) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible && entertainment) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted, loading]);
+  }, [hasSeenTour, loading, startTour, tourStarted, visible, entertainment]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={title || 'Loading...'} />
+        <ScreenHeader 
+          title={title || 'Loading...'} 
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#000" />
           <Text style={styles.loadingText}>{i18n.t('entertainment.loading')}</Text>
@@ -149,7 +197,11 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   if (error || !entertainment) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={title || 'Error'} />
+        <ScreenHeader 
+          title={title || 'Error'} 
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={50} color="red" />
           <Text style={styles.errorText}>{error || i18n.t('entertainment.noInformation')}</Text>
@@ -237,23 +289,14 @@ const EntertainmentDetailScreenContent: React.FC = () => {
     console.log("Book Now pressed for:", entertainment.productCode);
   };
 
-  // Add a button to manually start the tour
-  const handleStartTour = () => {
-    startTour();
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={entertainment.title} />
+        <ScreenHeader 
+          title={entertainment.title} 
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       <ScrollView style={styles.scrollView}>
         <CopilotStep
@@ -575,28 +618,6 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
   },
   walkthroughContainer: {
     width: '100%',

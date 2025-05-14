@@ -3,12 +3,15 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {ActivityIndicator, Image, Linking, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import BottomNavBar from '../containers/BottomNavBar';
 import { clearTokens, getUserInfo } from '../service/KeycloakService';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { User } from '../types/user';
+
+const TOUR_FLAG = '@accountTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -22,6 +25,7 @@ const AccountScreenContent: React.FC = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
   // Temporary editable values
   const [editFirstName, setEditFirstName] = useState('');
@@ -33,33 +37,83 @@ const AccountScreenContent: React.FC = () => {
     fetchUserData();
   }, []);
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, loading, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
+  // Add reset function for manual testing
+  const handleResetTour = async () => {
+    try {
+      console.log('Manually resetting tour status...');
+      await AsyncStorage.removeItem(TOUR_FLAG);
+      setHasSeenTour(false);
+      setTourStarted(false);
+      console.log('Tour status reset successfully');
+      // Start the tour immediately after reset
+      startTour();
+    } catch (error) {
+      console.error('Error resetting tour:', error);
+    }
+  };
+
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -165,8 +219,7 @@ const AccountScreenContent: React.FC = () => {
       {/* Manual tour button */}
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
+          <Ionicons name="information-circle-outline" size={20} color="#FFF" />
         </TouchableOpacity>
       )}
 
@@ -181,7 +234,7 @@ const AccountScreenContent: React.FC = () => {
             <View style={styles.profileCard}>
               <View style={styles.profileImageContainer}>
                 <Image
-                  source={{ uri: user.profilePicture || defaultProfileImage }}
+                  source={{ uri: user?.profilePicture || defaultProfileImage }}
                   style={styles.profileImage}
                 />
                 <TouchableOpacity style={styles.editImageButton}>
@@ -190,7 +243,7 @@ const AccountScreenContent: React.FC = () => {
               </View>
               
               <Text style={styles.welcomeText}>
-                {i18n.t('account.welcome').replace('{name}', user.firstName)}
+                {i18n.t('account.welcome').replace('{name}', user?.firstName || '')}
               </Text>
             </View>
           </WalkthroughableView>
@@ -691,23 +744,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     right: 16,
-    backgroundColor: '#008060',
+    backgroundColor: '#FF6B6B',
     borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 999,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
   },
   profileCardHighlight: {
     marginBottom: 16,

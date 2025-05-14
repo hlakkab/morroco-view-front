@@ -315,8 +315,6 @@ const RestaurantScreenContent: React.FC = () => {
           title={i18n.t('restaurants.title')}
           showTour={!visible}
           onTourPress={handleStartTour}
-          showReset={__DEV__}
-          onResetPress={handleResetTour}
         />
       </View>
       <View style={styles.content}>

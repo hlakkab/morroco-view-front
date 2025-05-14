@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useDispatch, useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
@@ -16,6 +17,8 @@ import { createEsim, fetchEsims } from '../store/slices/esimSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
+const TOUR_FLAG = '@esimScreenTourSeen';
+
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
 
@@ -27,52 +30,72 @@ const ESIMScreenContent: React.FC = () => {
   const [buyModalVisible, setBuyModalVisible] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
   const { start, copilotEvents, visible, stop } = useCopilot();
-  const [tourFinished, setTourFinished] = useState(false);
+  const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   useEffect(() => {
     dispatch(fetchEsims());
   }, [dispatch]);
 
-  // Start the tour when component mounts (only if not already finished)
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    // Only start the tour if it hasn't been finished before
-    if (!tourFinished) {
-      // Short delay to ensure the screen is fully rendered
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         start();
-      }, 500);
-      
+        setTourStarted(true);
+      }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [start, tourFinished]);
+  }, [hasSeenTour, loading, start, tourStarted, visible]);
 
-  // Handle copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    // Function to handle tour completion
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
-      setTourFinished(true); // Mark the tour as finished when stopped
-      
-      // Force unmount and remount of copilot components to reset state
-      const resetTimer = setTimeout(() => {
-        // This will help ensure the tour is fully stopped
-        stop();
-      }, 100);
-      
-      return () => clearTimeout(resetTimer);
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step?.name);
     };
 
     // Listen for both stop and finish events
     copilotEvents.on('stop', handleStop);
-    copilotEvents.on('stepChange', (step: any) => {
-      console.log('Step changed to:', step?.name);
-    });
+    copilotEvents.on('stepChange', handleStepChange);
     
     return () => {
       copilotEvents.off('stop', handleStop);
-      copilotEvents.off('stepChange');
+      copilotEvents.off('stepChange', handleStepChange);
     };
-  }, [copilotEvents, stop]);
+  }, [copilotEvents]);
 
   const handleBack = () => {
     // Make sure to stop the tour when navigating away
@@ -93,6 +116,12 @@ const ESIMScreenContent: React.FC = () => {
 
   const handleCloseQrModal = () => {
     setQrModalVisible(false);
+  };
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    setTourStarted(true);
+    start();
   };
 
   const handlePurchaseESIM = async (operatorId: string, price: number, offer: string = 'Standard Plan') => {
@@ -127,7 +156,12 @@ const ESIMScreenContent: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('qrcode.eSim')} onBack={handleBack} />
+        <ScreenHeader 
+          title={i18n.t('qrcode.eSim')} 
+          onBack={handleBack}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
 
       <ScrollView style={styles.scrollContainer}>
@@ -225,28 +259,6 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
   },
   buttonContainer: {
     width: '100%',
