@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MatchCard from '../components/cards/MatchCard';
 import FilterPopup, { FilterOption } from "../components/FilterPopup";
 import FilterSelector from '../components/FilterSelector';
@@ -22,6 +23,8 @@ import { fetchMatches, setCurrentMatch, setSelectedMatch, toggleMatchBookmark } 
 import i18n from '../translations/i18n';
 import { Match } from '../types/match';
 
+const TOUR_FLAG = '@exploreMatchTourSeen';
+
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
 
@@ -31,6 +34,7 @@ const ExploreMatchesScreenContent: React.FC = () => {
   const { matches } = useAppSelector(state => state.match);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,29 +60,61 @@ const ExploreMatchesScreenContent: React.FC = () => {
     }
   }, [filterOptions]);
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
-      // Delay starting the tour until after the UI has rendered
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
@@ -89,6 +125,7 @@ const ExploreMatchesScreenContent: React.FC = () => {
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -109,16 +146,12 @@ const ExploreMatchesScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('matches.africaCupOfNations')} />
+        <ScreenHeader 
+          title={i18n.t('matches.africaCupOfNations')} 
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       <View style={styles.content}>
         <CopilotStep
@@ -317,29 +350,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
+  }
 });
 
 export default ExploreMatchesScreen;

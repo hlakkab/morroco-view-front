@@ -13,6 +13,10 @@ import { fetchTours } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
+
+
+const TOUR_FLAG = '@eventDetailTourSeen';
+
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
 
@@ -56,6 +60,10 @@ const ToursScreenContent: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+
+
+  
 
   useEffect(() => {
     dispatch(fetchTours());
@@ -63,28 +71,87 @@ const ToursScreenContent: React.FC = () => {
     setShowOnboarding(true);
   }, [dispatch]);
 
-  // Handle onboarding close
-  const handleOnboardingClose = async () => {
-    setShowOnboarding(false);
-    // Remove AsyncStorage saving
-    // Start the copilot tour after onboarding closes
-    setTimeout(() => {
-      startTour();
-      setTourStarted(true);
-    }, 500);
-  };
-
-  // Start the Copilot tour when the component mounts (if onboarding is not shown)
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted && !showOnboarding) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted, showOnboarding]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
+
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
+  useEffect(() => {
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
+    copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
+    return () => {
+      copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
+    };
+  }, [copilotEvents]);
+
+
+
+  // Handle onboarding close
+  const handleOnboardingClose = async () => {
+    setShowOnboarding(false);
+    // Remove this code that auto-starts the tour regardless of AsyncStorage status
+    // setTimeout(() => {
+    //   startTour();
+    //   setTourStarted(true);
+    // }, 500);
+  };
+
+  // Remove this effect that starts the tour when component mounts without checking AsyncStorage
+  // useEffect(() => {
+  //   if (!tourStarted && !showOnboarding) {
+  //     const timer = setTimeout(() => {
+  //       startTour();
+  //       setTourStarted(true);
+  //     }, 1000);
+  //     
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [startTour, tourStarted, showOnboarding]);
 
   // Handle Copilot events
   useEffect(() => {
@@ -117,21 +184,21 @@ const ToursScreenContent: React.FC = () => {
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
+      
 
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('navigation.tours')} onBack={handleBack} />
+        <ScreenHeader 
+          title={i18n.t('navigation.tours')} 
+          onBack={handleBack} 
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       
       <View style={styles.content}>
@@ -250,28 +317,6 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
   },
 });
 
