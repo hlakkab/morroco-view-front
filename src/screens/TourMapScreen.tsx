@@ -10,6 +10,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import { RootState } from '../store/store';
 import { RootStackParamList } from '../types/navigation';
 import i18n from '../translations/i18n';
+import { Image, Modal } from 'react-native';
+
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -45,11 +47,13 @@ const getRouteColor = (index: number): string => {
 const HOTELS_BY_CITY = {
   'Marrakech': {
     title: 'Riad Kbour & Chou',
-    coordinate: { latitude: 31.629722, longitude: -7.988889 }
+    coordinate: { latitude: 31.629722, longitude: -7.988889 },
+    image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1b/5e/55/c7/rooftop-view-from-room.jpg?w=1400&h=800&s=1",
   },
   'Casablanca': {
     title: 'Four Seasons Casablanca',
-    coordinate: { latitude: 33.5996166, longitude: -7.6638331 }
+    coordinate: { latitude: 33.5996166, longitude: -7.6638331 },
+    image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/2e/9e/fa/cblhotelexterior.jpg?w=1400&h=800&s=1",
   },
   'Rabat': {
     title: 'Sofitel Rabat Jardin des Roses',
@@ -66,12 +70,12 @@ const HOTELS_BY_CITY = {
 };
 
 // Function to get precise coordinates based on title or use city coordinates as fallback
-const getItemCoordinates = (item: any): {latitude: number, longitude: number} => {
+const getItemCoordinates = (item: any): { latitude: number, longitude: number } => {
   // If item already has coordinates in the correct format, use them
   if (item.coordinate && typeof item.coordinate.latitude === 'number' && typeof item.coordinate.longitude === 'number') {
     return item.coordinate;
   }
-  
+
   // If coordinates are in string format, parse them
   if (item.coordinates) {
     const [latitude, longitude] = item.coordinates.split(',').map(Number);
@@ -79,18 +83,18 @@ const getItemCoordinates = (item: any): {latitude: number, longitude: number} =>
       return { latitude, longitude };
     }
   }
-  
+
   // Check for hotel coordinates
   const cityHotel = Object.values(HOTELS_BY_CITY).find(hotel => hotel.title === item.title);
   if (cityHotel) {
     return cityHotel.coordinate;
   }
-  
+
   // Fallback to city coordinates
   if (item.city && CITY_COORDINATES[item.city as keyof typeof CITY_COORDINATES]) {
     return CITY_COORDINATES[item.city as keyof typeof CITY_COORDINATES];
   }
-  
+
   // Default to Marrakech center if nothing else found
   return { latitude: 31.628674, longitude: -7.992047 };
 };
@@ -100,7 +104,7 @@ const calculateCenter = (spots: Array<any>) => {
     // If no spots are provided, return the city center based on selectedCity
     return CITY_COORDINATES['Marrakech']; // Default to Marrakech if no city is selected
   }
-  
+
   // Extract coordinates from all spots
   const validCoordinates = spots
     .filter(spot => {
@@ -108,21 +112,21 @@ const calculateCenter = (spots: Array<any>) => {
       return coords && !isNaN(coords.latitude) && !isNaN(coords.longitude);
     })
     .map(spot => getItemCoordinates(spot));
-  
+
   // If no valid coordinates, use city coordinates
   if (validCoordinates.length === 0) {
     return CITY_COORDINATES['Marrakech']; // Default fallback
   }
-  
+
   // Calculate the bounding box of all coordinates
   const latitudes = validCoordinates.map(coord => coord.latitude);
   const longitudes = validCoordinates.map(coord => coord.longitude);
-  
+
   const minLat = Math.min(...latitudes);
   const maxLat = Math.max(...latitudes);
   const minLng = Math.min(...longitudes);
   const maxLng = Math.max(...longitudes);
-  
+
   // Return the center point of the bounding box
   return {
     latitude: (minLat + maxLat) / 2,
@@ -131,33 +135,41 @@ const calculateCenter = (spots: Array<any>) => {
 };
 
 // Calculate appropriate zoom level based on the spread of coordinates
-const calculateZoomLevel = (coordinates: Array<{latitude: number, longitude: number}>) => {
+const calculateZoomLevel = (coordinates: Array<{ latitude: number, longitude: number }>) => {
   if (!coordinates || coordinates.length < 2) {
     return { latitudeDelta: 0.05, longitudeDelta: 0.05 }; // Default zoom for a single point
   }
-  
+
   // Calculate the bounding box
   const latitudes = coordinates.map(coord => coord.latitude);
   const longitudes = coordinates.map(coord => coord.longitude);
-  
+
   const minLat = Math.min(...latitudes);
   const maxLat = Math.max(...latitudes);
   const minLng = Math.min(...longitudes);
   const maxLng = Math.max(...longitudes);
-  
+
   // Calculate deltas with padding
   let latDelta = (maxLat - minLat) * 1.5; // Add 50% padding
   let lngDelta = (maxLng - minLng) * 1.5;
-  
+
   // Ensure minimum zoom level for visibility
   latDelta = Math.max(latDelta, 0.02);
   lngDelta = Math.max(lngDelta, 0.02);
-  
+
   // Ensure maximum zoom level to prevent zooming out too far
   latDelta = Math.min(latDelta, 0.5);
   lngDelta = Math.min(lngDelta, 0.5);
-  
+
   return { latitudeDelta: latDelta, longitudeDelta: lngDelta };
+};
+
+// Function to truncate title to max 3 words
+const truncateTitle = (title: string): string => {
+  if (!title) return '';
+  const words = title.split(' ');
+  if (words.length <= 3) return title;
+  return words.slice(0, 3).join(' ') + '...';
 };
 
 const TourMapScreen: React.FC = () => {
@@ -165,15 +177,15 @@ const TourMapScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'TourMapScreen'>>();
   const { tourItems, selectedDay: initialSelectedDay = 1 } = route.params || { tourItems: [] };
-  
-  const [routes, setRoutes] = useState<Array<{points: any[], color: string}>>([]);
+
+  const [routes, setRoutes] = useState<Array<{ points: any[], color: string }>>([]);
   const [selectedDay, setSelectedDay] = useState<number>(initialSelectedDay);
   const [displayItems, setDisplayItems] = useState<Array<any>>([]);
   const [availableDays, setAvailableDays] = useState<number[]>([]);
   const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
   const [currentCity, setCurrentCity] = useState<string>('');
   const [mapKey, setMapKey] = useState(0);
-  
+
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
 
@@ -201,7 +213,7 @@ const TourMapScreen: React.FC = () => {
 
     setIsLoadingRoutes(true);
     const newRoutes = [];
-    
+
     // Create circular route: hotel -> destinations -> hotel
     const hotel = dayItems.find(item => item.type === 'hotel');
     if (!hotel) {
@@ -213,7 +225,7 @@ const TourMapScreen: React.FC = () => {
     for (let i = 0; i < dayItems.length; i++) {
       const currentItem = dayItems[i];
       const nextItem = dayItems[(i + 1) % dayItems.length];
-      
+
       const origin = `${getItemCoordinates(currentItem).latitude},${getItemCoordinates(currentItem).longitude}`;
       const destination = `${getItemCoordinates(nextItem).latitude},${getItemCoordinates(nextItem).longitude}`;
       const url = `https://maps.googleapis.com/maps/api/directions/json`
@@ -241,7 +253,7 @@ const TourMapScreen: React.FC = () => {
       }
     }
     setRoutes(newRoutes);
-    setMapKey(prev => prev + 1); 
+    setMapKey(prev => prev + 1);
     setIsLoadingRoutes(false);
     console.log('routes fetched ', newRoutes.length);
   };
@@ -253,11 +265,11 @@ const TourMapScreen: React.FC = () => {
       navigation.goBack();
       return;
     }
-    
+
     // Get unique days from tour items
     const days = [...new Set(tourItems.map(item => item.day || 1))].sort((a, b) => a - b);
     setAvailableDays(days);
-    
+
     // Set initial selected day if not already set
     if (days.length > 0 && !initialSelectedDay) {
       setSelectedDay(days[0]);
@@ -272,7 +284,7 @@ const TourMapScreen: React.FC = () => {
         // Get the city for the current day
         const city = dayItems[0].city;
         setCurrentCity(city);
-        
+
         // Get the hotel for the current city
         const cityHotel = HOTELS_BY_CITY[city as keyof typeof HOTELS_BY_CITY];
         const hotelItem = {
@@ -287,19 +299,19 @@ const TourMapScreen: React.FC = () => {
         // Combine hotel with day items
         const itemsWithHotel = [hotelItem, ...dayItems];
         setDisplayItems(itemsWithHotel);
-        
+
         // Fetch routes for the new day
         fetchRoutesForDay(itemsWithHotel);
-        
+
         // Calculate and animate to the new region
         const validCoordinates = itemsWithHotel
           .filter(item => item.coordinate !== undefined)
           .map(item => getItemCoordinates(item));
-        
+
         if (mapRef.current && validCoordinates.length > 0) {
           const dayCenter = calculateCenter(itemsWithHotel);
           const zoomLevel = calculateZoomLevel(validCoordinates);
-          
+
           mapRef.current.animateToRegion({
             latitude: dayCenter.latitude,
             longitude: dayCenter.longitude,
@@ -310,19 +322,19 @@ const TourMapScreen: React.FC = () => {
       }
     }
   }, [selectedDay, tourItems]);
-  
+
 
   const handleChangeDay = (direction: 'next' | 'prev') => {
     const days = [...availableDays];
     const currentIndex = days.indexOf(selectedDay);
     let newIndex;
-    
+
     if (direction === 'next') {
       newIndex = (currentIndex + 1) % days.length;
     } else {
       newIndex = (currentIndex - 1 + days.length) % days.length;
     }
-    
+
     setSelectedDay(days[newIndex]);
   };
 
@@ -355,12 +367,12 @@ const TourMapScreen: React.FC = () => {
   };
 
   const center = calculateCenter(displayItems);
-  
+
   // Calculate initial zoom level based on the spread of items
   const validCoordinates = displayItems
     .filter(item => item.coordinate !== undefined)
     .map(item => getItemCoordinates(item));
-    
+
   const zoomLevel = calculateZoomLevel(validCoordinates);
 
   // ############ CONSOLE LOG ############
@@ -392,38 +404,27 @@ const TourMapScreen: React.FC = () => {
             <Marker
               key={item.id}
               coordinate={getItemCoordinates(item)}
-              title={item.title}
+              title={item.title}           // reste pour le callout natif
               description={item.subtitle}
             >
-              {item.type && (
-                <View style={styles.markerContainer}>
-                  <View style={styles.indexBadge}>
-                    <Text style={styles.indexText}>{index + 1}</Text>
-                  </View>
-                  <View style={styles.markerIconContainer}>
-                    <Ionicons 
-                      name={
-                        item.type === 'hotel' ? 'bed' : 
-                        item.type === 'restaurant' ? 'restaurant' : 
-                        item.type === 'match' ? 'football' : 
-                        item.type === 'entertainment' ? 'musical-notes' : 
-                        item.type === 'monument' ? 'business' : 
-                        item.type === 'money-exchange' ? 'cash' :
-                        item.type === 'artisan' ? 'construct' : 'location'
-                      }   
-                      size={20} 
-                      color="#fff" 
-                    />
-                  </View>
-                </View>
-              )}
+              <View style={styles.markerContainer}>
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.markerImage}
+                  resizeMode="cover"
+                />
+                <Text style={styles.markerTitle}>
+                  {truncateTitle(item.title)}
+                </Text>
+              </View>
             </Marker>
+
           ))}
 
           {routes.map((route, index) => (
-            <Polyline 
-              key={index} 
-              coordinates={route.points} 
+            <Polyline
+              key={index}
+              coordinates={route.points}
               strokeColor={route.color}
               strokeWidth={5}
               geodesic={true}
@@ -452,7 +453,7 @@ const TourMapScreen: React.FC = () => {
 
         <View style={styles.controlsContainer}>
           {availableDays.length > 1 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.controlButton}
               onPress={() => handleChangeDay('prev')}
             >
@@ -469,7 +470,7 @@ const TourMapScreen: React.FC = () => {
             </Text>
           </View>
           {availableDays.length > 1 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.controlButton}
               onPress={() => handleChangeDay('next')}
             >
@@ -507,6 +508,8 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mapContainer: {
     flex: 1,
@@ -548,21 +551,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#DDD',
     marginTop: 2,
-  },
-  markerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    // position: 'relative',
-  },
-  markerIconContainer: {
-    backgroundColor: '#E53935',
-    borderRadius: 20,
-    padding: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    margin: 6,
-    borderColor: '#fff',
   },
   indexBadge: {
     position: 'absolute',
@@ -628,6 +616,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     fontWeight: '500',
+  },
+  markerContainer: {
+    width: 38,
+    height: 38,
+    borderRadius: 35,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+    overflow: 'hidden',
+  },
+  markerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  markerTitle: {
+    position: 'absolute',
+    top: 40,
+    left: -25,
+    right: -25,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#000',
+    textAlign: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
 });
 
