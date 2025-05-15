@@ -13,9 +13,8 @@ import { fetchTours } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
-
-
-const TOUR_FLAG = '@eventDetailTourSeen';
+const ONBOARDING_FLAG = '@toursOnboardingSeen';
+const TOUR_FLAG = '@toursCopilotSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -61,110 +60,85 @@ const ToursScreenContent: React.FC = () => {
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
 
-
-  
-
+  // Fetch tours and check onboarding status
   useEffect(() => {
     dispatch(fetchTours());
-    // Always show onboarding popup
-    setShowOnboarding(true);
+    
+    // Check if user has seen onboarding
+    AsyncStorage.getItem(ONBOARDING_FLAG)
+      .then(value => {
+        const shouldShowOnboarding = value !== 'true';
+        setShowOnboarding(shouldShowOnboarding);
+        setHasSeenOnboarding(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading onboarding status:', error);
+        setShowOnboarding(true);
+        setHasSeenOnboarding(false);
+      });
   }, [dispatch]);
 
-  // ─── 1. Lire si le tour a déjà été vu ─────────────────
+  // Check copilot tour status
   useEffect(() => {
     AsyncStorage.getItem(TOUR_FLAG)
       .then(value => {
-        console.log('Tour seen status:', value);
+        console.log('Copilot tour seen status:', value);
         setHasSeenTour(value === 'true');
       })
       .catch(error => {
-        console.error('Error reading tour status:', error);
+        console.error('Error reading copilot tour status:', error);
         setHasSeenTour(false);
       });
   }, []);
 
-  // ─── 2. Démarrage automatique une seule fois ──────────
+  // Start copilot tour after onboarding is closed and if not seen before
   useEffect(() => {
-    console.log('Tour conditions:', {
-      hasSeenTour,
-      tourStarted,
-      visible
-    });
-
-    if (hasSeenTour === false && !tourStarted && !visible) {
-      console.log('Starting tour automatically...');
+    if (!showOnboarding && hasSeenOnboarding && hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting copilot tour...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
-      }, 1000);
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [hasSeenTour, startTour, tourStarted, visible]);
+  }, [showOnboarding, hasSeenOnboarding, hasSeenTour, tourStarted, visible, startTour]);
 
-  // ─── 3. Enregistrer la fin ou le skip du tour ────────
+  // Save copilot tour completion status
   useEffect(() => {
     const handleStop = async () => {
-      console.log('Tour stopped, saving status...');
+      console.log('Copilot tour stopped, saving status...');
       try {
         await AsyncStorage.setItem(TOUR_FLAG, 'true');
         setHasSeenTour(true);
         setTourStarted(false);
-        console.log('Tour status saved successfully');
+        console.log('Copilot tour status saved successfully');
       } catch (error) {
-        console.error('Error saving tour status:', error);
+        console.error('Error saving copilot tour status:', error);
       }
     };
 
-    const handleStepChange = (step: any) => {
-      console.log('Step changed to:', step);
-    };
-
     copilotEvents.on('stop', handleStop);
-    copilotEvents.on('stepChange', handleStepChange);
-
-    return () => {
-      copilotEvents.off('stop', handleStop);
-      copilotEvents.off('stepChange', handleStepChange);
-    };
+    return () => copilotEvents.off('stop', handleStop);
   }, [copilotEvents]);
-
-
 
   // Handle onboarding close
   const handleOnboardingClose = async () => {
-    setShowOnboarding(false);
-    // Remove this code that auto-starts the tour regardless of AsyncStorage status
-    // setTimeout(() => {
-    //   startTour();
-    //   setTourStarted(true);
-    // }, 500);
+    try {
+      await AsyncStorage.setItem(ONBOARDING_FLAG, 'true');
+      setHasSeenOnboarding(true);
+      setShowOnboarding(false);
+    } catch (error) {
+      console.error('Error saving onboarding status:', error);
+    }
   };
 
-  // Remove this effect that starts the tour when component mounts without checking AsyncStorage
-  // useEffect(() => {
-  //   if (!tourStarted && !showOnboarding) {
-  //     const timer = setTimeout(() => {
-  //       startTour();
-  //       setTourStarted(true);
-  //     }, 1000);
-  //     
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [startTour, tourStarted, showOnboarding]);
-
-  // Handle Copilot events
-  useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
-    };
-    
-    copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
-  }, [copilotEvents]);
+  // Manual tour start handler
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
 
   const handleBack = () => {
     // Simply navigate to Home screen when back button is pressed
@@ -180,12 +154,6 @@ const ToursScreenContent: React.FC = () => {
     // Use a type assertion to tell TypeScript that routeName is a valid key
     // @ts-ignore - We're handling navigation in a generic way
     navigation.navigate(routeName);
-  };
-
-  // Add a button to manually start the tour
-  const handleStartTour = () => {
-    setTourStarted(true);
-    startTour();
   };
 
   return (

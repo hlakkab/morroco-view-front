@@ -646,6 +646,12 @@ export default {
     tickets: {
       search: "Recherchez vos billets par nom d'équipe, stade ou ID de billet",
       viewTickets: "Consultez et gérez vos billets de match et de transport"
-    }
+    },
+    tourInfo: "Ce tour comprend {destinations} destinations et s'étend sur {days} jours",
+    daySelector: "Sélectionnez un jour pour voir ses destinations",
+    destinations: "Parcourez vos destinations sélectionnées pour ce jour",
+    previewOptions: "Prévisualisez votre tour de différentes manières",
+    viewMapButton: "Voir toutes les destinations sur une carte interactive",
+    viewTimelineButton: "Voir votre tour sous forme de chronologie organisée",
   },
 }; 

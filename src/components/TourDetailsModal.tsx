@@ -1,6 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -13,6 +14,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import i18n from '../translations/i18n';
@@ -28,7 +30,12 @@ interface TourDetailsModalProps {
 
 const { width, height } = Dimensions.get('window');
 
-const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
+const TOUR_FLAG = '@tourDetailModalSeen';
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+
+const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   visible,
   onClose,
 }) => {
@@ -36,8 +43,58 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
   const [selectedDay, setSelectedDay] = useState(1);
   const [showDayPicker, setShowDayPicker] = useState(false);
   const { currentTour } = useSelector((state: RootState) => state.tour);
+  const { start: startTour, copilotEvents, visible: isCopilotVisible } = useCopilot();
+  const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
-  
+  // Check if tour has been seen before
+  useEffect(() => {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // Start tour automatically if not seen before
+  useEffect(() => {
+    if (hasSeenTour === false && !tourStarted && !isCopilotVisible && visible) {
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeenTour, startTour, tourStarted, isCopilotVisible, visible]);
+
+  // Save tour completion status
+  useEffect(() => {
+    const handleStop = async () => {
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    copilotEvents.on('stop', handleStop);
+    return () => {
+      copilotEvents.off('stop', handleStop);
+    };
+  }, [copilotEvents]);
+
+  // Manual tour start handler
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
+
   // Create animated value for drag gesture
   const pan = React.useRef(new Animated.ValueXY()).current;
 
@@ -290,99 +347,168 @@ const TourDetailsModal: React.FC<TourDetailsModalProps> = ({
                   {currentTour?.title || ''}
                 </Text>
               </View>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close" size={16} color="black" />
-              </TouchableOpacity>
+              <View style={styles.headerButtons}>
+                {!isCopilotVisible && (
+                  <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                    <Ionicons name="information-circle-outline" size={16} color="#FFF" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <Ionicons name="close" size={16} color="black" />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
 
           <View style={styles.modalContent}>
             {/* Tour info */}
-            <View style={styles.tourInfoContainer}>
-              <View style={styles.tourInfoItem}>
-                <Feather name="map-pin" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{destinations.length} {i18n.t('tours.destinations')}</Text>
-              </View>
-              <View style={styles.tourInfoDivider} />
-              <View style={styles.tourInfoItem}>
-                <Feather name="calendar" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>{days.length} {days.length === 1 ? i18n.t('tours.day') : i18n.t('tours.days')}</Text>
-              </View>
-              <View style={styles.tourInfoDivider} />
-              <View style={styles.tourInfoItem}>
-                <Feather name="clock" size={16} color="#E53935" style={styles.infoIcon} />
-                <Text style={styles.infoText}>
-                  {formatDateRange(currentTour?.from || '', currentTour?.to || '')}
-                </Text>
-              </View>
-            </View>
+            <CopilotStep
+              text={i18n.t('copilot.tourInfo').replace('{destinations}', destinations.length.toString()).replace('{days}', days.length.toString())}
+              order={1}
+              name="tourInfo"
+            >
+              <WalkthroughableView style={styles.tourInfoContainer}>
+                <View style={styles.tourInfoItem}>
+                  <Feather name="map-pin" size={16} color="#E53935" style={styles.infoIcon} />
+                  <Text style={styles.infoText}>{destinations.length} {i18n.t('tours.destinations')}</Text>
+                </View>
+                <View style={styles.tourInfoDivider} />
+                <View style={styles.tourInfoItem}>
+                  <Feather name="calendar" size={16} color="#E53935" style={styles.infoIcon} />
+                  <Text style={styles.infoText}>{days.length} {days.length === 1 ? i18n.t('tours.day') : i18n.t('tours.days')}</Text>
+                </View>
+                <View style={styles.tourInfoDivider} />
+                <View style={styles.tourInfoItem}>
+                  <Feather name="clock" size={16} color="#E53935" style={styles.infoIcon} />
+                  <Text style={styles.infoText}>
+                    {formatDateRange(currentTour?.from || '', currentTour?.to || '')}
+                  </Text>
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
 
             {/* Day selector header */}
-            <View style={styles.destinationsHeader}>
-              <Text style={styles.sectionTitle}>{i18n.t('tours.selectedDestinations')}</Text>
-              
-              {/* Day Selector Dropdown */}
-              <View style={styles.dayDropdownContainer}>
-                <TouchableOpacity 
-                  style={styles.dayDropdown}
-                  onPress={() => setShowDayPicker(!showDayPicker)}
-                >
-                  <Text style={styles.dayDropdownText}>{getDateForDay(selectedDay)}</Text>
-                  <Feather 
-                    name={showDayPicker ? "chevron-up" : "chevron-down"} 
-                    size={16} 
-                    color="#666" 
-                  />
-                </TouchableOpacity>
+            <CopilotStep
+              text={i18n.t('copilot.daySelector')}
+              order={2}
+              name="daySelector"
+            >
+              <WalkthroughableView style={styles.destinationsHeader}>
+                <Text style={styles.sectionTitle}>{i18n.t('tours.selectedDestinations')}</Text>
                 
-                {/* Day Picker Dropdown */}
-                {showDayPicker && (
-                  <View style={styles.dayPickerContainer}>
-                    <FlatList
-                      data={days}
-                      renderItem={renderDayOption}
-                      keyExtractor={(item) => `day-${item}`}
-                      style={styles.dayPickerList}
+                {/* Day Selector Dropdown */}
+                <View style={styles.dayDropdownContainer}>
+                  <TouchableOpacity 
+                    style={styles.dayDropdown}
+                    onPress={() => setShowDayPicker(!showDayPicker)}
+                  >
+                    <Text style={styles.dayDropdownText}>{getDateForDay(selectedDay)}</Text>
+                    <Feather 
+                      name={showDayPicker ? "chevron-up" : "chevron-down"} 
+                      size={16} 
+                      color="#666" 
                     />
-                  </View>
-                )}
-              </View>
-            </View>
+                  </TouchableOpacity>
+                  
+                  {/* Day Picker Dropdown */}
+                  {showDayPicker && (
+                    <View style={styles.dayPickerContainer}>
+                      <FlatList
+                        data={days}
+                        renderItem={renderDayOption}
+                        keyExtractor={(item) => `day-${item}`}
+                        style={styles.dayPickerList}
+                      />
+                    </View>
+                  )}
+                </View>
+              </WalkthroughableView>
+            </CopilotStep>
 
             {/* Destinations list */}
-            <FlatList
-              data={filteredDestinations}
-              renderItem={renderDestinationItem}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.destinationsList}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View style={styles.emptyListContainer}>
-                  <Ionicons name="location-outline" size={48} color="#E0E0E0" />
-                  <Text style={styles.emptyListText}>{i18n.t('tours.noDestinationsForDay')}</Text>
-                </View>
-              }
-            />
-
-            {/* Preview timeline button */}
-            <TouchableOpacity
-              style={styles.mapButton}
-              onPress={handleViewMap}
+            <CopilotStep
+              text={i18n.t('copilot.destinations')}
+              order={3}
+              name="destinations"
             >
-              <Feather name="map" size={20} style={styles.buttonIcon} />
-              <Text style={styles.mapButtonText}>{i18n.t('tours.viewOnMap')}</Text>
-            </TouchableOpacity>
+              <WalkthroughableView style={{ flex: 1 }}>
+                <FlatList
+                  data={filteredDestinations}
+                  renderItem={renderDestinationItem}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.destinationsList}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.emptyListContainer}>
+                      <Ionicons name="location-outline" size={48} color="#E0E0E0" />
+                      <Text style={styles.emptyListText}>{i18n.t('tours.noDestinationsForDay')}</Text>
+                    </View>
+                  }
+                />
+              </WalkthroughableView>
+            </CopilotStep>
 
-            <TouchableOpacity
-              style={styles.previewButton}
-              onPress={handleViewTimeline}
+            {/* Preview buttons */}
+            <CopilotStep
+              text={i18n.t('copilot.viewMapButton')}
+              order={4}
+              name="viewMap"
             >
-              <Text style={styles.previewButtonText}>{i18n.t('tours.previewTimeline')}</Text>
-            </TouchableOpacity>
+              <WalkthroughableView>
+                <TouchableOpacity
+                  style={styles.mapButton}
+                  onPress={handleViewMap}
+                >
+                  <Feather name="map" size={20} style={styles.buttonIcon} />
+                  <Text style={styles.mapButtonText}>{i18n.t('tours.viewOnMap')}</Text>
+                </TouchableOpacity>
+              </WalkthroughableView>
+            </CopilotStep>
+
+            <CopilotStep
+              text={i18n.t('copilot.viewTimelineButton')}
+              order={5}
+              name="viewTimeline"
+            >
+              <WalkthroughableView>
+                <TouchableOpacity
+                  style={styles.previewButton}
+                  onPress={handleViewTimeline}
+                >
+                  <Text style={styles.previewButtonText}>{i18n.t('tours.previewTimeline')}</Text>
+                </TouchableOpacity>
+              </WalkthroughableView>
+            </CopilotStep>
           </View>
         </Animated.View>
       </View>
     </Modal>
+  );
+};
+
+// Main component with CopilotProvider
+const TourDetailsModal: React.FC<TourDetailsModalProps> = (props) => {
+  return (
+    <CopilotProvider
+      stepNumberComponent={() => null}
+      tooltipStyle={styles.tooltip}
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      animationDuration={300}
+      overlay="svg"
+      stopOnOutsideClick={true}
+      labels={{
+        skip: i18n.t('common.skip'),
+        previous: i18n.t('common.previous'),
+        next: i18n.t('common.next'),
+        finish: i18n.t('common.done')
+      }}
+      arrowSize={8}
+      arrowColor="#FFF7F7"
+      verticalOffset={0}
+      androidStatusBarVisible={true}
+    >
+      <TourDetailsModalContent {...props} />
+    </CopilotProvider>
   );
 };
 
@@ -656,6 +782,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: "#555",
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tourButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FF6B6B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
 });
 

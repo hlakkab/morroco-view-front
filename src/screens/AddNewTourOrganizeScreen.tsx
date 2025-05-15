@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -15,13 +16,13 @@ import TourFlowHeader from '../components/tour/TourFlowHeader';
 import TourSummary from '../components/tour/TourSummary';
 import TrajectoryButton from '../components/tour/TrajectoryButton';
 import Timeline from '../containers/tour/Timeline';
+import { useLanguage } from '../contexts/LanguageContext';
+import { trackEvent } from '../service/Mixpanel';
 import { useAppDispatch, useAppSelector } from '../store';
 import { saveTour, saveTourThunk, setTourItems } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
 import { TourSavedItem } from '../types/tour';
-import { useLanguage } from '../contexts/LanguageContext';
-import { trackEvent } from '../service/Mixpanel';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -58,6 +59,8 @@ const mapTourItemToSavedItem = (item: TourSavedItem): SavedItem => {
   };
 };
 
+const TOUR_FLAG = '@addNewTourOrganizeSeen';
+
 // Content component with Copilot functionality
 const AddNewTourOrganizeScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -84,6 +87,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
   const [durationText, setDurationText] = useState('');
   const [timeText, setTimeText] = useState('');
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const steps = [
     { id: '01', label: i18n.t('tours.basicInfos') },
@@ -417,50 +421,64 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
     }
   }, [schedule, selectedDayIndex, navigation]);
 
-  // Start the Copilot tour when the component mounts
+  // Check if tour has been seen before
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // Start tour automatically if not seen before
+  useEffect(() => {
+    if (hasSeenTour === false && !tourStarted && !visible) {
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // Save tour completion status
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
     copilotEvents.on('stop', handleStop);
-    
     return () => {
       copilotEvents.off('stop', handleStop);
     };
   }, [copilotEvents]);
 
-  // Add a button to manually start the tour
+  // Update manual tour start handler
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        {/* Manual tour button */}
-        {!visible && !viewMode && (
-          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-          </TouchableOpacity>
-        )}
-
         {!viewMode ? (
           <View style={styles.headerContainer}>
-            <TourFlowHeader title={i18n.t('tours.addNewTour')} />
+            <TourFlowHeader 
+              title={i18n.t('tours.addNewTour')} 
+              showTour={!visible && !viewMode}
+              onTourPress={handleStartTour}
+            />
           </View>
         ) : (
           <View style={styles.headerContainer}>
