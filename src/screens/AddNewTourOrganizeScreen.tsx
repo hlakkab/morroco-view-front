@@ -59,8 +59,6 @@ const mapTourItemToSavedItem = (item: TourSavedItem): SavedItem => {
   };
 };
 
-const TOUR_FLAG = '@addNewTourOrganizeSeen';
-
 // Content component with Copilot functionality
 const AddNewTourOrganizeScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -71,6 +69,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
   // Get the rest from Redux store
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState(false);
   
   const dispatch = useAppDispatch();
   // Read tour data from Redux store
@@ -87,7 +86,6 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
   const [durationText, setDurationText] = useState('');
   const [timeText, setTimeText] = useState('');
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
-  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const steps = [
     { id: '01', label: i18n.t('tours.basicInfos') },
@@ -421,68 +419,119 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
     }
   }, [schedule, selectedDayIndex, navigation]);
 
-  // Check if tour has been seen before
+  // Check if user has seen the tour before
   useEffect(() => {
-    AsyncStorage.getItem(TOUR_FLAG)
-      .then(value => {
-        console.log('Tour seen status:', value);
-        setHasSeenTour(value === 'true');
-      })
-      .catch(error => {
-        console.error('Error reading tour status:', error);
-        setHasSeenTour(false);
-      });
-  }, []);
-
-  // Start tour automatically if not seen before
-  useEffect(() => {
-    if (hasSeenTour === false && !tourStarted && !visible) {
-      const timer = setTimeout(() => {
-        startTour();
-        setTourStarted(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [hasSeenTour, startTour, tourStarted, visible]);
-
-  // Save tour completion status
-  useEffect(() => {
-    const handleStop = async () => {
+    let isMounted = true;
+    
+    const checkTourStatus = async () => {
       try {
-        await AsyncStorage.setItem(TOUR_FLAG, 'true');
-        setHasSeenTour(true);
-        setTourStarted(false);
+        const value = await AsyncStorage.getItem('@tour_organize_seen');
+        if (isMounted) {
+          setHasSeenTour(value === 'true');
+        }
       } catch (error) {
-        console.error('Error saving tour status:', error);
+        console.error('Error checking tour status:', error);
+        // Default to not showing tour if there's an error
+        if (isMounted) {
+          setHasSeenTour(true);
+        }
       }
     };
+    
+    checkTourStatus();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
+  // Start the Copilot tour when the component mounts only if it's the first time
+  useEffect(() => {
+    if (!tourStarted && !hasSeenTour && !viewMode) {
+      let isMounted = true;
+      
+      const timer = setTimeout(() => {
+        // Check if component is still mounted before updating state
+        if (isMounted) {
+          try {
+            setTourStarted(true);
+            startTour();
+          } catch (error) {
+            console.error('Error automatically starting tour:', error);
+            setTourStarted(false);
+          }
+        }
+      }, 1000);
+      
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
+    }
+  }, [startTour, tourStarted, hasSeenTour, viewMode]);
+
+  // Handle Copilot events
+  useEffect(() => {
+    const handleStop = () => {
+      console.log('Tour completed or stopped');
+      // Reset tour started state
+      setTourStarted(false);
+      
+      // Mark tour as seen when completed or stopped
+      AsyncStorage.setItem('@tour_organize_seen', 'true')
+        .catch(error => console.error('Error saving tour status:', error));
+    };
+    
+    const handleStart = () => {
+      console.log('Tour started');
+      setTourStarted(true);
+    };
+    
     copilotEvents.on('stop', handleStop);
+    copilotEvents.on('start', handleStart);
+    
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('start', handleStart);
     };
   }, [copilotEvents]);
 
-  // Update manual tour start handler
-  const handleStartTour = () => {
-    setTourStarted(true);
-    startTour();
-  };
+  // Add a button to manually start the tour
+  const handleStartTour = useCallback(() => {
+    try {
+      // Prevent multiple tour instances
+      if (!visible && !tourStarted) {
+        setTourStarted(true);
+        // Small delay to ensure state is updated before starting tour
+        setTimeout(() => {
+          startTour();
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error starting tour:', error);
+      setTourStarted(false);
+    }
+  }, [startTour, visible, tourStarted]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
+        {/* Manual tour button */}
+        {/* {!visible && !viewMode && (
+          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
+          </TouchableOpacity>
+        )} */}
+
         {!viewMode ? (
           <View style={styles.headerContainer}>
-            <TourFlowHeader 
-              title={i18n.t('tours.addNewTour')} 
-              showTour={!visible && !viewMode}
-              onTourPress={handleStartTour}
-            />
+            <TourFlowHeader title={i18n.t('tours.addNewTour')} showTour={!visible} onTourPress={handleStartTour} />
+
           </View>
         ) : (
           <View style={styles.headerContainer}>
-            <ScreenHeader title={i18n.t('tours.tourDetails')} />
+            <ScreenHeader title={i18n.t('tours.tourDetails')} showTour={!visible} onTourPress={handleStartTour}/>
           </View>
         )}
         
