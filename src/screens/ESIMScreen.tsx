@@ -208,7 +208,7 @@ const ESIMScreen: React.FC = () => {
       backdropColor="rgba(0, 0, 0, 0.7)"
       animationDuration={300}
       overlay="svg"
-      stopOnOutsideClick={false}
+      stopOnOutsideClick={true}
       labels={{
         skip: i18n.t('copilot.navigation.skip'),
         previous: i18n.t('copilot.navigation.previous'),

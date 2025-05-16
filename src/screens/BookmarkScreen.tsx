@@ -362,7 +362,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   searchHighlight: {
-    marginBottom: 16,
   },
   cityHighlight: {
     marginBottom: 16,
