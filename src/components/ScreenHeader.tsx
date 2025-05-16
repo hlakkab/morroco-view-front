@@ -1,15 +1,17 @@
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BackButton from './BackButton';
 
 interface ScreenHeaderProps {
   title: string;
   onBack?: () => void;
-  showTour?: boolean;             // nouveau
-  onTourPress?: () => void;       // nouveau
+  showTour?: boolean;             
+  onTourPress?: () => void;       
   showReset?: boolean;
   onResetPress?: () => void;
+  showOnboarding?: boolean;       // new prop
+  onOnboardingPress?: () => void; // new prop
 }
 
 const ScreenHeader: React.FC<ScreenHeaderProps> = ({
@@ -19,6 +21,8 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   onTourPress,
   showReset = false,
   onResetPress,
+  showOnboarding = false,
+  onOnboardingPress,
 }) => {
   return (
     <View style={styles.header}>
@@ -46,6 +50,13 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         {showReset && onResetPress && (
           <TouchableOpacity style={styles.resetButton} onPress={onResetPress}>
             <Ionicons name="refresh-outline" size={20} color="#CE1126" />
+          </TouchableOpacity>
+        )}
+        
+        {/* Bouton Onboarding */}
+        {showOnboarding && onOnboardingPress && (
+          <TouchableOpacity style={styles.onboardingButton} onPress={onOnboardingPress}>
+            <Ionicons name="book-outline" size={20} color="#FFF" />
           </TouchableOpacity>
         )}
         
@@ -100,6 +111,21 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     backgroundColor: '#FCEBEC',
+    borderRadius: 25,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  onboardingButton: {
+    backgroundColor: '#008060',
     borderRadius: 25,
     paddingVertical: 5,
     paddingHorizontal: 5,

@@ -110,4 +110,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TourFlowHeader; 
+export default TourFlowHeader;

@@ -65,20 +65,38 @@ const ToursScreenContent: React.FC = () => {
   // Fetch tours and check onboarding status
   useEffect(() => {
     dispatch(fetchTours());
-    
-    // Check if user has seen onboarding
-    AsyncStorage.getItem(ONBOARDING_FLAG)
-      .then(value => {
-        const shouldShowOnboarding = value !== 'true';
-        setShowOnboarding(shouldShowOnboarding);
-        setHasSeenOnboarding(value === 'true');
-      })
-      .catch(error => {
-        console.error('Error reading onboarding status:', error);
-        setShowOnboarding(true);
-        setHasSeenOnboarding(false);
-      });
+    checkOnboardingStatus();
   }, [dispatch]);
+
+  // Function to check onboarding status
+  const checkOnboardingStatus = async () => {
+    try {
+      const value = await AsyncStorage.getItem(ONBOARDING_FLAG);
+      const shouldShowOnboarding = value !== 'true';
+      setShowOnboarding(shouldShowOnboarding);
+      setHasSeenOnboarding(value === 'true');
+    } catch (error) {
+      console.error('Error reading onboarding status:', error);
+      setShowOnboarding(true);
+      setHasSeenOnboarding(false);
+    }
+  };
+
+  // Function to manually show onboarding
+  const handleShowOnboarding = () => {
+    setShowOnboarding(true);
+  };
+
+  // Handle onboarding close
+  const handleOnboardingClose = async () => {
+    try {
+      await AsyncStorage.setItem(ONBOARDING_FLAG, 'true');
+      setHasSeenOnboarding(true);
+      setShowOnboarding(false);
+    } catch (error) {
+      console.error('Error saving onboarding status:', error);
+    }
+  };
 
   // Check copilot tour status
   useEffect(() => {
@@ -123,17 +141,6 @@ const ToursScreenContent: React.FC = () => {
     return () => copilotEvents.off('stop', handleStop);
   }, [copilotEvents]);
 
-  // Handle onboarding close
-  const handleOnboardingClose = async () => {
-    try {
-      await AsyncStorage.setItem(ONBOARDING_FLAG, 'true');
-      setHasSeenOnboarding(true);
-      setShowOnboarding(false);
-    } catch (error) {
-      console.error('Error saving onboarding status:', error);
-    }
-  };
-
   // Manual tour start handler
   const handleStartTour = () => {
     setTourStarted(true);
@@ -166,6 +173,8 @@ const ToursScreenContent: React.FC = () => {
           onBack={handleBack} 
           showTour={!visible}
           onTourPress={handleStartTour}
+          showOnboarding={true}
+          onOnboardingPress={handleShowOnboarding}
         />
       </View>
       
