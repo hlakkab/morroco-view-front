@@ -362,7 +362,6 @@ const styles = StyleSheet.create({
   },
   searchHighlight: {
     width: '100%',
-    marginBottom: 16,
     borderRadius: 8,
     overflow: 'hidden',
   },

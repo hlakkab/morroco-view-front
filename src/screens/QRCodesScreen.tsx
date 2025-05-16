@@ -228,7 +228,7 @@ const QRCodesScreen: React.FC = () => {
       backdropColor="rgba(0, 0, 0, 0.7)"
       animationDuration={300}
       overlay="svg"
-      stopOnOutsideClick={false}
+      stopOnOutsideClick={true}
       labels={{
         skip: i18n.t('common.skip'),
         previous: i18n.t('common.previous'),
@@ -296,7 +296,9 @@ const styles = StyleSheet.create({
     width: '85%',
   },
   searchHighlight: {
-    marginBottom: 16,
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   qrCodesListHighlight: {
     flex: 1,

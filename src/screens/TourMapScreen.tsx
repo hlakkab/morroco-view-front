@@ -1,16 +1,15 @@
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Image, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSelector } from 'react-redux';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootState } from '../store/store';
-import { RootStackParamList } from '../types/navigation';
 import i18n from '../translations/i18n';
-import { Image, Modal } from 'react-native';
+import { RootStackParamList } from '../types/navigation';
 
 
 // Morocco cities coordinates
@@ -170,6 +169,50 @@ const truncateTitle = (title: string): string => {
   const words = title.split(' ');
   if (words.length <= 3) return title;
   return words.slice(0, 3).join(' ') + '...';
+};
+
+// Function to get the appropriate icon for each type
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'hotel':
+      return <FontAwesome5 name="hotel" size={20} color="#FFFFFF" />;
+    case 'restaurant':
+      return <MaterialIcons name="restaurant" size={20} color="#FFFFFF" />;
+    case 'monument':
+      return <FontAwesome5 name="monument" size={20} color="#FFFFFF" />;
+    case 'entertainment':
+      return <Ionicons name="musical-notes" size={20} color="#FFFFFF" />;
+    case 'match':
+      return <Ionicons name="football" size={20} color="#FFFFFF" />;
+    case 'money-exchange':
+      return <FontAwesome5 name="money-bill-wave" size={20} color="#FFFFFF" />;
+    case 'artisan':
+      return <FontAwesome5 name="paint-brush" size={20} color="#FFFFFF" />;
+    default:
+      return <Ionicons name="location" size={20} color="#FFFFFF" />;
+  }
+};
+
+// Function to get the background color for each type
+const getTypeColor = (type: string): string => {
+  switch (type) {
+    case 'hotel':
+      return '#0066CC';
+    case 'restaurant':
+      return '#FF5722';
+    case 'monument':
+      return '#4CAF50';
+    case 'entertainment':
+      return '#9C27B0';
+    case 'match':
+      return '#F44336';
+    case 'money-exchange':
+      return '#607D8B';
+    case 'artisan':
+      return '#795548';
+    default:
+      return '#2196F3';
+  }
 };
 
 const TourMapScreen: React.FC = () => {
@@ -383,7 +426,7 @@ const TourMapScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.headerContainer}>
         <ScreenHeader title={`${currentCity} - ${getDateForDay(selectedDay)}`} />
       </View>
 
@@ -407,12 +450,21 @@ const TourMapScreen: React.FC = () => {
               title={item.title}           // reste pour le callout natif
               description={item.subtitle}
             >
-              <View style={styles.markerContainer}>
-                <Image
-                  source={{ uri: item.image }}
-                  style={styles.markerImage}
-                  resizeMode="cover"
-                />
+              <View style={[
+                styles.markerContainer,
+                item.type === 'hotel' && styles.hotelMarker
+              ]}>
+                {item.image ? (
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.markerImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[styles.defaultMarker, {backgroundColor: getTypeColor(item.type || 'default')}]}>
+                    {getTypeIcon(item.type || 'default')}
+                  </View>
+                )}
                 <Text style={styles.markerTitle}>
                   {truncateTitle(item.title)}
                 </Text>
@@ -488,14 +540,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  headerContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   backButton: {
     padding: 8,
@@ -618,9 +665,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   markerContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 35,
+    width: 36,
+    height: 36,
+    borderRadius: 20,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -647,6 +694,18 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     borderWidth: 1,
     borderColor: '#ccc',
+  },
+  hotelMarker: {
+    backgroundColor: '#0066CC',
+    borderColor: '#fff',
+  },
+  defaultMarker: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2196F3',
   },
 });
 
