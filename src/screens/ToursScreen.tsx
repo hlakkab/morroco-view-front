@@ -19,38 +19,6 @@ const TOUR_FLAG = '@toursCopilotSeen';
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
 
-// Onboarding steps
-const onboardingSteps = [
-  {
-    id: 'explore',
-    title: i18n.t('tours.onboarding.explore.title') || 'Explore Morocco',
-    description: i18n.t('tours.onboarding.explore.description') || 'Start by exploring our collection of restaurants, monuments, artisans, and entertainment options. Discover the best spots to visit during your trip.',
-    icon: 'compass',
-    iconColor: '#CE1126'
-  },
-  {
-    id: 'events',
-    title: i18n.t('tours.onboarding.events.title') || 'Check Upcoming Events',
-    description: i18n.t('tours.onboarding.events.description') || 'Browse upcoming matches and events to include in your itinerary. Plan your trip around these special occasions.',
-    icon: 'calendar',
-    iconColor: '#008060'
-  },
-  {
-    id: 'bookmark',
-    title: i18n.t('tours.onboarding.bookmark.title') || 'Save Your Favorites',
-    description: i18n.t('tours.onboarding.bookmark.description') || 'As you explore, bookmark the places and events you want to include in your tour. You can find all your saved items in the Bookmark tab.',
-    icon: 'bookmark',
-    iconColor: '#CE1126'
-  },
-  {
-    id: 'create',
-    title: i18n.t('tours.onboarding.create.title') || 'Create Your Tour',
-    description: i18n.t('tours.onboarding.create.description') || 'Now you are ready to create a customized tour! Select your bookmarked items, set dates, and plan your perfect Moroccan adventure.',
-    icon: 'map',
-    iconColor: '#008060'
-  }
-];
-
 // Content component for copilot
 const ToursScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -61,6 +29,80 @@ const ToursScreenContent: React.FC = () => {
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
+  
+  // Store onboarding steps in state so they update when language changes
+  const [onboardingSteps, setOnboardingSteps] = useState([
+    {
+      id: 'explore',
+      title: i18n.t('tours.onboarding.explore.title'),
+      description: i18n.t('tours.onboarding.explore.description'),
+      icon: 'compass',
+      iconColor: '#CE1126'
+    },
+    {
+      id: 'events',
+      title: i18n.t('tours.onboarding.events.title'),
+      description: i18n.t('tours.onboarding.events.description'),
+      icon: 'calendar',
+      iconColor: '#008060'
+    },
+    {
+      id: 'bookmark',
+      title: i18n.t('tours.onboarding.bookmark.title'),
+      description: i18n.t('tours.onboarding.bookmark.description'),
+      icon: 'bookmark',
+      iconColor: '#CE1126'
+    },
+    {
+      id: 'create',
+      title: i18n.t('tours.onboarding.create.title'),
+      description: i18n.t('tours.onboarding.create.description'),
+      icon: 'map',
+      iconColor: '#008060'
+    }
+  ]);
+
+  // Add state to track language changes
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.locale);
+  
+  // Update language state when it changes
+  useEffect(() => {
+    setCurrentLanguage(i18n.locale);
+  }, [i18n.locale]);
+
+  // Update steps when language changes
+  useEffect(() => {
+    setOnboardingSteps([
+      {
+        id: 'explore',
+        title: i18n.t('tours.onboarding.explore.title'),
+        description: i18n.t('tours.onboarding.explore.description'),
+        icon: 'compass',
+        iconColor: '#CE1126'
+      },
+      {
+        id: 'events',
+        title: i18n.t('tours.onboarding.events.title'),
+        description: i18n.t('tours.onboarding.events.description'),
+        icon: 'calendar',
+        iconColor: '#008060'
+      },
+      {
+        id: 'bookmark',
+        title: i18n.t('tours.onboarding.bookmark.title'),
+        description: i18n.t('tours.onboarding.bookmark.description'),
+        icon: 'bookmark',
+        iconColor: '#CE1126'
+      },
+      {
+        id: 'create',
+        title: i18n.t('tours.onboarding.create.title'),
+        description: i18n.t('tours.onboarding.create.description'),
+        icon: 'map',
+        iconColor: '#008060'
+      }
+    ]);
+  }, [i18n.locale]);
 
   // Fetch tours and check onboarding status
   useEffect(() => {

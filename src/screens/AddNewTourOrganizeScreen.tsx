@@ -338,7 +338,10 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
       has_times: transformedItems.some(item => item.timeSlot)
     });
     
-    // Use the saveTourThunk instead of saveTour
+    // First dispatch the action (sync)
+    dispatch(saveTour());
+    
+    // Then dispatch the thunk for API saving (async) but don't wait for it
     dispatch(saveTourThunk({
       title: title || "My Tour",
       from: formatDate(startDate),
@@ -346,8 +349,12 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
       destinations: transformedItems as unknown as TourSavedItem[]
     }));
     
-    // Navigate to map view with the items
-    navigation.navigate("Tours")
+    // Navigate immediately without waiting for the API call to finish
+    // This prevents the component from re-rendering during the API call
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Tours' }]
+    });
   };
 
   // Create day options for TourDayHeader

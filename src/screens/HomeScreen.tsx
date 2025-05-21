@@ -1,9 +1,8 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 // Import Container Components
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomNavBar from '../containers/BottomNavBar';
 import EmergencyContactsButton from '../containers/EmergencyContactsButton';
@@ -151,7 +150,10 @@ const HomeScreenContent: React.FC = () => {
             name="search"
           >
             <WalkthroughableView style={styles.searchHighlight}>
-              <SearchBarContainer />
+              <SearchBarContainer 
+                showTour={!visible && showTourButton} 
+                onTourPress={handleStartTour} 
+              />
             </WalkthroughableView>
           </CopilotStep>
         </View>

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dimensions, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import i18n from '../translations/i18n';
 
@@ -29,6 +29,18 @@ const OnboardingPopup: React.FC<OnboardingPopupProps> = ({
   subtitle
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  // Force re-render when language changes
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.locale);
+  
+  // Reset current step when steps array changes (e.g., language change)
+  useEffect(() => {
+    setCurrentStep(0);
+  }, [steps]);
+  
+  // Update language state when it changes
+  useEffect(() => {
+    setCurrentLanguage(i18n.locale);
+  }, [i18n.locale]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
