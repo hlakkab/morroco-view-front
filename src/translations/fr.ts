@@ -488,4 +488,13 @@ export default {
     deleteTourConfirmation: 'Êtes-vous sûr de vouloir supprimer "{title}"? Cette action ne peut pas être annulée.',
     loadingRoutes: 'Chargement des itinéraires...',
   },
+  forgotPassword: {
+    title: 'Réinitialiser le mot de passe',
+    description: 'Entrez votre adresse e-mail pour réinitialiser votre mot de passe',
+    email: 'Email',
+    resetButton: 'Réinitialiser le mot de passe',
+    success: 'Succès',
+    emailSent: 'L\'email de réinitialisation a été envoyé',
+    backToLogin: 'Retour à la connexion',
+  },
 }; 

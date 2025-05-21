@@ -146,9 +146,10 @@ const AccountScreen: React.FC = () => {
               source={{ uri: user.profilePicture || defaultProfileImage }}
               style={styles.profileImage}
             />
-            <TouchableOpacity style={styles.editImageButton}>
+            
+            {/* <TouchableOpacity style={styles.editImageButton}>
               <Ionicons name="camera" size={20} color="#fff" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           
           <Text style={styles.welcomeText}>

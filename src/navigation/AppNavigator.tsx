@@ -15,6 +15,7 @@ import EntertainmentScreen from '../screens/EntertainmentScreen';
 import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
 import ESIMScreen from '../screens/ESIMScreen';
 import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
@@ -64,6 +65,11 @@ export function AppNavigator() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
