@@ -6,16 +6,33 @@ import LogoSvg from '../assets/img/morroco-view-logo.svg';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import i18n from '../translations/i18n';
+import api from '../service/ApiProxy';
 
 const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleResetPassword = () => {
-    // Here you would typically make an API call to request password reset
-    // For now, we'll just show the success message
-    setIsSuccess(true);
+  const handleResetPassword = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email address');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await api.post('/user/forgot', { email });
+      setIsSuccess(true);
+    } catch (error) {
+      const axiosError = error as any;
+      Alert.alert(
+        'Error',
+        axiosError.response?.data?.message || 'Failed to send reset email. Please try again.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBackToLogin = () => {
@@ -43,11 +60,13 @@ const ForgotPasswordScreen = () => {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={!isLoading}
             />
             <Button 
-              title={i18n.t('forgotPassword.resetButton')} 
+              title={isLoading ? 'Sending...' : i18n.t('forgotPassword.resetButton')} 
               onPress={handleResetPassword} 
-              style={styles.button} 
+              style={styles.button}
+              disabled={isLoading}
             />
           </>
         ) : (
