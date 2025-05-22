@@ -9,6 +9,7 @@ import i18n from '../translations/i18n';
 import api from '../service/ApiProxy';
 
 const ForgotPasswordScreen = () => {
+  
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
