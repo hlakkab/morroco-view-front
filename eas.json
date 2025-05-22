@@ -19,7 +19,8 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "1234567890",
+        "ascAppId": "
+        ",
         "appleId": "tarik.bouhassoune@gmail.com",
         "appleTeamId": "ABCDE12345"
       }
