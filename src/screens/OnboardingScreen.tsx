@@ -2,12 +2,12 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import Logo2Svg from '../assets/img/morroco-view-logo2.svg';
 import Button from '../components/Button';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const OnboardingScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -27,9 +27,11 @@ const OnboardingScreen = () => {
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.imageContainer}>
-          <View style={[styles.imageBox, styles.image1]} />
-          <View style={[styles.imageBox, styles.image2]} />
-          <View style={[styles.imageBox, styles.image3]} />
+          <Image 
+            source={require('../assets/img/maroc_design.png')} 
+            style={styles.morocDesignImage}
+            resizeMode="contain"
+          />
         </View>
       </View>
       <View style={styles.buttonContainer}>
@@ -46,52 +48,47 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logoContainer: {
-    marginTop: 50, // Adjust to position logo at the top
+    marginTop: 40,
     alignItems: 'flex-start',
   },
   titleContainer: {
-    marginTop: 30,
+    marginTop: 24,
     alignItems: 'flex-start',
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   },
   title: {
-    fontSize: 45,
+    fontSize: 42,
     fontWeight: 'bold',
     color: '#000',
   },
   subtitle: {
-    fontSize: 26,
+    fontSize: 24,
     color: '#000',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   imageContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
-  imageBox: {
-    width: width * 0.25,
-    height: width * 0.25,
-    borderRadius: 12,
-  },
-  image1: {
-    backgroundColor: '#FFE4E4',
-    transform: [{ rotate: '-15deg' }],
-  },
-  image2: {
-    backgroundColor: '#F18D8F',
-    transform: [{ rotate: '5deg' }],
-  },
-  image3: {
-    backgroundColor: '#AE1913',
-    transform: [{ rotate: '15deg' }],
+  morocDesignImage: {
+    width: width,
+    height: height,
+    
   },
   buttonContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    padding: 20,
   },
   fullWidthButton: {
     width: '100%',
