@@ -13,40 +13,11 @@ import { fetchTours } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 
+const ONBOARDING_FLAG = '@toursOnboardingSeen';
+const TOUR_FLAG = '@toursCopilotSeen';
+
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
-
-// Onboarding steps
-const onboardingSteps = [
-  {
-    id: 'explore',
-    title: i18n.t('tours.onboarding.explore.title') || 'Explore Morocco',
-    description: i18n.t('tours.onboarding.explore.description') || 'Start by exploring our collection of restaurants, monuments, artisans, and entertainment options. Discover the best spots to visit during your trip.',
-    icon: 'compass',
-    iconColor: '#CE1126'
-  },
-  {
-    id: 'events',
-    title: i18n.t('tours.onboarding.events.title') || 'Check Upcoming Events',
-    description: i18n.t('tours.onboarding.events.description') || 'Browse upcoming matches and events to include in your itinerary. Plan your trip around these special occasions.',
-    icon: 'calendar',
-    iconColor: '#008060'
-  },
-  {
-    id: 'bookmark',
-    title: i18n.t('tours.onboarding.bookmark.title') || 'Save Your Favorites',
-    description: i18n.t('tours.onboarding.bookmark.description') || 'As you explore, bookmark the places and events you want to include in your tour. You can find all your saved items in the Bookmark tab.',
-    icon: 'bookmark',
-    iconColor: '#CE1126'
-  },
-  {
-    id: 'create',
-    title: i18n.t('tours.onboarding.create.title') || 'Create Your Tour',
-    description: i18n.t('tours.onboarding.create.description') || 'Now you are ready to create a customized tour! Select your bookmarked items, set dates, and plan your perfect Moroccan adventure.',
-    icon: 'map',
-    iconColor: '#008060'
-  }
-];
 
 // Content component for copilot
 const ToursScreenContent: React.FC = () => {
@@ -56,48 +27,167 @@ const ToursScreenContent: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
+  
+  // Store onboarding steps in state so they update when language changes
+  const [onboardingSteps, setOnboardingSteps] = useState([
+    {
+      id: 'explore',
+      title: i18n.t('tours.onboarding.explore.title'),
+      description: i18n.t('tours.onboarding.explore.description'),
+      icon: 'compass',
+      iconColor: '#CE1126'
+    },
+    {
+      id: 'events',
+      title: i18n.t('tours.onboarding.events.title'),
+      description: i18n.t('tours.onboarding.events.description'),
+      icon: 'calendar',
+      iconColor: '#008060'
+    },
+    {
+      id: 'bookmark',
+      title: i18n.t('tours.onboarding.bookmark.title'),
+      description: i18n.t('tours.onboarding.bookmark.description'),
+      icon: 'bookmark',
+      iconColor: '#CE1126'
+    },
+    {
+      id: 'create',
+      title: i18n.t('tours.onboarding.create.title'),
+      description: i18n.t('tours.onboarding.create.description'),
+      icon: 'map',
+      iconColor: '#008060'
+    }
+  ]);
 
+  // Add state to track language changes
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.locale);
+  
+  // Update language state when it changes
+  useEffect(() => {
+    setCurrentLanguage(i18n.locale);
+  }, [i18n.locale]);
+
+  // Update steps when language changes
+  useEffect(() => {
+    setOnboardingSteps([
+      {
+        id: 'explore',
+        title: i18n.t('tours.onboarding.explore.title'),
+        description: i18n.t('tours.onboarding.explore.description'),
+        icon: 'compass',
+        iconColor: '#CE1126'
+      },
+      {
+        id: 'events',
+        title: i18n.t('tours.onboarding.events.title'),
+        description: i18n.t('tours.onboarding.events.description'),
+        icon: 'calendar',
+        iconColor: '#008060'
+      },
+      {
+        id: 'bookmark',
+        title: i18n.t('tours.onboarding.bookmark.title'),
+        description: i18n.t('tours.onboarding.bookmark.description'),
+        icon: 'bookmark',
+        iconColor: '#CE1126'
+      },
+      {
+        id: 'create',
+        title: i18n.t('tours.onboarding.create.title'),
+        description: i18n.t('tours.onboarding.create.description'),
+        icon: 'map',
+        iconColor: '#008060'
+      }
+    ]);
+  }, [i18n.locale]);
+
+  // Fetch tours and check onboarding status
   useEffect(() => {
     dispatch(fetchTours());
-    // Always show onboarding popup
-    setShowOnboarding(true);
+    checkOnboardingStatus();
   }, [dispatch]);
+
+  // Function to check onboarding status
+  const checkOnboardingStatus = async () => {
+    try {
+      const value = await AsyncStorage.getItem(ONBOARDING_FLAG);
+      const shouldShowOnboarding = value !== 'true';
+      setShowOnboarding(shouldShowOnboarding);
+      setHasSeenOnboarding(value === 'true');
+    } catch (error) {
+      console.error('Error reading onboarding status:', error);
+      setShowOnboarding(true);
+      setHasSeenOnboarding(false);
+    }
+  };
+
+  // Function to manually show onboarding
+  const handleShowOnboarding = () => {
+    setShowOnboarding(true);
+  };
 
   // Handle onboarding close
   const handleOnboardingClose = async () => {
-    setShowOnboarding(false);
-    // Remove AsyncStorage saving
-    // Start the copilot tour after onboarding closes
-    setTimeout(() => {
-      startTour();
-      setTourStarted(true);
-    }, 500);
+    try {
+      await AsyncStorage.setItem(ONBOARDING_FLAG, 'true');
+      setHasSeenOnboarding(true);
+      setShowOnboarding(false);
+    } catch (error) {
+      console.error('Error saving onboarding status:', error);
+    }
   };
 
-  // Start the Copilot tour when the component mounts (if onboarding is not shown)
+  // Check copilot tour status
   useEffect(() => {
-    if (!tourStarted && !showOnboarding) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Copilot tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading copilot tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // Start copilot tour after onboarding is closed and if not seen before
+  useEffect(() => {
+    if (!showOnboarding && hasSeenOnboarding && hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting copilot tour...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
-      }, 1000);
-      
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted, showOnboarding]);
+  }, [showOnboarding, hasSeenOnboarding, hasSeenTour, tourStarted, visible, startTour]);
 
-  // Handle Copilot events
+  // Save copilot tour completion status
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Copilot tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Copilot tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving copilot tour status:', error);
+      }
     };
-    
+
     copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
+    return () => copilotEvents.off('stop', handleStop);
   }, [copilotEvents]);
+
+  // Manual tour start handler
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
 
   const handleBack = () => {
     // Simply navigate to Home screen when back button is pressed
@@ -115,23 +205,19 @@ const ToursScreenContent: React.FC = () => {
     navigation.navigate(routeName);
   };
 
-  // Add a button to manually start the tour
-  const handleStartTour = () => {
-    startTour();
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
+      
 
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('navigation.tours')} onBack={handleBack} />
+        <ScreenHeader 
+          title={i18n.t('navigation.tours')} 
+          onBack={handleBack} 
+          showTour={!visible}
+          onTourPress={handleStartTour}
+          showOnboarding={true}
+          onOnboardingPress={handleShowOnboarding}
+        />
       </View>
       
       <View style={styles.content}>
@@ -250,28 +336,6 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
   },
 });
 

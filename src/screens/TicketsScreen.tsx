@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useDispatch, useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MatchTicketCard from '../components/cards/MatchTicketCard';
 import PickupTicketCard from '../components/cards/PickupTicketCard';
 import ScreenHeader from '../components/ScreenHeader';
@@ -24,6 +25,8 @@ import i18n from '../translations/i18n';
 import { Match } from '../types/match';
 import { Ticket } from '../types/ticket';
 import { HotelPickup } from '../types/transport';
+
+const TOUR_FLAG = '@ticketsTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -36,38 +39,89 @@ const TicketsScreenContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   useEffect(() => {
     dispatch(fetchTickets());
   }, [dispatch]);
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, loading, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
+  // Add reset function for manual testing
+  const handleResetTour = async () => {
+    try {
+      console.log('Manually resetting tour status...');
+      await AsyncStorage.removeItem(TOUR_FLAG);
+      setHasSeenTour(false);
+      setTourStarted(false);
+      console.log('Tour status reset successfully');
+      // Start the tour immediately after reset
+      startTour();
+    } catch (error) {
+      console.error('Error resetting tour:', error);
+    }
+  };
+
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -98,16 +152,13 @@ const TicketsScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('tickets.title')} onBack={() => navigation.goBack()} />
+        <ScreenHeader 
+          title={i18n.t('tickets.title')} 
+          onBack={() => navigation.goBack()}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
 
       <CopilotStep

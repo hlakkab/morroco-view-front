@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CloseButton from '../assets/img/CloseButton.svg';
 import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -20,6 +21,8 @@ import LocationSection from './LocationSection';
 import TicketPurchaseStatus from './TicketPurchaseStatus';
 import { trackEvent } from '../service/Mixpanel';
 
+const TOUR_FLAG = '@matchPopupTourSeen';
+
 export interface MatchPopupProps {
   onClose: () => void;
 }
@@ -34,6 +37,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
     = useSelector((state: RootState) => state.match);
   const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   // Reset ticket purchase status when component unmounts
   useEffect(() => {
@@ -91,26 +95,61 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
     })
   ).current;
 
-  // Start the tour automatically when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      tourVisible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !tourVisible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, tourVisible]);
 
-  // Handle copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
     };
 
     copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
@@ -141,6 +180,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -159,14 +199,6 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
     <Animated.View
       style={[styles.container, { transform: [{ translateY: pan.y }] }]}>
       <View style={[styles.popup]}>
-        {/* Manual tour button */}
-        {!tourVisible && (
-          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-          </TouchableOpacity>
-        )}
-
         {/* Header blanc */}
         <View style={styles.headerSection}>
           {/* Drag handle */}
@@ -183,9 +215,17 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
           {/* Titre du match */}
           <Text style={styles.matchTitle}>{currentMatch.homeTeam} Vs. {currentMatch.awayTeam}</Text>
 
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <CloseButton />
-          </TouchableOpacity>
+          <View style={styles.headerRightContainer}>
+            {/* Tour button styled like in ScreenHeader */}
+            {!tourVisible && (
+              <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                <Ionicons name="information-circle-outline" size={20} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <CloseButton />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.divider} />
@@ -289,7 +329,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
             >
               <WalkthroughableView style={styles.enhancedHighlight}>
                 <AboutSection
-                  text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
+                  text={currentMatch.about || "Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997...Bakery Breakfast Lunch in Marrakesh downtown. Gueliz. Fine French and Moroccan pastries since 1997..."}
                 />
               </WalkthroughableView>
             </CopilotStep>
@@ -555,18 +595,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  closeButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-  },
   headerSection: {
+    flexDirection: 'column',
     paddingHorizontal: 20,
     backgroundColor: 'white',
-    borderTopLeftRadius: 32, // Conserve l'arrondi du popup parent
-    borderTopRightRadius: 32, // Conserve l'arrondi du popup parent
-    paddingBottom: 15, // Ajoute un peu d'espace après le titre
-    zIndex: 1, // S'assure que ce conteneur reste au-dessus du ScrollView
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingBottom: 15,
+    zIndex: 1,
+    position: 'relative',
+  },
+  headerRightContainer: {
+    position: 'absolute',
+    top: 12,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  closeButton: {
+    marginLeft: 10,
   },
   saveButton: {
     position: 'absolute',
@@ -600,26 +647,19 @@ const styles = StyleSheet.create({
     width: '85%',
   },
   tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
     backgroundColor: '#FF6B6B',
     borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 999,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
   },
   enhancedHighlight: {
     width: '100%',

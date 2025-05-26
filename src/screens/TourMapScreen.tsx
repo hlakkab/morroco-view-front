@@ -3,13 +3,13 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSelector } from 'react-redux';
 import ScreenHeader from '../components/ScreenHeader';
 import { RootState } from '../store/store';
-import { RootStackParamList } from '../types/navigation';
 import i18n from '../translations/i18n';
+import { RootStackParamList } from '../types/navigation';
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -160,6 +160,35 @@ const calculateZoomLevel = (coordinates: Array<{latitude: number, longitude: num
   return { latitudeDelta: latDelta, longitudeDelta: lngDelta };
 };
 
+// Add this function before the TourMapScreen component
+const getMarkerContent = (item: any, imageError: boolean, onImageError: (itemId: string) => void) => {
+  // Check if item has an image and no error loading it
+  if (item.image && !imageError) {
+    return (
+      <Image 
+        source={{ uri: item.image }} 
+        style={styles.markerImage}
+        onError={() => {
+          console.log(`Failed to load image for ${item.title}`);
+          onImageError(item.id);
+        }}
+      />
+    );
+  }
+  
+  // Otherwise show an icon based on item type
+  const iconName = !item.type ? 'location' :
+                  item.type === 'hotel' ? 'bed' : 
+                  item.type === 'restaurant' ? 'restaurant' : 
+                  item.type === 'match' ? 'football' : 
+                  item.type === 'entertainment' ? 'musical-notes' : 
+                  item.type === 'monument' ? 'business' : 
+                  item.type === 'money-exchange' ? 'cash' :
+                  item.type === 'artisan' ? 'construct' : 'location';
+  
+  return <Ionicons name={iconName} size={18} color="#fff" />;
+};
+
 const TourMapScreen: React.FC = () => {
 
   const navigation = useNavigation();
@@ -173,6 +202,7 @@ const TourMapScreen: React.FC = () => {
   const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
   const [currentCity, setCurrentCity] = useState<string>('');
   const [mapKey, setMapKey] = useState(0);
+  const [imageLoadErrors, setImageLoadErrors] = useState<{[key: string]: boolean}>({});
   
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
@@ -363,6 +393,11 @@ const TourMapScreen: React.FC = () => {
     
   const zoomLevel = calculateZoomLevel(validCoordinates);
 
+  // Function to handle image load errors
+  const handleImageError = (itemId: string) => {
+    setImageLoadErrors(prev => ({...prev, [itemId]: true}));
+  };
+
   // ############ CONSOLE LOG ############
   //console.log('availableDays', availableDays);
   // ############ CONSOLE LOG ############
@@ -371,7 +406,7 @@ const TourMapScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.headerContainer}>
         <ScreenHeader title={`${currentCity} - ${getDateForDay(selectedDay)}`} />
       </View>
 
@@ -394,29 +429,16 @@ const TourMapScreen: React.FC = () => {
               coordinate={getItemCoordinates(item)}
               title={item.title}
               description={item.subtitle}
+              anchor={{ x: 0.5, y: 0.5 }}
             >
-              {item.type && (
-                <View style={styles.markerContainer}>
-                  <View style={styles.indexBadge}>
-                    <Text style={styles.indexText}>{index + 1}</Text>
-                  </View>
-                  <View style={styles.markerIconContainer}>
-                    <Ionicons 
-                      name={
-                        item.type === 'hotel' ? 'bed' : 
-                        item.type === 'restaurant' ? 'restaurant' : 
-                        item.type === 'match' ? 'football' : 
-                        item.type === 'entertainment' ? 'musical-notes' : 
-                        item.type === 'monument' ? 'business' : 
-                        item.type === 'money-exchange' ? 'cash' :
-                        item.type === 'artisan' ? 'construct' : 'location'
-                      }   
-                      size={20} 
-                      color="#fff" 
-                    />
-                  </View>
+              <View style={styles.markerContainer}>
+                <View style={styles.indexBadge}>
+                  <Text style={styles.indexText}>{index + 1}</Text>
                 </View>
-              )}
+                <View style={styles.markerIconContainer}>
+                  {getMarkerContent(item, imageLoadErrors[item.id], handleImageError)}
+                </View>
+              </View>
             </Marker>
           ))}
 
@@ -456,7 +478,7 @@ const TourMapScreen: React.FC = () => {
               style={styles.controlButton}
               onPress={() => handleChangeDay('prev')}
             >
-              <Ionicons name="arrow-back" size={24} color="#333" />
+              <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
           )}
           <View style={[
@@ -473,7 +495,7 @@ const TourMapScreen: React.FC = () => {
               style={styles.controlButton}
               onPress={() => handleChangeDay('next')}
             >
-              <Ionicons name="arrow-forward" size={24} color="#333" />
+              <Ionicons name="arrow-forward" size={24} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
@@ -485,16 +507,11 @@ const TourMapScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF7F7',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  headerContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   backButton: {
     padding: 8,
@@ -520,12 +537,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: '#AE1913',
+    opacity: 0.9,
     borderRadius: 50,
     padding: 10,
   },
   controlButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF7F7',
     padding: 10,
     borderRadius: 50,
     shadowColor: '#000',
@@ -552,35 +570,44 @@ const styles = StyleSheet.create({
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    // position: 'relative',
+    position: 'relative',
+    width: 36,
+    height: 36,
   },
   markerIconContainer: {
-    backgroundColor: '#E53935',
-    borderRadius: 20,
-    padding: 5,
+    backgroundColor: '#4169E1',
+    borderRadius: 18,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    margin: 6,
+    borderWidth: 2,
     borderColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   indexBadge: {
     position: 'absolute',
-    top: 0,
+    top: -0,
     left: 0,
-    backgroundColor: '#2196F3',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    backgroundColor: '#AE1913',
+    width: 16,
+    height: 16,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 3,
+    zIndex: 10,
+    elevation: 10,
   },
   indexText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
   },
   noticeContainer: {
@@ -628,6 +655,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     fontWeight: '500',
+  },
+  markerImage: {
+    width: 40,
+    height: 40,
+    resizeMode: 'cover',
   },
 });
 

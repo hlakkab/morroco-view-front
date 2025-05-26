@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import { AppDispatch } from '../store';
 import { createEsim } from '../store/slices/esimSlice';
@@ -21,6 +22,8 @@ import { createEsim } from '../store/slices/esimSlice';
 import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
 import OrangeSvg from '../assets/serviceIcons/orange-img.svg';
 import i18n from '../translations/i18n';
+
+const TOUR_FLAG = '@buyEsimModalTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -52,32 +55,72 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
   const dispatch = useDispatch<AppDispatch>();
   const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
-  // Start the tour automatically when the modal becomes visible
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (visible && !tourStarted) {
+    if (visible) {
+      AsyncStorage.getItem(TOUR_FLAG)
+        .then(value => {
+          console.log('Buy ESIM Tour seen status:', value);
+          setHasSeenTour(value === 'true');
+        })
+        .catch(error => {
+          console.error('Error reading Buy ESIM tour status:', error);
+          setHasSeenTour(false);
+        });
+    }
+  }, [visible]);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      visible,
+      tourStarted,
+      tourVisible
+    });
+
+    if (visible && hasSeenTour === false && !tourStarted && !tourVisible) {
+      console.log('Starting Buy ESIM tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [visible, startTour, tourStarted]);
+  }, [visible, hasSeenTour, tourStarted, tourVisible, startTour]);
 
-  // Handle copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Buy ESIM Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Buy ESIM Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving Buy ESIM tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
     };
 
     copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -193,22 +236,23 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
         >
           {/* White header with drag handle */}
           <View style={styles.headerContainer} {...panResponder.panHandlers}>
-            {/* Manual tour button */}
-            {!tourVisible && (
-              <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-                <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.tourButtonText}>Tour Guide</Text>
-              </TouchableOpacity>
-            )}
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
             
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{i18n.t('qrcode.buyNew')}</Text>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={16} color="black" />
-              </TouchableOpacity>
+              <View style={styles.headerRightContainer}>
+                {/* Manual tour button - custom positioned for this modal */}
+                {!tourVisible && (
+                  <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                    <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                  <Ionicons name="close" size={16} color="black" />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           
@@ -390,6 +434,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   modalTitle: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -403,6 +451,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'white',
+    marginLeft: 10,
   },
   modalContent: {
     marginTop: 15,
@@ -498,15 +547,13 @@ const styles = StyleSheet.create({
     width: '85%',
   },
   tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
+    backgroundColor: '#FF6B6B',
     borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 999,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

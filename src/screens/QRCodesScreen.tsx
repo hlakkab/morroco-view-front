@@ -13,10 +13,14 @@ import QRCodesContainer from '../containers/QRCodesContainer';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import QRCode from '../types/qrcode';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../hooks/reduxHooks';
 import { createQRCode, fetchQRCodes } from '../store/qrCodeSlice';
+
+const TOUR_FLAG = '@qrCodesScreenTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -26,9 +30,12 @@ const QRCodesScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
   const [addModalVisible, setAddModalVisible] = useState(false);
-  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const { start, copilotEvents, visible, stop } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
+
+
   // Redux state and dispatch
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector(state => state.qrCodes);
@@ -38,37 +45,77 @@ const QRCodesScreenContent: React.FC = () => {
     dispatch(fetchQRCodes());
   }, [dispatch]);
 
-  // Start the Copilot tour when the component mounts
-  useEffect(() => {
-    if (!tourStarted) {
-      const timer = setTimeout(() => {
-        startTour();
-        setTourStarted(true);
-      }, 1000);
+    // ─── 1. Lire si le tour a déjà été vu ─────────────────
+    useEffect(() => {
+      AsyncStorage.getItem(TOUR_FLAG)
+        .then(value => {
+          console.log('Tour seen status:', value);
+          setHasSeenTour(value === 'true');
+        })
+        .catch(error => {
+          console.error('Error reading tour status:', error);
+          setHasSeenTour(false);
+        });
+    }, []);
+  
+    // ─── 2. Démarrage automatique une seule fois ──────────
+    useEffect(() => {
+      console.log('Tour conditions:', {
+        hasSeenTour,
+        loading,
+        tourStarted,
+        visible
+      });
+  
+      if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+        console.log('Starting tour automatically...');
+        const timer = setTimeout(() => {
+          start();
+          setTourStarted(true);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }, [hasSeenTour, loading, start, tourStarted, visible]);
+  
+    // ─── 3. Enregistrer la fin ou le skip du tour ────────
+    useEffect(() => {
+      const handleStop = async () => {
+        console.log('Tour stopped, saving status...');
+        try {
+          await AsyncStorage.setItem(TOUR_FLAG, 'true');
+          setHasSeenTour(true);
+          setTourStarted(false);
+          console.log('Tour status saved successfully');
+        } catch (error) {
+          console.error('Error saving tour status:', error);
+        }
+      };
+  
+      const handleStepChange = (step: any) => {
+        console.log('Step changed to:', step?.name);
+      };
+  
+      // Listen for both stop and finish events
+      copilotEvents.on('stop', handleStop);
+      copilotEvents.on('stepChange', handleStepChange);
       
-      return () => clearTimeout(timer);
-    }
-  }, [startTour, tourStarted]);
+      return () => {
+        copilotEvents.off('stop', handleStop);
+        copilotEvents.off('stepChange', handleStepChange);
+      };
+    }, [copilotEvents]);
+  
 
-  // Handle Copilot events
-  useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
-    };
-    
-    copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
-  }, [copilotEvents]);
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
-    startTour();
+    setTourStarted(true);
+    start();
   };
 
   const handleBack = () => {
+    // Make sure to stop the tour when navigating away
+    stop();
     navigation.goBack();
   };
 
@@ -95,17 +142,15 @@ const QRCodesScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
 
       {/* Header with back button and title */}
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('qrcode.title')} onBack={handleBack} />
+        <ScreenHeader 
+          title={i18n.t('qrcode.title')} 
+          onBack={handleBack}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
 
       {/* Search bar component */}
@@ -250,30 +295,10 @@ const styles = StyleSheet.create({
     borderColor: '#CE1126',
     width: '85%',
   },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
   searchHighlight: {
-    marginBottom: 16,
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   qrCodesListHighlight: {
     flex: 1,

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AboutSection from '../components/AboutSection';
 import ImageGallery from '../components/ImageGallery';
 import LocationSection from '../components/LocationSection';
@@ -12,6 +13,8 @@ import { useAppDispatch } from '../store/hooks';
 import i18n from '../translations/i18n';
 import { Artisan } from '../types/Artisan';
 import { getRandomArtisanImages } from '../utils/imageUtils';
+
+const TOUR_FLAG = '@artisanDetailTourSeen';
 
 // Default artisan souk images if none are provided
 const DEFAULT_SOUK_IMAGES = getRandomArtisanImages(3);
@@ -27,6 +30,7 @@ const ArtisanDetailScreenContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const [saved, setSaved] = useState(params.saved || false);
 
@@ -44,48 +48,79 @@ const ArtisanDetailScreenContent: React.FC = () => {
     dispatch(toggleArtisanBookmark(artisanDetails));
   };
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={artisanDetails.name} onBack={handleBack} />
+        <ScreenHeader 
+          title={artisanDetails.name} 
+          onBack={handleBack}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -318,29 +353,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
+  }
 });
 
 export default ArtisanDetailScreen; 

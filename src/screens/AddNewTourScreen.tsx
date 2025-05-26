@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -24,6 +25,8 @@ interface FormData {
 // Define a type for the picker mode
 type DatePickerMode = 'start' | 'end';
 
+const TOUR_FLAG = '@addNewTourSeen';
+
 // Content component with Copilot functionality
 const AddNewTourScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -31,6 +34,7 @@ const AddNewTourScreenContent: React.FC = () => {
   const tourData = useAppSelector(state => state.tour.currentTour);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
   const [formData, setFormData] = useState<FormData>({
     title: tourData.title,
@@ -51,33 +55,51 @@ const AddNewTourScreenContent: React.FC = () => {
     });
   }, [tourData]);
 
-  // Start the Copilot tour when the component mounts
+  // Check if tour has been seen before
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // Start tour automatically if not seen before
+  useEffect(() => {
+    if (hasSeenTour === false && !tourStarted && !visible) {
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
 
-  // Handle Copilot events
+  // Save tour completion status
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
     copilotEvents.on('stop', handleStop);
-    
     return () => {
       copilotEvents.off('stop', handleStop);
     };
   }, [copilotEvents]);
 
-  // Add a button to manually start the tour
+  // Manual tour start handler
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -152,16 +174,12 @@ const AddNewTourScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Feather name="info" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <TourFlowHeader title={i18n.t('tours.addNewTour')} />
+        <TourFlowHeader 
+          title={i18n.t('tours.addNewTour')} 
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       
       <View style={styles.content}>

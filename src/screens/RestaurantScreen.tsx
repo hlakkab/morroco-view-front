@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import i18n from '../translations/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -24,6 +25,8 @@ import { RootStackParamList } from '../types/navigation';
 import { Restaurant, RestaurantType } from '../types/Restaurant';
 import Pagination from "../components/Pagination";
 
+const TOUR_FLAG = '@restaurantsTourSeen';
+
 type RestaurantScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Restaurant'>;
 
 // Create walkthroughable components
@@ -35,6 +38,7 @@ const RestaurantScreenContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
   // Get data from Redux store
   const { 
@@ -100,6 +104,86 @@ const RestaurantScreenContent: React.FC = () => {
       icon: <Ionicons name="location-outline" size={18} color="#888" />
     }))
   ];
+
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
+  useEffect(() => {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
+      const timer = setTimeout(() => {
+        startTour();
+        setTourStarted(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeenTour, loading, startTour, tourStarted, visible]);
+
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
+  useEffect(() => {
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
+    copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
+    return () => {
+      copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
+    };
+  }, [copilotEvents]);
+
+  // Add reset function for manual testing
+  const handleResetTour = async () => {
+    try {
+      console.log('Manually resetting tour status...');
+      await AsyncStorage.removeItem(TOUR_FLAG);
+      setHasSeenTour(false);
+      setTourStarted(false);
+      console.log('Tour status reset successfully');
+      // Start the tour immediately after reset
+      startTour();
+    } catch (error) {
+      console.error('Error resetting tour:', error);
+    }
+  };
+
+  // Add a button to manually start the tour
+  const handleStartTour = () => {
+    setTourStarted(true);
+    startTour();
+  };
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -194,36 +278,6 @@ const RestaurantScreenContent: React.FC = () => {
   const currentRestaurants = filteredRestaurants.slice(start, start + itemsPerPage);
   // === FIN PAGINATION ===
 
-  // Start the Copilot tour when the component mounts
-  useEffect(() => {
-    if (!tourStarted && !loading) {
-      const timer = setTimeout(() => {
-        startTour();
-        setTourStarted(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [startTour, tourStarted, loading]);
-
-  // Handle Copilot events
-  useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
-    };
-    
-    copilotEvents.on('stop', handleStop);
-    
-    return () => {
-      copilotEvents.off('stop', handleStop);
-    };
-  }, [copilotEvents]);
-
-  // Add a button to manually start the tour
-  const handleStartTour = () => {
-    startTour();
-  };
-
   // Render loading state
   if (loading) {
     return (
@@ -256,16 +310,12 @@ const RestaurantScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>Tour Guide</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={i18n.t('restaurants.title')} />
+        <ScreenHeader
+          title={i18n.t('restaurants.title')}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
       <View style={styles.content}>
         <CopilotStep
@@ -410,7 +460,6 @@ const styles = StyleSheet.create({
   },
   searchHighlight: {
     width: '100%',
-    marginBottom: 16,
     borderRadius: 8,
     overflow: 'hidden',
   },

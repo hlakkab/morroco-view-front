@@ -17,11 +17,14 @@ import {
   View
 } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeSVG from 'react-native-qrcode-svg';
 import Button from '../components/Button';
 import { useCamera } from '../hooks/useCamera';
 import i18n from '../translations/i18n';
 import QRCode from '../types/qrcode';
+
+const TOUR_FLAG = '@addQRCodeModalTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -62,6 +65,7 @@ const AddQRCodeModalContent: React.FC<AddQRCodeModalProps> = ({
   
   const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
   // Use the camera hook
   const {
@@ -82,31 +86,70 @@ const AddQRCodeModalContent: React.FC<AddQRCodeModalProps> = ({
     pickImageFromGallery
   } = useCamera();
 
-  // Start the tour automatically when the modal becomes visible
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (visible && !tourStarted) {
+    if (visible) {
+      AsyncStorage.getItem(TOUR_FLAG)
+        .then(value => {
+          console.log('QR Code Modal Tour seen status:', value);
+          setHasSeenTour(value === 'true');
+        })
+        .catch(error => {
+          console.error('Error reading QR Code Modal tour status:', error);
+          setHasSeenTour(false);
+        });
+    }
+  }, [visible]);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      visible,
+      tourStarted,
+      tourVisible
+    });
+
+    if (visible && hasSeenTour === false && !tourStarted && !tourVisible) {
+      console.log('Starting QR Code Modal tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [visible, startTour, tourStarted]);
+  }, [visible, hasSeenTour, tourStarted, tourVisible, startTour]);
 
-  // Handle copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('QR Code Modal Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('QR Code Modal Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving QR Code Modal tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
     };
 
     copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -352,22 +395,23 @@ const AddQRCodeModalContent: React.FC<AddQRCodeModalProps> = ({
         >
           {/* White header with drag handle */}
           <View style={styles.headerContainer} {...panResponder.panHandlers}>
-            {/* Manual tour button */}
-            {!tourVisible && (
-              <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-                <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-              </TouchableOpacity>
-            )}
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
             
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{i18n.t('qrcode.modalTitle')}</Text>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={16} color="black" />
-              </TouchableOpacity>
+              <View style={styles.headerRightContainer}>
+                {/* Manual tour button styled like in ScreenHeader */}
+                {!tourVisible && (
+                  <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                    <Ionicons name="information-circle-outline" size={20} color="#FFF" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                  <Ionicons name="close" size={16} color="black" />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           
@@ -547,13 +591,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
   },
   closeButton: {
-    padding: 5,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#D3D3D3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    marginLeft: 10,
   },
   modalContent: {
     flex: 1,
@@ -721,21 +777,20 @@ const styles = StyleSheet.create({
     width: '85%',
   },
   tourButton: {
-    position: 'absolute',
-    top: 10,
-    right: 16,
-    backgroundColor: '#008060',
+    backgroundColor: '#FF6B6B',
     borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 999,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    marginRight: 8,
   },
   tourButtonText: {
     color: '#FFFFFF',

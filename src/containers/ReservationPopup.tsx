@@ -1,4 +1,5 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -8,11 +9,13 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import Button from '../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
+import { trackEvent } from '../service/Mixpanel';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
 import { togglePickupDirection } from '../store/hotelPickupSlice';
 import i18n from '../translations/i18n';
-import { trackEvent } from '../service/Mixpanel';
+
+const TOUR_FLAG = '@reservationPopupTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -35,6 +38,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
   );
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const pickupDirection = useAppSelector(
     (state) => state.hotelPickup.pickupDirection
@@ -92,35 +96,65 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
     console.log('ReservationPopup - City:', selectedCity);
   }, [pickupDirection, selectedCity]);
 
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    // Start the Copilot tour when the component mounts
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Reservation Popup Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading Reservation Popup tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting Reservation Popup tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
 
-
-
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Reservation Popup Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Reservation Popup Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving Reservation Popup tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
     };
 
     copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
 
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
-    // Track when reservation popup is opened
-
-
+  
+  // Track when reservation popup is opened
   useEffect(() => {
     trackEvent('Pickup_Reservation_Opened', {
       pickupId,
@@ -609,6 +643,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -618,23 +653,23 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
       style={styles.container}
     >
       <View style={styles.popup}>
-        {/* Manual tour button */}
-        {!visible && (
-          <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-            <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-          </TouchableOpacity>
-        )}
-        
         <View style={styles.fixedHeader}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
               {i18n.t('reservation.reservePickup')}
             </Text>
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#666" />
-          </TouchableOpacity>
+          <View style={styles.headerRightContainer}>
+            {/* Manual tour button styled like in ScreenHeader */}
+            {!visible && (
+              <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
+                <Ionicons name="information-circle-outline" size={20} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.divider} />
@@ -762,165 +797,164 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
                 </>
               )}
             </View>
-
-            <View style={styles.formContainer}>
-              <CopilotStep
-                text={i18n.t('copilot.completeReservation')}
-                order={2}
-                name="reservationSteps"
-              >
-                <WalkthroughableView style={styles.enhancedHighlight}>
-                  <View>
-                    <Text style={styles.sectionTitle}>{i18n.t('reservation.whenAreYouArriving')}</Text>
-
-                    <View style={styles.dateTimeContainer}>
-                      <View style={styles.dateContainer}>
-                        <Text style={styles.inputLabel}>{i18n.t('reservation.date')}</Text>
-                        <TouchableOpacity
-                          style={styles.dateInput}
-                          onPress={() => setShowModernDatePicker(true)}
-                        >
-                          <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
-                          <Text style={styles.dateTimeText}>
-                            {selectedDate ? formatDisplayDate(selectedDate) : i18n.t('reservation.selectDate')}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      <View style={styles.timeContainer}>
-                        <Text style={styles.inputLabel}>{i18n.t('reservation.time')}</Text>
-                        <TouchableOpacity
-                          style={styles.timeInput}
-                          onPress={() => setShowTimePicker(true)}
-                        >
-                          <Ionicons name="time" size={20} color="#666" style={styles.inputIcon} />
-                          <Text style={styles.dateTimeText}>
-                            {selectedTime ? format(selectedTime, 'hh:mm a') : i18n.t('reservation.selectTime')}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-              <Text style={styles.sectionTitle}>{i18n.t('reservation.whereAreYouStaying')}</Text>
-              
-              {/* Location search input - always visible */}
-              <View style={styles.locationInputContainer}>
-                <GooglePlacesAutocomplete
-                  ref={googlePlacesRef}
-                  placeholder={i18n.t('reservation.searchForLocation')}
-                  onPress={handleLocationSelect}
-                  query={{
-                    key: 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY',
-                    language: 'en',
-                    components: 'country:ma',
-                  }}
-                  fetchDetails={true}
-                  onFail={(error) => console.error(error)}
-                  onNotFound={() => console.log('No results found')}
-                  styles={{
-                    container: styles.autocompleteContainer,
-                    textInputContainer: styles.textInputContainer,
-                    textInput: styles.searchInput,
-                    listView: styles.listView,
-                    row: styles.autocompleteRow,
-                    description: styles.autocompleteDescription,
-                    separator: styles.autocompleteSeparator,
-                    poweredContainer: { display: 'none' }
-                  }}
-                  enablePoweredByContainer={false}
-                  minLength={1}
-                  listViewDisplayed={true}
-                  textInputProps={{
-                    placeholderTextColor: '#999',
-                    returnKeyType: 'search',
-                    clearButtonMode: 'while-editing',
-                    onChangeText: (text) => {
-                      if (text === '') {
-                        handleClearLocation();
-                      }
-                    }
-                  }}
-                  keyboardShouldPersistTaps="handled"
-                />
-              </View>
-
-                    {mapVisible && destination ? (
-                      <View style={styles.mapContainer}>
-                        <MapView
-                          ref={mapRef}
-                          provider={PROVIDER_DEFAULT}
-                          style={styles.map}
-                          initialRegion={mapRegion || undefined}
-                          showsUserLocation={true}
-                          showsCompass={true}
-                          rotateEnabled={true}
-                          scrollEnabled={true}
-                          zoomEnabled={true}
-                          pitchEnabled={Platform.OS !== 'ios'}
-                        >
-                          <Marker
-                            coordinate={{
-                              latitude: destination[1],
-                              longitude: destination[0],
-                            }}
-                            title={i18n.t('reservation.selectedLocation')}
-                            description={hotelLocation}
-                          />
-                        </MapView>
-
-                        <View style={styles.zoomControls}>
-                          <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
-                            <Ionicons name="add" size={24} color="#333" />
-                          </TouchableOpacity>
-                          <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
-                            <Ionicons name="remove" size={24} color="#333" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ) : (
-                      <View style={styles.mapPlaceholderContainer}>
-                        <View style={styles.mapPlaceholderContent}>
-                          <Ionicons name="map-outline" size={50} color="#CE1126" />
-                          <Text style={styles.mapPlaceholderText}>{i18n.t('reservation.searchToSeeMapLocation') || "Search for a location to see it on the map"}</Text>
-                        </View>
-                        <View style={styles.mapPlaceholderGrid}>
-                          <View style={styles.mapPlaceholderGridRow}>
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                            <View style={styles.mapPlaceholderGridItem} />
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                            <View style={styles.mapPlaceholderGridItem} />
-                          </View>
-                          <View style={styles.mapPlaceholderGridRow}>
-                            <View style={styles.mapPlaceholderGridItem} />
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                            <View style={styles.mapPlaceholderGridItem} />
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                          </View>
-                          <View style={styles.mapPlaceholderGridRow}>
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                            <View style={styles.mapPlaceholderGridItem} />
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-                            <View style={styles.mapPlaceholderGridItem} />
-                          </View>
-                          <View style={styles.mapPlaceholderGridRow}>
-                            <View style={styles.mapPlaceholderGridItem} />
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                            <View style={styles.mapPlaceholderGridItem} />
-                            <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-                          </View>
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                </WalkthroughableView>
-              </CopilotStep>
-
-              {bookingError && (
-                <Text style={styles.errorText}>{bookingError}</Text>
-              )}
-            </View>
           </View>
         </ScrollView>
+        <View style={styles.formContainer}>
+          <CopilotStep
+            text={i18n.t('copilot.completeReservation')}
+            order={2}
+            name="reservationSteps"
+          >
+            <WalkthroughableView style={styles.enhancedHighlight}>
+              <View>
+                <Text style={styles.sectionTitle}>{i18n.t('reservation.whenAreYouArriving')}</Text>
+
+                <View style={styles.dateTimeContainer}>
+                  <View style={styles.dateContainer}>
+                    <Text style={styles.inputLabel}>{i18n.t('reservation.date')}</Text>
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => setShowModernDatePicker(true)}
+                    >
+                      <Ionicons name="calendar" size={20} color="#666" style={styles.inputIcon} />
+                      <Text style={styles.dateTimeText}>
+                        {selectedDate ? formatDisplayDate(selectedDate) : i18n.t('reservation.selectDate')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.timeContainer}>
+                    <Text style={styles.inputLabel}>{i18n.t('reservation.time')}</Text>
+                    <TouchableOpacity
+                      style={styles.timeInput}
+                      onPress={() => setShowTimePicker(true)}
+                    >
+                      <Ionicons name="time" size={20} color="#666" style={styles.inputIcon} />
+                      <Text style={styles.dateTimeText}>
+                        {selectedTime ? format(selectedTime, 'hh:mm a') : i18n.t('reservation.selectTime')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <Text style={styles.sectionTitle}>{i18n.t('reservation.whereAreYouStaying')}</Text>
+                
+                {/* Location search input - always visible */}
+                <View style={styles.locationInputContainer}>
+                  <GooglePlacesAutocomplete
+                    ref={googlePlacesRef}
+                    placeholder={i18n.t('reservation.searchForLocation')}
+                    onPress={handleLocationSelect}
+                    query={{
+                      key: 'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek',
+                      language: 'en',
+                      components: 'country:ma',
+                    }}
+                    fetchDetails={true}
+                    onFail={(error) => console.error(error)}
+                    onNotFound={() => console.log('No results found')}
+                    styles={{
+                      container: styles.autocompleteContainer,
+                      textInputContainer: styles.textInputContainer,
+                      textInput: styles.searchInput,
+                      listView: styles.listView,
+                      row: styles.autocompleteRow,
+                      description: styles.autocompleteDescription,
+                      separator: styles.autocompleteSeparator,
+                      poweredContainer: { display: 'none' }
+                    }}
+                    enablePoweredByContainer={false}
+                    minLength={1}
+                    listViewDisplayed={true}
+                    textInputProps={{
+                      placeholderTextColor: '#999',
+                      returnKeyType: 'search',
+                      clearButtonMode: 'while-editing',
+                      onChangeText: (text) => {
+                        if (text === '') {
+                          handleClearLocation();
+                        }
+                      }
+                    }}
+                    keyboardShouldPersistTaps="handled"
+                  />
+                </View>
+
+                {mapVisible && destination ? (
+                  <View style={styles.mapContainer}>
+                    <MapView
+                      ref={mapRef}
+                      provider={PROVIDER_DEFAULT}
+                      style={styles.map}
+                      initialRegion={mapRegion || undefined}
+                      showsUserLocation={true}
+                      showsCompass={true}
+                      rotateEnabled={true}
+                      scrollEnabled={true}
+                      zoomEnabled={true}
+                      pitchEnabled={Platform.OS !== 'ios'}
+                    >
+                      <Marker
+                        coordinate={{
+                          latitude: destination[1],
+                          longitude: destination[0],
+                        }}
+                        title={i18n.t('reservation.selectedLocation')}
+                        description={hotelLocation}
+                      />
+                    </MapView>
+
+                    <View style={styles.zoomControls}>
+                      <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
+                        <Ionicons name="add" size={24} color="#333" />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
+                        <Ionicons name="remove" size={24} color="#333" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.mapPlaceholderContainer}>
+                    <View style={styles.mapPlaceholderContent}>
+                      <Ionicons name="map-outline" size={50} color="#CE1126" />
+                      <Text style={styles.mapPlaceholderText}>{i18n.t('reservation.searchToSeeMapLocation') || "Search for a location to see it on the map"}</Text>
+                    </View>
+                    <View style={styles.mapPlaceholderGrid}>
+                      <View style={styles.mapPlaceholderGridRow}>
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                        <View style={styles.mapPlaceholderGridItem} />
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                        <View style={styles.mapPlaceholderGridItem} />
+                      </View>
+                      <View style={styles.mapPlaceholderGridRow}>
+                        <View style={styles.mapPlaceholderGridItem} />
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                        <View style={styles.mapPlaceholderGridItem} />
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                      </View>
+                      <View style={styles.mapPlaceholderGridRow}>
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                        <View style={styles.mapPlaceholderGridItem} />
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
+                        <View style={styles.mapPlaceholderGridItem} />
+                      </View>
+                      <View style={styles.mapPlaceholderGridRow}>
+                        <View style={styles.mapPlaceholderGridItem} />
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                        <View style={styles.mapPlaceholderGridItem} />
+                        <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
+                      </View>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </WalkthroughableView>
+          </CopilotStep>
+
+          {bookingError && (
+            <Text style={styles.errorText}>{bookingError}</Text>
+          )}
+        </View>
 
         {/* Fixed footer with confirm button */}
         <View style={styles.fixedFooter}>
@@ -1007,8 +1041,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingTop: 14,
+    paddingBottom: 14,
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -1018,6 +1052,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 16,
     flexDirection: 'row',
+  },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontSize: 18,
@@ -1034,8 +1073,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#f5f5f5',
   },
+  tourButton: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 25,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
   scrollContent: {
-    flexGrow: 1,
+    flexGrow: 0,
+    maxHeight: 220,
+  },
+  scrollContainer: {
+    // paddingBottom: 80,
   },
   divider: {
     height: 1,
@@ -1043,7 +1101,30 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 10,
+  },
+  enhancedHighlight: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'visible',
+    backgroundColor: 'transparent',
+    padding: 2,
+    marginBottom: 0,
+    zIndex: 100,
+  },
+  tooltip: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#333',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#CE1126',
+    width: '85%',
   },
   transportInfo: {
     flexDirection: 'row',
@@ -1051,7 +1132,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   iconContainer: {
     width: 50,
@@ -1077,7 +1158,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   routeContainer: {
-    marginBottom: 24,
+    marginBottom: 10,
     paddingHorizontal: 8,
   },
   routeItem: {
@@ -1120,18 +1201,20 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   formContainer: {
+    paddingHorizontal: 20,
     marginBottom: 10,
+    paddingBottom: 60,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: 4,
   },
   dateTimeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   dateContainer: {
     flex: 1,
@@ -1145,7 +1228,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   dateInput: {
     flexDirection: 'row',
@@ -1154,7 +1237,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 12,
-    height: 50,
+    height: 40,
     backgroundColor: '#f9f9f9',
   },
   timeInput: {
@@ -1164,7 +1247,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 12,
-    height: 50,
+    height: 40,
     backgroundColor: '#f9f9f9',
   },
   inputIcon: {
@@ -1362,7 +1445,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   directionSwitchWrapper: {
-    marginBottom: 12,
+    marginBottom: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: '#F5F5F5',
@@ -1424,9 +1507,10 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   locationInputContainer: {
-    marginBottom: 16,
-    height: 50, // Height for just the input field
+    marginBottom: 8,
+    height: 40,
     zIndex: 5,
+    position: 'relative',
   },
   autocompleteContainer: {
     flex: 1,
@@ -1441,7 +1525,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   searchInput: {
-    height: 50,
+    height: 40,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
@@ -1455,11 +1539,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     position: 'absolute',
-    top: 50,
+    top: 40,
     left: 0,
     right: 0,
-    maxHeight: 150,
+    maxHeight: 210,
     zIndex: 15,
+    elevation: 5,
   },
   autocompleteRow: {
     backgroundColor: '#fff',
@@ -1497,7 +1582,7 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   mapContainer: {
-    height: 200,
+    height: 160, 
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
@@ -1521,12 +1606,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 80, // Add padding to account for fixed footer
-  },
   mapPlaceholderContainer: {
-    height: 200,
+    height: 160,
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
@@ -1575,59 +1656,11 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 4,
     borderTopWidth: 1,
     borderTopColor: '#eee',
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Add extra padding for iOS
-  },
-  tooltip: {
-    backgroundColor: '#F7F7F7',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    shadowColor: '#333',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    borderWidth: 4,
-    borderColor: '#CE1126',
-    width: '85%',
-  },
-  walkthroughContainer: {
-    // flex: 1,
-    width: '100%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 10,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
-  enhancedHighlight: {
-    width: '100%',
-    borderRadius: 8,
-    overflow: 'visible',
-    backgroundColor: 'transparent',
-    padding: 2,
-    marginBottom: 0,
-    zIndex: 100,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    zIndex: 20,
   },
 });
 

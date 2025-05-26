@@ -1,9 +1,9 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 // Import Container Components
-import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomNavBar from '../containers/BottomNavBar';
 import EmergencyContactsButton from '../containers/EmergencyContactsButton';
 import EventBannerContainer from '../containers/EventBannerContainer';
@@ -12,6 +12,8 @@ import SearchBarContainer from '../containers/SearchBarContainer';
 import ServiceCardsContainer from '../containers/ServiceCardsContainer';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
+
+const TOUR_FLAG = '@homeTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -30,17 +32,65 @@ const HomeScreenContent: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [showTourButton, setShowTourButton] = useState(true);
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted) {
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      tourStarted,
+      visible
+    });
+
+    if (hasSeenTour === false && !tourStarted && !visible) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted]);
+  }, [hasSeenTour, startTour, tourStarted, visible]);
+
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
+  useEffect(() => {
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
+    };
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
+    copilotEvents.on('stop', handleStop);
+    copilotEvents.on('stepChange', handleStepChange);
+
+    return () => {
+      copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
+    };
+  }, [copilotEvents]);
 
   const handleMatchesExplore = () => {
     // Navigate to matches screen
@@ -72,18 +122,20 @@ const HomeScreenContent: React.FC = () => {
 
   // Start the tour when the button is pressed
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
   return (
     <View style={styles.mainContainer}>
-      {/* Always show tour button (for reusability) */}
+      {/* Tour button commented out as requested */}
+      {/*
       {!visible && (
         <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
           <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
         </TouchableOpacity>
       )}
+      */}
 
       <ScrollView
         ref={scrollViewRef}
@@ -98,7 +150,10 @@ const HomeScreenContent: React.FC = () => {
             name="search"
           >
             <WalkthroughableView style={styles.searchHighlight}>
-              <SearchBarContainer />
+              <SearchBarContainer 
+                showTour={!visible && showTourButton} 
+                onTourPress={handleStartTour} 
+              />
             </WalkthroughableView>
           </CopilotStep>
         </View>
@@ -229,8 +284,8 @@ const styles = StyleSheet.create({
     right: 16,
     backgroundColor: '#FF6B6B',
     borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 999,

@@ -3,6 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import ReservationPopup from '../containers/ReservationPopup';
@@ -10,6 +11,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearPickupDetails, fetchPickupDetails, toggleSavedStatus } from '../store/hotelPickupDetailsSlice';
 import i18n from '../translations/i18n';
+
+const TOUR_FLAG = '@transportDetailTourSeen';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -33,6 +36,7 @@ const TransportDetailScreenContent: React.FC = () => {
   const { currentLanguage } = useLanguage();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showReservation, setShowReservation] = useState(false);
@@ -45,29 +49,63 @@ const TransportDetailScreenContent: React.FC = () => {
     };
   }, [dispatch, id]);
 
-  // Start the Copilot tour when the component mounts
+  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
-    if (!tourStarted && !loading) {
-      // Delay starting the tour until after the UI has rendered
+    AsyncStorage.getItem(TOUR_FLAG)
+      .then(value => {
+        console.log('Tour seen status:', value);
+        setHasSeenTour(value === 'true');
+      })
+      .catch(error => {
+        console.error('Error reading tour status:', error);
+        setHasSeenTour(false);
+      });
+  }, []);
+
+  // ─── 2. Démarrage automatique une seule fois ──────────
+  useEffect(() => {
+    console.log('Tour conditions:', {
+      hasSeenTour,
+      loading,
+      tourStarted,
+      visible,
+      currentPickup: !!currentPickup
+    });
+
+    if (hasSeenTour === false && !loading && !tourStarted && !visible && currentPickup) {
+      console.log('Starting tour automatically...');
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [startTour, tourStarted, loading]);
+  }, [hasSeenTour, loading, startTour, tourStarted, visible, currentPickup]);
 
-  // Handle Copilot events
+  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
-    const handleStop = () => {
-      console.log('Tour completed or stopped');
+    const handleStop = async () => {
+      console.log('Tour stopped, saving status...');
+      try {
+        await AsyncStorage.setItem(TOUR_FLAG, 'true');
+        setHasSeenTour(true);
+        setTourStarted(false);
+        console.log('Tour status saved successfully');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
-    
+
+    const handleStepChange = (step: any) => {
+      console.log('Step changed to:', step);
+    };
+
     copilotEvents.on('stop', handleStop);
-    
+    copilotEvents.on('stepChange', handleStepChange);
+
     return () => {
       copilotEvents.off('stop', handleStop);
+      copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
 
@@ -94,6 +132,7 @@ const TransportDetailScreenContent: React.FC = () => {
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
+    setTourStarted(true);
     startTour();
   };
 
@@ -123,16 +162,13 @@ const TransportDetailScreenContent: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Manual tour button */}
-      {!visible && (
-        <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-          <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.tourButtonText}>{i18n.t('common.tourGuide')}</Text>
-        </TouchableOpacity>
-      )}
-
       <View style={styles.headerContainer}>
-        <ScreenHeader title={title} onBack={handleBack} />
+        <ScreenHeader 
+          title={title} 
+          onBack={handleBack}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -459,29 +495,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  },
-  tourButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#008060',
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tourButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
+  }
 });
 
 export default TransportDetailScreen; 

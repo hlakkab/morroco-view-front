@@ -637,6 +637,12 @@ export default {
     tickets: {
       search: "Search for your tickets by team name, stadium, or ticket ID",
       viewTickets: "View and manage your match and transport tickets"
-    }
+    },
+    tourInfo: "This tour has {destinations} destinations and spans {days} days",
+    daySelector: "Select a day to view its destinations",
+    destinations: "Browse through your selected destinations for this day",
+    previewOptions: "Preview your tour in different ways",
+    viewMapButton: "View all destinations on an interactive map",
+    viewTimelineButton: "View your tour as an organized timeline",
   },
 }; 
