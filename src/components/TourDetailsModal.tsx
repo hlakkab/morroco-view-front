@@ -15,13 +15,14 @@ import {
   View
 } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
 import { Destination, Tour } from '../types/tour';
 import { getFlagUrl } from '../utils/flagResolver';
 import { mapTourForDetailsModal } from '../utils/tourMapper';
+import { setTourItems, setTourInfo } from '../store/tourSlice';
 
 interface TourDetailsModalProps {
   visible: boolean;
@@ -40,6 +41,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   onClose,
 }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch();
   const [selectedDay, setSelectedDay] = useState(1);
   const [showDayPicker, setShowDayPicker] = useState(false);
   const { currentTour } = useSelector((state: RootState) => state.tour);
@@ -195,17 +197,23 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
       });
     });
 
-    onClose();
-    // Navigate to the organize screen with properly organized data
-    navigation.navigate('AddNewTourOrganize', {
+    // First set the tour info (title and dates)
+    dispatch(setTourInfo({
       title: currentTour.title,
       startDate: currentTour.from,
-      endDate: currentTour.to,
+      endDate: currentTour.to
+    }));
+
+    // Then set the tour items
+    dispatch(setTourItems({
+      tourItems: allSavedItems,
       selectedItemsByDay,
-      cities,
-      savedItems: allSavedItems,
-      viewMode: true,
-    });
+      cities
+    }));
+    
+    onClose();
+    // Navigate to the organize screen with only viewMode param
+    navigation.navigate('AddNewTourOrganize', { viewMode: true });
   };
 
   // Handle navigating to map view

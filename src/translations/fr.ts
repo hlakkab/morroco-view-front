@@ -654,4 +654,13 @@ export default {
     viewMapButton: "Voir toutes les destinations sur une carte interactive",
     viewTimelineButton: "Voir votre tour sous forme de chronologie organisée",
   },
+  forgotPassword: {
+    title: 'Réinitialiser le mot de passe',
+    description: 'Entrez votre adresse e-mail pour réinitialiser votre mot de passe',
+    email: 'Email',
+    resetButton: 'Réinitialiser le mot de passe',
+    success: 'Succès',
+    emailSent: 'L\'email de réinitialisation a été envoyé',
+    backToLogin: 'Retour à la connexion',
+  },
 }; 

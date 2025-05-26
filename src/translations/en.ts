@@ -38,6 +38,15 @@ export default {
     register: 'Register',
     failed: 'Login failed',
   },
+  forgotPassword: {
+    title: 'Reset Password',
+    description: 'Enter your email address to reset your password',
+    email: 'Email',
+    resetButton: 'Reset Password',
+    success: 'Success',
+    emailSent: 'Password reset email has been sent',
+    backToLogin: 'Back to Login',
+  },
   home: {
     exploreMatches: 'Explore Matches',
     exploreEvent: 'Upcoming Events',

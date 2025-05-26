@@ -225,29 +225,38 @@ const AccountScreenContent: React.FC = () => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <CopilotStep
-          text={i18n.t('copilot.viewProfile')}
-          order={1}
-          name="profileCard"
-        >
-          <WalkthroughableView style={styles.profileCardHighlight}>
-            <View style={styles.profileCard}>
-              <View style={styles.profileImageContainer}>
-                <Image
-                  source={{ uri: user?.profilePicture || defaultProfileImage }}
-                  style={styles.profileImage}
-                />
-                <TouchableOpacity style={styles.editImageButton}>
-                  <Ionicons name="camera" size={20} color="#fff" />
-                </TouchableOpacity>
-              </View>
-              
-              <Text style={styles.welcomeText}>
-                {i18n.t('account.welcome').replace('{name}', user?.firstName || '')}
-              </Text>
-            </View>
-          </WalkthroughableView>
-        </CopilotStep>
+        <View style={styles.profileCard}>
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={{ uri: user.profilePicture || defaultProfileImage }}
+              style={styles.profileImage}
+            />
+            
+            {/* <TouchableOpacity style={styles.editImageButton}>
+              <Ionicons name="camera" size={20} color="#fff" />
+            </TouchableOpacity> */}
+          </View>
+          
+          <Text style={styles.welcomeText}>
+            {i18n.t('account.welcome').replace('{name}', user.firstName)}
+          </Text>
+          
+          {/*<TouchableOpacity */}
+          {/*  style={[styles.editProfileButton, editing ? styles.saveProfileButton : {}]} */}
+          {/*  onPress={handleEditProfile}*/}
+          {/*  disabled={true}          // empêche toute interaction*/}
+          {/*>*/}
+          {/*  <Text style={[styles.editProfileText, editing ? styles.saveProfileText : {}]}>*/}
+          {/*    {editing ? i18n.t('account.saveProfile') : i18n.t('account.editProfile')}*/}
+          {/*  </Text>*/}
+          {/*  <Ionicons */}
+          {/*    name={editing ? "checkmark-circle" : "create-outline"} */}
+          {/*    size={20} */}
+          {/*    color={editing ? "#fff" : "#CE1126"} */}
+          {/*    style={styles.editIcon} */}
+          {/*  />*/}
+          {/*</TouchableOpacity>*/}
+        </View>
 
         {/* Personal Information Section */}
         <CopilotStep

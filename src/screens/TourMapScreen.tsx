@@ -285,7 +285,7 @@ const TourMapScreen: React.FC = () => {
     }
     
     // Get unique days from tour items
-    const days = [...new Set(tourItems.map(item => item.day || 1))].sort((a, b) => a - b);
+    const days = Array.from(new Set(tourItems.map(item => item.day || 1))).sort((a, b) => a - b);
     setAvailableDays(days);
     
     // Set initial selected day if not already set

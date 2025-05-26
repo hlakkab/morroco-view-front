@@ -15,13 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.moroccoview.app",
+      "bundleIdentifier": "com.advancedai.moroccoview.travel",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to scan QR codes and take photos.",
         "NSPhotoLibraryUsageDescription": "This app uses the photo library to select QR code images.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "config": {}
+      "config": {},
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {

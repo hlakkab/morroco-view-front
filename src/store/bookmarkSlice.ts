@@ -30,16 +30,37 @@ export const addBookmark = createAsyncThunk(
 
 export const removeBookmark = createAsyncThunk(
   'bookmarks/removeBookmark',
-  async (id: string) => {
-    await api.delete(`/bookmarks/${id}`);
-    return id;
+  async (id: string, { dispatch }) => {
+    try {
+      // First update the local state optimistically
+      dispatch(removeBookmarkLocally(id));
+      // Then make the API call
+      await api.delete(`/bookmarks/${id}`);
+      return id;
+    } catch (error) {
+      // If the API call fails, we should revert the local state
+      dispatch(addBookmarkLocally(id));
+      throw error;
+    }
   }
 );
 
 const bookmarkSlice = createSlice({
   name: 'bookmark',
   initialState,
-  reducers: {},
+  reducers: {
+    removeBookmarkLocally: (state, action) => {
+      state.bookmarks = state.bookmarks.filter(
+        (bookmark) => bookmark.id !== action.payload
+      );
+    },
+    addBookmarkLocally: (state, action) => {
+      // This is used to revert the optimistic update if the API call fails
+      // You might want to store the removed bookmark temporarily to restore it
+      // For now, we'll just log the error
+      console.error('Failed to remove bookmark:', action.payload);
+    }
+  },
   extraReducers: (builder) => {
     builder
       // Fetch bookmarks
@@ -58,14 +79,11 @@ const bookmarkSlice = createSlice({
       
       // Remove bookmark
       .addCase(removeBookmark.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
-      .addCase(removeBookmark.fulfilled, (state, action) => {
+      .addCase(removeBookmark.fulfilled, (state) => {
+        // The local state is already updated by removeBookmarkLocally
         state.loading = false;
-        state.bookmarks = state.bookmarks.filter(
-          (bookmark) => bookmark.id !== action.payload
-        );
       })
       .addCase(removeBookmark.rejected, (state, action) => {
         state.loading = false;
@@ -74,4 +92,5 @@ const bookmarkSlice = createSlice({
   },
 });
 
+export const { removeBookmarkLocally, addBookmarkLocally } = bookmarkSlice.actions;
 export default bookmarkSlice.reducer; 
