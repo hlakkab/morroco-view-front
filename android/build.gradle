@@ -7,8 +7,9 @@ buildscript {
         minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '26')
         compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
-        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.25'
+        kotlinVersion = '1.9.23'
         ndkVersion = "26.1.10909125"
+        kspVersion = "1.0.17"
     }
     repositories {
         google()
@@ -18,7 +19,8 @@ buildscript {
     dependencies {
         classpath('com.android.tools.build:gradle:8.2.2')
         classpath('com.facebook.react:react-native-gradle-plugin')
-        classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("com.google.devtools.ksp:symbol-processing-gradle-plugin:$kspVersion")
     }
 }
 

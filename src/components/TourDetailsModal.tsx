@@ -238,12 +238,11 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   const destinations = currentTour?.destinations as Destination[] || [];
   
 
-  const dates = [...new Set(destinations.map(d => d.date))];
-  const days = Array.from({ length: dates.length || 1 }, (_, i) => i + 1);
+  const dates = Array.from(new Set(destinations.map(d => d.date)));
+  const days =  Array.from({ length: dates.length || 1 }, (_, i) => i + 1);
 
   const filteredDestinations = destinations.filter(d => d.date === dates[selectedDay - 1]);
 
-  console.log('dates', dates);
 
   // Function to format date as "DD MMM"
   const formatDate = (date: Date) => {
