@@ -20,6 +20,7 @@ import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import MonumentDetailScreen from '../screens/MonumentDetailScreen';
 import MonumentsListScreen from '../screens/MonumentsListScreen';
@@ -65,6 +66,11 @@ export function AppNavigator() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

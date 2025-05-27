@@ -26,6 +26,7 @@ export type RootStackParamList = {
   Launch: undefined;
   Onboarding: undefined;
   Login: undefined;
+  Register: undefined;
   ForgotPassword: undefined;
   Home: undefined;
   ESIM: undefined;
