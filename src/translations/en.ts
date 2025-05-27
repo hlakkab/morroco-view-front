@@ -1,4 +1,20 @@
 export default {
+  register: {
+    createAccount: 'Create an account',
+    connectWith: 'Connect with',
+    or: 'or',
+    enterDetails: 'Please enter your details',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    registerButton: 'Register',
+    alreadyHaveAccount: 'Already have an account?',
+    login: 'Login',
+    passwordMismatch: 'Passwords do not match',
+    registrationFailed: 'Registration failed',
+  },
   common: {
     whereTo: 'Where to?',
     searchPlaceholder: 'Events.Monuments.Activities',
@@ -387,6 +403,33 @@ export default {
     whatsapp: 'WhatsApp',
     quickChatSupport: 'Quick chat support',
     close: 'Close',
+    deleteAccount: 'Delete Account',
+    deleteAccountDescription: 'Are you sure you want to delete your account? This action cannot be undone.',
+    deleteAccountReason: 'Reason for deletion',
+    deleteAccountAdditionalInfo: 'Additional information (optional)',
+    deleteAccountConfirm: 'Yes, delete my account',
+    deleteAccountCancel: 'Cancel',
+    deleteReasons: {
+      notUsing: 'I\'m not using the app anymore',
+      foundAlternative: 'I found a better alternative',
+      privacy: 'Privacy concerns',
+      technicalIssues: 'Technical issues',
+      other: 'Other reason'
+    },
+    deleteAccountReasons: {
+      notUsing: 'I\'m not using the app anymore',
+      foundAlternative: 'I found a better alternative',
+      privacy: 'Privacy concerns',
+      technicalIssues: 'Technical issues',
+      other: 'Other reason'
+    },
+    error: 'Error',
+    selectReason: 'Please select a reason for deletion',
+    enterReason: 'Please enter a reason for deletion',
+    deleteError: 'Failed to delete account. Please try again.',
+    enterOtherReason: 'Please specify your reason...',
+    confirmDelete: 'Delete Account',
+    cancel: 'Cancel'
   },
   bookmark: {
     title: 'Bookmarks',

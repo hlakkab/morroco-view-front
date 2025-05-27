@@ -8,13 +8,14 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import { login } from '../service';
 import i18n from '../translations/i18n';
-
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
 
-  const [email, setEmail] = useState('sahtanimohcine19@gmail.com');
-  const [password, setPassword] = useState('mohcine@sahtani2001');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
     login(email, password)
@@ -22,8 +23,8 @@ const LoginScreen = () => {
         navigation.navigate('Home' as never)
       })
       .catch(error => {
-        console.error('Login failed:', error);
-        Alert.alert(i18n.t('login.failed'), error.message);
+        
+        Alert.alert("Error", "Username or password is incorrect");
       });
   };
 
@@ -56,16 +57,33 @@ const LoginScreen = () => {
         </View> */}
         <Text style={styles.title}>{i18n.t('login.enterCredentials')}</Text>
         <Input placeholder={i18n.t('login.email')} style={styles.input} value={email} onChangeText={setEmail} />
-        <Input placeholder={i18n.t('login.password')} secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
+        <Input 
+          placeholder={i18n.t('login.password')} 
+          secureTextEntry={!showPassword}
+          style={styles.input} 
+          value={password} 
+          onChangeText={setPassword}
+          icon={
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+          }
+        />
         <Button title={i18n.t('login.loginButton')} onPress={handleLogin} style={styles.button} />
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword' as never)}>
           <Text style={styles.link}>
             {i18n.t('login.forgotPassword')} <Text style={styles.linkText}>{i18n.t('login.recover')}</Text>
           </Text>
         </TouchableOpacity>
-        {/* <Text style={styles.link}>
-          {i18n.t('login.needAccount')} <Text style={styles.linkText}>{i18n.t('login.register')}</Text>
-        </Text> */}
+        <TouchableOpacity onPress={() => navigation.navigate('Register' as never)}>
+          <Text style={styles.link}>
+            {i18n.t('login.needAccount')} <Text style={styles.linkText}>{i18n.t('login.register')}</Text>
+          </Text>
+        </TouchableOpacity>
       </View>
     </LinearGradient>
   );

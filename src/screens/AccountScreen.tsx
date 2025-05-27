@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import {ActivityIndicator, Image, Linking, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {ActivityIndicator, Image, Linking, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
@@ -10,6 +10,8 @@ import { clearTokens, getUserInfo } from '../service/KeycloakService';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import { User } from '../types/user';
+import DeleteAccountModal from '../components/modals/DeleteAccountModal';
+import api from '../service/ApiProxy';
 
 const TOUR_FLAG = '@accountTourSeen';
 
@@ -26,12 +28,21 @@ const AccountScreenContent: React.FC = () => {
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   
   // Temporary editable values
   const [editFirstName, setEditFirstName] = useState('');
   const [editLastName, setEditLastName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhoneNumber, setEditPhoneNumber] = useState('');
+
+  const deleteReasons = [
+    { id: 'privacy', label: i18n.t('account.deleteReasons.privacy') },
+    { id: 'notUsing', label: i18n.t('account.deleteReasons.notUsing') },
+    { id: 'foundAlternative', label: i18n.t('account.deleteReasons.foundAlternative') },
+    { id: 'technicalIssues', label: i18n.t('account.deleteReasons.technicalIssues') },
+    { id: 'other', label: i18n.t('account.deleteReasons.other') },
+  ];
 
   useEffect(() => {
     fetchUserData();
@@ -190,6 +201,20 @@ const AccountScreenContent: React.FC = () => {
     navigation.navigate(routeName);
   };
 
+  const handleDeleteAccount = async (reason: string, otherReason?: string) => {
+    try {
+      // Make the API call to delete the account
+      await api.delete('/auth/delete');
+      
+      // Clear tokens and navigate to login
+      await clearTokens();
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      Alert.alert(i18n.t('account.error'), i18n.t('account.deleteError'));
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -320,7 +345,7 @@ const AccountScreenContent: React.FC = () => {
                 )}
               </View>
               
-              <View style={styles.infoField}>
+              {/* <View style={styles.infoField}>
                 <View style={styles.fieldLabelContainer}>
                   <Ionicons name="call-outline" size={20} color="#666" />
                   <Text style={styles.fieldLabel}>{i18n.t('account.phoneNumber')}</Text>
@@ -338,7 +363,7 @@ const AccountScreenContent: React.FC = () => {
                     {user.phoneNumber ? user.phoneNumber : i18n.t('account.notProvided')}
                   </Text>
                 )}
-              </View>
+              </View> */}
             </View>
           </WalkthroughableView>
         </CopilotStep>
@@ -377,6 +402,15 @@ const AccountScreenContent: React.FC = () => {
             </TouchableOpacity>
           </WalkthroughableView>
         </CopilotStep>
+
+        {/* Delete Account Button */}
+        <TouchableOpacity 
+          style={styles.deleteAccountButton} 
+          onPress={() => setShowDeleteModal(true)}
+        >
+          <Ionicons name="trash-outline" size={24} color="#FF3B30" style={styles.deleteIcon} />
+          <Text style={styles.deleteAccountText}>{i18n.t('account.deleteAccount')}</Text>
+        </TouchableOpacity>
         
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>{i18n.t('account.version')}</Text>
@@ -439,6 +473,13 @@ const AccountScreenContent: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Replace the old Delete Account Modal with the new component */}
+      <DeleteAccountModal
+        visible={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteAccount}
+      />
       
       <BottomNavBar activeRoute="Account" onNavigate={handleNavigation} />
     </View>
@@ -778,6 +819,74 @@ const styles = StyleSheet.create({
   },
   logoutHighlight: {
     marginBottom: 16,
+  },
+  deleteAccountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 20,
+    marginHorizontal: 4,
+    marginTop: 0,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+  },
+  deleteIcon: {
+    marginRight: 8,
+  },
+  deleteAccountText: {
+    color: '#FF3B30',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  reasonsContainer: {
+    marginVertical: 16,
+  },
+  reasonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  selectedReason: {
+    backgroundColor: '#FFF7F7',
+  },
+  reasonText: {
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 12,
+  },
+  selectedReasonText: {
+    color: '#CE1126',
+    fontWeight: '500',
+  },
+  otherReasonInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 16,
+    fontSize: 16,
+    minHeight: 100,
+    backgroundColor: '#F8F8F8',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+  },
+  cancelButton: {
+    flex: 1,
+    marginRight: 8,
+    backgroundColor: '#666',
+  },
+  deleteButton: {
+    flex: 1,
+    marginLeft: 8,
+    backgroundColor: '#FF3B30',
   },
 });
 

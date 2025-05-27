@@ -1,4 +1,20 @@
 export default {
+  register: {
+    createAccount: 'Créer un compte',
+    connectWith: 'Se connecter avec',
+    or: 'ou',
+    enterDetails: 'Veuillez saisir vos informations',
+    firstName: 'Prénom',
+    lastName: 'Nom',
+    email: 'Email',
+    password: 'Mot de passe',
+    confirmPassword: 'Confirmer le mot de passe',
+    registerButton: 'S\'inscrire',
+    alreadyHaveAccount: 'Vous avez déjà un compte ?',
+    login: 'Se connecter',
+    passwordMismatch: 'Les mots de passe ne correspondent pas',
+    registrationFailed: 'Échec de l\'inscription',
+  },
   common: {
     whereTo: 'Où aller ?',
     searchPlaceholder: 'Événements.Monuments.Activités',
@@ -382,6 +398,33 @@ export default {
     whatsapp: 'WhatsApp',
     quickChatSupport: 'Support chat rapide',
     close: 'Fermer',
+    deleteAccount: 'Supprimer le compte',
+    deleteAccountDescription: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.',
+    deleteAccountReason: 'Raison de la suppression',
+    deleteAccountAdditionalInfo: 'Informations supplémentaires (optionnel)',
+    deleteAccountConfirm: 'Oui, supprimer mon compte',
+    deleteAccountCancel: 'Annuler',
+    deleteReasons: {
+      notUsing: 'Je n\'utilise plus l\'application',
+      foundAlternative: 'J\'ai trouvé une meilleure alternative',
+      privacy: 'Problèmes de confidentialité',
+      technicalIssues: 'Problèmes techniques',
+      other: 'Autre raison'
+    },
+    deleteAccountReasons: {
+      notUsing: 'Je n\'utilise plus l\'application',
+      foundAlternative: 'J\'ai trouvé une meilleure alternative',
+      privacy: 'Problèmes de confidentialité',
+      technicalIssues: 'Problèmes techniques',
+      other: 'Autre raison'
+    },
+    error: 'Erreur',
+    selectReason: 'Veuillez sélectionner une raison pour la suppression',
+    enterReason: 'Veuillez entrer une raison pour la suppression',
+    deleteError: 'Échec de la suppression du compte. Veuillez réessayer.',
+    enterOtherReason: 'Veuillez préciser votre raison...',
+    confirmDelete: 'Supprimer le Compte',
+    cancel: 'Annuler'
   },
   
   bookmark: {
