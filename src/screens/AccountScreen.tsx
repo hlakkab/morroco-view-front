@@ -120,14 +120,19 @@ const AccountScreenContent: React.FC = () => {
   const fetchUserData = async () => {
     try {
       const userData = await getUserInfo();
-      setUser(userData);
-      // Initialize editable values with user data
-      setEditFirstName(userData.firstName);
-      setEditLastName(userData.lastName);
-      setEditEmail(userData.email);
-      setEditPhoneNumber(userData.phoneNumber || '');
+      if (userData && userData.id) {
+        setUser(userData as User);
+        // Initialize editable values with user data
+        setEditFirstName(userData.firstName || '');
+        setEditLastName(userData.lastName || '');
+        setEditEmail(userData.email || '');
+        setEditPhoneNumber(userData.phoneNumber || '');
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -153,7 +158,7 @@ const AccountScreenContent: React.FC = () => {
     console.log('Logout pressed');
     try {
       await clearTokens();
-      navigation.navigate('Login');
+      navigation.navigate('Home');
     } catch (error) {
       console.error('Error during logout:', error);
     }

@@ -5,8 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import ArtisanCard from '../components/cards/ArtisanCard';
 import FilterSelector from '../components/FilterSelector';
-import { setSelectedArtisan, toggleArtisanBookmark } from '../store/artisanSlice';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import { useAppDispatch } from '../store/hooks';
+import { setSelectedArtisan, toggleArtisanBookmark } from '../store/artisanSlice';
 import i18n from '../translations/i18n';
 import { Artisan, ArtisanType } from '../types/Artisan';
 import { RootStackParamList } from '../types/navigation';
@@ -26,6 +28,8 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
 }) => {
   const [filteredArtisans, setFilteredArtisans] = useState<Artisan[]>(artisans);
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Filter artisans according to the selected type
   useEffect(() => {
@@ -41,12 +45,12 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
     {
       id: 'All Types',
       label: i18n.t('artisans.allTypes'),
-      icon: <Ionicons name="hand-left-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
+      icon: <Ionicons name="hammer-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
     },
     ...Object.values(ArtisanType).map(type => ({
       id: type,
       label: type,
-      icon: <Ionicons name="hand-left-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
+      icon: <Ionicons name="hammer-outline" size={16} color="#888" style={{ marginRight: 4 }} />,
     })),
   ];
 
@@ -58,6 +62,11 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
   };
 
   const handleSaveArtisan = (artisan: Artisan) => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     dispatch(toggleArtisanBookmark(artisan));
   };
 
@@ -104,6 +113,11 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
           <Text style={styles.emptyText}>{getEmptyStateMessage()}</Text>
         </View>
       )}
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </View>
   );
 };

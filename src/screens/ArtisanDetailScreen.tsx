@@ -8,6 +8,8 @@ import AboutSection from '../components/AboutSection';
 import ImageGallery from '../components/ImageGallery';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import { toggleArtisanBookmark } from '../store/artisanSlice';
 import { useAppDispatch } from '../store/hooks';
 import i18n from '../translations/i18n';
@@ -33,6 +35,8 @@ const ArtisanDetailScreenContent: React.FC = () => {
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   const [saved, setSaved] = useState(params.saved || false);
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Get artisan details from route params
   const artisanDetails = { ...params, saved };
@@ -42,6 +46,11 @@ const ArtisanDetailScreenContent: React.FC = () => {
   };
 
   const handleSave = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     // Toggle saved state
     setSaved(!saved);
     
@@ -237,6 +246,11 @@ const ArtisanDetailScreenContent: React.FC = () => {
           </CopilotStep>
         </View>
       </ScrollView>
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </SafeAreaView>
   );
 };

@@ -13,7 +13,7 @@ const OnboardingScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleGetStarted = () => {
-    navigation.navigate('Login');
+    navigation.navigate('Home');
   };
 
   return (

@@ -12,6 +12,8 @@ import Pagination from '../components/Pagination';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 import {
   createFilterOptions,
   matchCities,
@@ -32,9 +34,11 @@ const ExploreMatchesScreenContent: React.FC = () => {
   // États et dispatch
   const dispatch = useAppDispatch();
   const { matches } = useAppSelector(state => state.match);
+  const { isAuthenticated } = useAuth();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -207,6 +211,10 @@ const ExploreMatchesScreenContent: React.FC = () => {
                         setModalVisible(true);
                       }}
                       handleSaveMatch={id => {
+                        if (!isAuthenticated()) {
+                          setShowAuthModal(true);
+                          return;
+                        }
                         const matchToToggle = matches.find(match => match.id === id);
                         if (matchToToggle) {
                           dispatch(toggleMatchBookmark(matchToToggle));
@@ -252,6 +260,13 @@ const ExploreMatchesScreenContent: React.FC = () => {
           categories={{ stadium: { ...matchFilterCategories.stadium, icon: <Ionicons name="football" size={20} color="#CE1126" /> } }}
         />
       </View>
+
+      {/* Auth Modal for login prompt */}
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        type="auth"
+      />
     </SafeAreaView>
   );
 };

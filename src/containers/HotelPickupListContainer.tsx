@@ -16,6 +16,8 @@ import CardItem from '../components/cards/CardItem';
 import PickupCard from '../components/cards/PickupCard';
 import FilterSelector from '../components/FilterSelector';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   setSelectedCity,
@@ -47,7 +49,9 @@ const HotelPickupListContainer: React.FC<
        isLoading,
      }) => {
   const [selectedCityState, setSelectedCityState] = useState(selectedCity);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAuth();
   const bookmarks = useAppSelector((state) => state.bookmark.bookmarks);
   const { currentLanguage } = useLanguage();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -56,6 +60,10 @@ const HotelPickupListContainer: React.FC<
   );
 
   const handleSavePickup = (pickup: HotelPickup) => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
     dispatch(toggleHotelPickupBookmark(pickup));
   };
   const handleCardPress = (item: HotelPickup) => {
@@ -264,6 +272,12 @@ const HotelPickupListContainer: React.FC<
               </WalkthroughableView>
             </CopilotStep>
         )}
+
+        <AuthModal
+          visible={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          type="auth"
+        />
       </View>
   );
 };

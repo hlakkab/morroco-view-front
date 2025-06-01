@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import RestaurantCard from '../components/cards/RestaurantCard';
 import FilterSelector from '../components/FilterSelector';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import { useAppDispatch } from '../store/hooks';
 import { setSelectedRestaurant, toggleRestaurantBookmark } from '../store/restaurantSlice';
 import i18n from '../translations/i18n';
@@ -27,6 +29,8 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
 }) => {
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(restaurants);
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Filtrer les restaurants selon le type sélectionné
   useEffect(() => {
@@ -59,6 +63,11 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
   };
 
   const handleSaveRestaurant = (restaurant: Restaurant) => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     dispatch(toggleRestaurantBookmark(restaurant));
   };
 
@@ -105,6 +114,11 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
           <Text style={styles.emptyText}>{getEmptyStateMessage()}</Text>
         </View>
       )}
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </View>
   );
 };

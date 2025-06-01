@@ -13,6 +13,8 @@ import ButtonFixe from '../components/ButtonFixe';
 import LocationSection from '../components/LocationSection';
 import SaveButton from '../components/SaveButtonPrf';
 import ScreenHeader from '../components/ScreenHeader';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import ViatorService from '../service/ViatorService';
 import { toggleEntertainmentBookmark } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -49,6 +51,8 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   const flatListRef = useRef<FlatList>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Appel à l'API pour récupérer les données détaillées du produit seulement si nécessaire
   useEffect(() => {
@@ -274,6 +278,11 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   };
 
   const handleSave = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     if (entertainment) {
       dispatch(toggleEntertainmentBookmark(entertainment));
     }
@@ -422,6 +431,11 @@ const EntertainmentDetailScreenContent: React.FC = () => {
           <ButtonFixe title={i18n.t('entertainment.bookReservation')} onPress={handleBook} />
         </WalkthroughableView>
       </CopilotStep>
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -621,7 +635,7 @@ const styles = StyleSheet.create({
   },
   walkthroughContainer: {
     width: '100%',
-    marginBottom: 16,
+   
   },
 });
 

@@ -8,6 +8,8 @@ import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import ReservationPopup from '../containers/ReservationPopup';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearPickupDetails, fetchPickupDetails, toggleSavedStatus } from '../store/hotelPickupDetailsSlice';
 import i18n from '../translations/i18n';
@@ -34,9 +36,11 @@ const TransportDetailScreenContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
   const { currentLanguage } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showReservation, setShowReservation] = useState(false);
@@ -123,6 +127,10 @@ const TransportDetailScreenContent: React.FC = () => {
   };
 
   const handleReservePress = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
     setShowReservation(true);
   };
 
@@ -317,6 +325,12 @@ const TransportDetailScreenContent: React.FC = () => {
           pickupId={id}
         />
       </Modal>
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        type="auth"
+      />
     </SafeAreaView>
   );
 };

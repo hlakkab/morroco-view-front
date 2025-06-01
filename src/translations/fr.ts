@@ -663,4 +663,15 @@ export default {
     emailSent: 'L\'email de réinitialisation a été envoyé',
     backToLogin: 'Retour à la connexion',
   },
-}; 
+  auth: {
+    loginRequired: 'Connexion Requise',
+    loginMessage: 'Veuillez vous connecter ou créer un compte pour accéder à cette fonctionnalité',
+    login: 'Se Connecter',
+    register: 'Créer un Compte'
+  },
+  firstTime: {
+    welcome: 'Bienvenue sur Morocco View !',
+    message: 'Découvrez la beauté du Maroc à travers notre collection d\'images soigneusement sélectionnées. Commencez à explorer notre galerie et sauvegardez vos vues préférées.',
+    getStarted: 'Commencer'
+  }
+} as const; 

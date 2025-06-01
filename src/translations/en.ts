@@ -580,12 +580,12 @@ export default {
                   "2. Choose your preferred time\n" +
                   "3. Enter your location",
     confirmReservation: "Click here to confirm your reservation",
-    exploreDestinations: "Search for your favorite destinations, restaurants, or activities across Morocco",
-    discoverEvents: "Don't miss exciting events and matches happening during your visit to Morocco",
-    accessServices: "Access essential services to make your stay in Morocco comfortable and enjoyable",
-    discoverCategories: "Discover Morocco's beauty by exploring different categories of attractions and hidden gems",
-    findEmergency: "Access important emergency contacts in Morocco with just one tap",
-    navigateApp: "Navigate easily between different sections of the app",
+    exploreDestinations: "Explore destinations and find your next adventure",
+    discoverEvents: "Discover exciting events happening around you",
+    accessServices: "Access essential services and information",
+    discoverCategories: "Explore different categories of attractions",
+    findEmergency: "Quick access to emergency contacts",
+    navigateApp: "Navigate through the app using this menu",
     searchQRCodes: "Search for your QR codes by title",
     manageQRCodes: "View and manage your saved QR codes",
     addNewQRCode: "Add new QR codes to your collection",
@@ -654,4 +654,15 @@ export default {
     viewMapButton: "View all destinations on an interactive map",
     viewTimelineButton: "View your tour as an organized timeline",
   },
-}; 
+  auth: {
+    loginRequired: 'Login Required',
+    loginMessage: 'Please login or create an account to access this feature',
+    login: 'Login',
+    register: 'Create Account'
+  },
+  firstTime: {
+    welcome: 'Welcome to Morocco View!',
+    message: 'Discover the beauty of Morocco through our curated collection of stunning images. Get started to explore our gallery and save your favorite views.',
+    getStarted: 'Get Started'
+  }
+} as const; 

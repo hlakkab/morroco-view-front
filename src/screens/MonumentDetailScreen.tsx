@@ -9,6 +9,8 @@ import Button from '../components/Button';
 import ImageGallery from '../components/ImageGallery';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import { useAppDispatch } from '../store/hooks';
 import { toggleMonumentBookmark } from '../store/monumentSlice';
 import i18n from '../translations/i18n';
@@ -92,6 +94,8 @@ const MonumentDetailScreenContent: React.FC = () => {
 
   const [saved, setSaved] = useState(params.saved || false);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Get monument details from sample data or route params
   const monumentDetails = { ...params, saved };
@@ -101,6 +105,11 @@ const MonumentDetailScreenContent: React.FC = () => {
   };
 
   const handleSave = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     // Toggle saved state
     setSaved(!saved);
     dispatch(toggleMonumentBookmark(monumentDetails));
@@ -343,6 +352,11 @@ const MonumentDetailScreenContent: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </SafeAreaView>
   );
 };

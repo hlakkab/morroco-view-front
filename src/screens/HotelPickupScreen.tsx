@@ -76,7 +76,6 @@ const HotelPickupScreenContent: React.FC = () => {
     fetchData();
   }, [dispatch, selectedCity]);
 
-  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
     AsyncStorage.getItem(TOUR_FLAG)
       .then(value => {
@@ -89,7 +88,6 @@ const HotelPickupScreenContent: React.FC = () => {
       });
   }, []);
 
-  // ─── 2. Démarrage automatique une seule fois ──────────
   useEffect(() => {
     console.log('Tour conditions:', {
       hasSeenTour,
@@ -108,7 +106,6 @@ const HotelPickupScreenContent: React.FC = () => {
     }
   }, [hasSeenTour, loading, startTour, tourStarted, visible]);
 
-  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
     const handleStop = async () => {
       console.log('Tour stopped, saving status...');
@@ -231,7 +228,7 @@ const HotelPickupScreenContent: React.FC = () => {
         </CopilotStep>
 
         <HotelPickupListContainer
-          pickups={currentPickups} // ← on injecte ici les données paginées
+          pickups={currentPickups} 
           cities={CITIES}
           selectedCity={selectedCity}
           onSelectCity={handleSelectCity}
