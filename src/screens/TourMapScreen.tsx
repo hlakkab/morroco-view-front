@@ -478,7 +478,7 @@ const TourMapScreen: React.FC = () => {
               style={styles.controlButton}
               onPress={() => handleChangeDay('prev')}
             >
-              <Ionicons name="arrow-back" size={24} color="#fff" />
+              <Ionicons name="arrow-back" size={24} color="#000" />
             </TouchableOpacity>
           )}
           <View style={[
@@ -495,7 +495,7 @@ const TourMapScreen: React.FC = () => {
               style={styles.controlButton}
               onPress={() => handleChangeDay('next')}
             >
-              <Ionicons name="arrow-forward" size={24} color="#fff" />
+              <Ionicons name="arrow-forward" size={24} color="#000" />
             </TouchableOpacity>
           )}
         </View>
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 30,
     left: 16,
     right: 16,
     flexDirection: 'row',
