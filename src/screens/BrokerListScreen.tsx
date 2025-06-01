@@ -334,7 +334,7 @@ const BrokerListScreenContent: React.FC = () => {
           </WalkthroughableView>
         </CopilotStep>
 
-        <BrokerListContainer brokers={currentBrokers} />
+        <BrokerListContainer brokers={currentBrokers} loading={loading} error={error} />
 
         {/* === Pagination : afficher si plus d'une page === */}
         {totalPages > 0 && (
