@@ -276,7 +276,7 @@ const MonumentDetailScreenContent: React.FC = () => {
         </View>
       </ScrollView>
 
-      <CopilotStep
+      {/* <CopilotStep
         text={i18n.t('copilot.purchaseTickets')}
         order={5}
         name="buyTickets"
@@ -291,7 +291,7 @@ const MonumentDetailScreenContent: React.FC = () => {
             />
           </View>
         </WalkthroughableView>
-      </CopilotStep>
+      </CopilotStep> */}
 
       <Modal
         visible={showTicketModal}

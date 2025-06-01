@@ -261,7 +261,14 @@ const BrokerListScreenContent: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={i18n.t('exchange.brokerList')} onBack={handleBack} />
+        <View style={styles.headerContainer}>
+          <ScreenHeader 
+            title={i18n.t('exchange.brokerList')} 
+            onBack={handleBack}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E53935" />
           <Text style={styles.loadingText}>{i18n.t('exchange.loadingBrokers')}</Text>

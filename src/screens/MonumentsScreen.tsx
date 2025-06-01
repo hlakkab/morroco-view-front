@@ -80,7 +80,6 @@ const MonumentsScreenContent: React.FC = () => {
   // ────────────────────────────────────────────────────
 
 
-  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
     AsyncStorage.getItem(TOUR_FLAG)
       .then(value => {
@@ -93,7 +92,6 @@ const MonumentsScreenContent: React.FC = () => {
       });
   }, []);
 
-  // ─── 2. Démarrage automatique une seule fois ──────────
   useEffect(() => {
     console.log('Tour conditions:', {
       hasSeenTour,
@@ -112,7 +110,6 @@ const MonumentsScreenContent: React.FC = () => {
     }
   }, [hasSeenTour, loading, startTour, tourStarted, visible]);
 
-  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
     const handleStop = async () => {
       console.log('Tour stopped, saving status...');
@@ -265,11 +262,9 @@ const MonumentsScreenContent: React.FC = () => {
   });
 
 
-  // === PAGINATION : découpage des data pour la page courante ===
   const totalPages = Math.ceil(filteredMonuments.length / itemsPerPage);
   const start = (currentPage - 1) * itemsPerPage;
   const currentMonuments = filteredMonuments.slice(start, start + itemsPerPage);
-  // === FIN PAGINATION ===
 
   // Add reset function for manual testing
   const handleResetTour = async () => {
@@ -290,11 +285,13 @@ const MonumentsScreenContent: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader
-          title={i18n.t('monuments.title')}
-          showTour={!visible}
-          onTourPress={handleStartTour}
-        />
+        <View style={styles.headerContainer}>
+          <ScreenHeader
+            title={i18n.t('monuments.title')}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#008060" />
           <Text style={styles.loadingText}>{i18n.t('monuments.loading')}</Text>

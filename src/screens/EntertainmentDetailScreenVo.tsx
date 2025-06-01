@@ -422,7 +422,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
         </View>
       </ScrollView>
 
-      <CopilotStep
+      {/* <CopilotStep
         text={i18n.t('copilot.bookEntertainment')}
         order={5}
         name="bookButton"
@@ -430,7 +430,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
         <WalkthroughableView style={styles.walkthroughContainer}>
           <ButtonFixe title={i18n.t('entertainment.bookReservation')} onPress={handleBook} />
         </WalkthroughableView>
-      </CopilotStep>
+      </CopilotStep> */}
 
       <AuthModal
         visible={showAuthModal}

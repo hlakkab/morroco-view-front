@@ -146,17 +146,37 @@ const TransportDetailScreenContent: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#000" />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.headerContainer}>
+          <ScreenHeader 
+            title={title}
+            onBack={handleBack}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
+        </View>
+        <View style={[styles.container, styles.centerContent]}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.headerContainer}>
+          <ScreenHeader 
+            title={title}
+            onBack={handleBack}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
+        </View>
+        <View style={[styles.container, styles.centerContent]}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
