@@ -255,7 +255,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
         </View>
       </ScrollView>
 
-      <CopilotStep
+      {/* <CopilotStep
         text={i18n.t('copilot.bookRestaurantTable')}
         order={5}
         name="reservation"
@@ -263,7 +263,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
         <WalkthroughableView style={styles.reservationHighlight}>
           <ButtonFixe title={i18n.t('restaurants.bookReservation')} onPress={handleReservation} />
         </WalkthroughableView>
-      </CopilotStep>
+      </CopilotStep> */}
 
       <AuthModal
         visible={showAuthModal}

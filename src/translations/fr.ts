@@ -32,6 +32,7 @@ export default {
     skip: 'Passer',
     previous: 'Précédent',
     done: 'Terminer',
+    loading: 'Chargement...',
   },
   onboarding: {
     seeTitle: 'Découvrez le Maroc',

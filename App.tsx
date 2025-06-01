@@ -8,7 +8,7 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import store from './src/store/store';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 
 const SafeNavigationWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -16,12 +16,14 @@ const SafeNavigationWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <View
-      style={{
+      style={Platform.OS === 'android' ? {
         flex: 1,
         paddingTop: 0,
         paddingBottom: insets.bottom,
         paddingLeft: insets.left,
         paddingRight: insets.right,
+      } : {
+        flex: 1,
       }}
     >
       {children}

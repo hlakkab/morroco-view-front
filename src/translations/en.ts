@@ -32,6 +32,7 @@ export default {
     skip: 'Skip',
     previous: 'Previous',
     done: 'Done',
+    loading: 'Loading...',
   },
   onboarding: {
     seeTitle: 'See Morocco',

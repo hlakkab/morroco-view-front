@@ -3,7 +3,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View, SafeAreaView } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSelector } from 'react-redux';
 import ScreenHeader from '../components/ScreenHeader';
@@ -405,7 +405,7 @@ const TourMapScreen: React.FC = () => {
 
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <ScreenHeader title={`${currentCity} - ${getDateForDay(selectedDay)}`} />
       </View>
@@ -500,7 +500,7 @@ const TourMapScreen: React.FC = () => {
           )}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
