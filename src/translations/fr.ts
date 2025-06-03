@@ -14,6 +14,18 @@ export default {
     login: 'Se connecter',
     passwordMismatch: 'Les mots de passe ne correspondent pas',
     registrationFailed: 'Échec de l\'inscription',
+    success: 'Succès',
+    registrationSuccess: 'Compte créé avec succès ! Veuillez vous connecter.',
+    registrationError: 'Une erreur s\'est produite lors de l\'inscription. Veuillez réessayer.',
+    ok: 'OK',
+    passwordCriteria: {
+      title: 'Le mot de passe doit contenir :',
+      minLength: 'Au moins 6 caractères',
+      hasUpperCase: 'Une lettre majuscule',
+      hasLowerCase: 'Une lettre minuscule',
+      hasNumber: 'Un chiffre',
+      hasSpecialChar: 'Un caractère spécial',
+    },
   },
   common: {
     whereTo: 'Où aller ?',

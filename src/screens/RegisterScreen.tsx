@@ -64,7 +64,7 @@ const RegisterScreen = () => {
         i18n.t('register.registrationSuccess'),
         [
           {
-            text: 'OK',
+            text: i18n.t('register.ok'),
             onPress: () => navigation.navigate('Login' as never)
           }
         ]
@@ -84,14 +84,14 @@ const RegisterScreen = () => {
 
   const PasswordCriteriaList = () => (
     <View style={styles.criteriaContainer}>
-      <Text style={styles.criteriaTitle}>Password must contain:</Text>
+      <Text style={styles.criteriaTitle}>{i18n.t('register.passwordCriteria.title')}</Text>
       <View style={styles.criteriaItem}>
         <Ionicons
           name={passwordCriteria.minLength ? 'checkmark-circle' : 'ellipse-outline'}
           size={16}
           color={passwordCriteria.minLength ? '#4CAF50' : '#666'}
         />
-        <Text style={styles.criteriaText}>At least 6 characters</Text>
+        <Text style={styles.criteriaText}>{i18n.t('register.passwordCriteria.minLength')}</Text>
       </View>
       <View style={styles.criteriaItem}>
         <Ionicons
@@ -99,7 +99,7 @@ const RegisterScreen = () => {
           size={16}
           color={passwordCriteria.hasUpperCase ? '#4CAF50' : '#666'}
         />
-        <Text style={styles.criteriaText}>One uppercase letter</Text>
+        <Text style={styles.criteriaText}>{i18n.t('register.passwordCriteria.hasUpperCase')}</Text>
       </View>
       <View style={styles.criteriaItem}>
         <Ionicons
@@ -107,7 +107,7 @@ const RegisterScreen = () => {
           size={16}
           color={passwordCriteria.hasLowerCase ? '#4CAF50' : '#666'}
         />
-        <Text style={styles.criteriaText}>One lowercase letter</Text>
+        <Text style={styles.criteriaText}>{i18n.t('register.passwordCriteria.hasLowerCase')}</Text>
       </View>
       <View style={styles.criteriaItem}>
         <Ionicons
@@ -115,7 +115,7 @@ const RegisterScreen = () => {
           size={16}
           color={passwordCriteria.hasNumber ? '#4CAF50' : '#666'}
         />
-        <Text style={styles.criteriaText}>One number</Text>
+        <Text style={styles.criteriaText}>{i18n.t('register.passwordCriteria.hasNumber')}</Text>
       </View>
       <View style={styles.criteriaItem}>
         <Ionicons
@@ -123,7 +123,7 @@ const RegisterScreen = () => {
           size={16}
           color={passwordCriteria.hasSpecialChar ? '#4CAF50' : '#666'}
         />
-        <Text style={styles.criteriaText}>One special character</Text>
+        <Text style={styles.criteriaText}>{i18n.t('register.passwordCriteria.hasSpecialChar')}</Text>
       </View>
     </View>
   );

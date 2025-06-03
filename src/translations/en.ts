@@ -14,6 +14,18 @@ export default {
     login: 'Login',
     passwordMismatch: 'Passwords do not match',
     registrationFailed: 'Registration failed',
+    success: 'Success',
+    registrationSuccess: 'Account created successfully! Please log in.',
+    registrationError: 'An error occurred during registration. Please try again.',
+    ok: 'OK',
+    passwordCriteria: {
+      title: 'Password must contain:',
+      minLength: 'At least 6 characters',
+      hasUpperCase: 'One uppercase letter',
+      hasLowerCase: 'One lowercase letter',
+      hasNumber: 'One number',
+      hasSpecialChar: 'One special character',
+    },
   },
   common: {
     whereTo: 'Where to?',
