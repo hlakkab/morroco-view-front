@@ -13,8 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 const LoginScreen = () => {
   const navigation = useNavigation();
 
-  const [email, setEmail] = useState('sahtanimohcine19@gmail.com');
-  const [password, setPassword] = useState('mohcine@sahtani2001');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
