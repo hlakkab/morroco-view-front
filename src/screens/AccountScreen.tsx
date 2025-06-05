@@ -184,20 +184,20 @@ const AccountScreenContent: React.FC = () => {
   };
 
   const handlePhoneCall = () => {
-    const phoneNumber = '+212600000000'; // Replace with your contact number
+    const phoneNumber = '+212634689545'; // Replace with your contact number
     Linking.openURL(`tel:${phoneNumber}`);
     handleCloseContactModal();
   };
 
   const handleEmail = () => {
-    const email = 'support@moroccoview.ma'; // Replace with your support email
+    const email = 'contact@mview.ma'; // Replace with your support email
     Linking.openURL(`mailto:${email}`);
     handleCloseContactModal();
   };
 
   const handleWhatsApp = () => {
-    const phoneNumber = '+212600000000'; // Replace with your WhatsApp number
-    Linking.openURL(`whatsapp://send?phone=${phoneNumber}&text=Hello, I need assistance with Morocco View app.`);
+    const phoneNumber = '++212634689545'; // Replace with your WhatsApp number
+    Linking.openURL(`whatsapp://send?phone=${phoneNumber}`);
     handleCloseContactModal();
   };
   

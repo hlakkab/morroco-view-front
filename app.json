@@ -2,8 +2,8 @@
   "expo": {
     "name": "morroco-view-front",
     "slug": "morroco-view-front",
-    "version": "1.0.8",
-    "versionCode": 9,
+    "version": "1.1.1",
+    "versionCode": 10,
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "light",

@@ -412,7 +412,7 @@ export default {
     supportTeamHelp: 'Our support team is here to help! Choose your preferred way to contact us:',
     call: 'Call',
     talkToAgent: 'Talk to an agent',
-    emailSupport: 'support@moroccoview.ma',
+    emailSupport: 'contact@mview.ma',
     whatsapp: 'WhatsApp',
     quickChatSupport: 'Quick chat support',
     close: 'Close',
