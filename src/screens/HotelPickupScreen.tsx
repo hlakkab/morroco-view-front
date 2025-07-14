@@ -31,8 +31,8 @@ const HotelPickupScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const { currentLanguage } = useLanguage();
-  const {hotelPickups, selectedCity, searchQuery, loading, error,
-    pickupDirection} = useAppSelector((state) => state.hotelPickup);
+  const { hotelPickups, selectedCity, searchQuery, loading, error,
+    pickupDirection } = useAppSelector((state) => state.hotelPickup);
 
   const [useSampleData, setUseSampleData] = useState(false);
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
@@ -166,17 +166,19 @@ const HotelPickupScreenContent: React.FC = () => {
     .map(option => option.id);
 
   // Filter pickups based on search and pickup type filters
-  const filteredPickups = hotelPickups.filter(pickup => {
-    // Search match
-    const searchMatch = normalizeString(pickup.title).includes(normalizeString(searchQuery));
+  const filteredPickups = Array.isArray(hotelPickups)
+    ? hotelPickups.filter(pickup => {
+      // Search match
+      const searchMatch = normalizeString(pickup.title).includes(normalizeString(searchQuery));
 
-    // Pickup type filter
-    const pickupTypeFilter = activePickupTypeFilters.length === 0 ||
-      (pickup.private && activePickupTypeFilters.includes('private')) ||
-      (!pickup.private && activePickupTypeFilters.includes('shared'));
+      // Pickup type filter
+      const pickupTypeFilter = activePickupTypeFilters.length === 0 ||
+        (pickup.private && activePickupTypeFilters.includes('private')) ||
+        (!pickup.private && activePickupTypeFilters.includes('shared'));
 
-    return searchMatch && pickupTypeFilter;
-  });
+      return searchMatch && pickupTypeFilter;
+    })
+    : [];
 
   // === PAGINATION : découpage des data pour la page courante ===
   const totalPages = Math.ceil(filteredPickups.length / itemsPerPage);
@@ -203,8 +205,8 @@ const HotelPickupScreenContent: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <ScreenHeader 
-          title={i18n.t('pickup.title')} 
+        <ScreenHeader
+          title={i18n.t('pickup.title')}
           onBack={handleBack}
           showTour={!visible}
           onTourPress={handleStartTour}
@@ -228,7 +230,7 @@ const HotelPickupScreenContent: React.FC = () => {
         </CopilotStep>
 
         <HotelPickupListContainer
-          pickups={currentPickups} 
+          pickups={currentPickups}
           cities={CITIES}
           selectedCity={selectedCity}
           onSelectCity={handleSelectCity}

@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { deleteTourThunk, fetchTourDetails, fetchTours } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { Tour } from '../types/tour';
+import Pagination from '../components/Pagination';
 
 const TourListContainer: React.FC = () => {
   const navigation = useNavigation();
@@ -17,11 +18,17 @@ const TourListContainer: React.FC = () => {
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-  
+
   // For delete functionality
   const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeletingTour, setIsDeletingTour] = useState(false);
+
+  const ITEMS_PER_PAGE = 6;
+  const [currentPage, setCurrentPage] = useState(1);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentTours = savedTours.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
 
   useEffect(() => {
     dispatch(fetchTours());
@@ -57,10 +64,10 @@ const TourListContainer: React.FC = () => {
       try {
         setIsDeletingTour(true);
         await dispatch(deleteTourThunk(tourToDelete.id)).unwrap();
-        
+
         // Refresh the tours list after successful deletion
         await dispatch(fetchTours()).unwrap();
-        
+
         // Close modal after successful deletion
         setDeleteModalVisible(false);
         setTourToDelete(null);
@@ -114,14 +121,25 @@ const TourListContainer: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>{i18n.t('tours.availableTours')}</Text>
-      
+
       <FlatList
-        data={savedTours} 
+        data={currentTours}
         renderItem={renderTourCard}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
+
+      <View style={{ marginBottom: 20, alignItems: 'center' }}>
+        <Pagination
+          totalItems={savedTours.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+          currentPage={currentPage}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+      </View>
+
+
 
       {(isLoadingDetails || isDeletingTour) && (
         <View style={styles.loadingOverlay}>
