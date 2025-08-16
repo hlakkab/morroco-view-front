@@ -5,16 +5,17 @@ import TourDetailsModal from '../components/TourDetailsModal';
 import TourCard from '../components/cards/TourCard';
 import DeleteTourConfirmationModal from '../components/modals/DeleteTourConfirmationModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { deleteTourThunk, fetchTourDetails, fetchTours } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { Tour } from '../types/tour';
 import Pagination from '../components/Pagination';
+import { deleteTourThunk, fetchTourDetails, fetchTours, fetchPaginatedTours } from '../store/tourSlice';
+
 
 const TourListContainer: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
 
-  const { savedTours, loading, error, currentTour } = useAppSelector((state) => state.tour);
+  const { paginatedTours, totalItems, loading, error, currentTour, savedTours } = useAppSelector((state) => state.tour);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -24,15 +25,16 @@ const TourListContainer: React.FC = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeletingTour, setIsDeletingTour] = useState(false);
 
-  const ITEMS_PER_PAGE = 6;
+  const ITEMS_PER_PAGE = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentTours = savedTours.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  // On utilise la pagination du backend : paginatedTours, totalItems
 
 
   useEffect(() => {
-    dispatch(fetchTours());
-  }, [dispatch]);
+    dispatch(fetchPaginatedTours({ page: currentPage - 1, size: ITEMS_PER_PAGE }));
+  }, [dispatch, currentPage]);
+
 
   const handleTourPress = async (tour: Tour) => {
     try {
@@ -66,7 +68,7 @@ const TourListContainer: React.FC = () => {
         await dispatch(deleteTourThunk(tourToDelete.id)).unwrap();
 
         // Refresh the tours list after successful deletion
-        await dispatch(fetchTours()).unwrap();
+        await dispatch(fetchPaginatedTours({ page: currentPage - 1, size: ITEMS_PER_PAGE })).unwrap();
 
         // Close modal after successful deletion
         setDeleteModalVisible(false);
@@ -105,12 +107,12 @@ const TourListContainer: React.FC = () => {
   if (error && !isDeletingTour) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>Erreur : {error || 'Une erreur est survenue'}</Text>
       </View>
     );
   }
 
-  if (!savedTours || savedTours.length === 0) {
+  if (!paginatedTours || paginatedTours.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>{i18n.t('common.noData')}</Text>
@@ -123,7 +125,7 @@ const TourListContainer: React.FC = () => {
       <Text style={styles.sectionTitle}>{i18n.t('tours.availableTours')}</Text>
 
       <FlatList
-        data={currentTours}
+        data={paginatedTours}
         renderItem={renderTourCard}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -132,7 +134,7 @@ const TourListContainer: React.FC = () => {
 
       <View style={{ marginBottom: 20, alignItems: 'center' }}>
         <Pagination
-          totalItems={savedTours.length}
+          totalItems={totalItems}
           itemsPerPage={ITEMS_PER_PAGE}
           currentPage={currentPage}
           onPageChange={(page) => setCurrentPage(page)}

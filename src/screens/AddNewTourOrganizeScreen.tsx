@@ -23,6 +23,7 @@ import { saveTour, saveTourThunk, setTourItems } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList, SavedItem } from '../types/navigation';
 import { TourSavedItem } from '../types/tour';
+import { fetchPaginatedTours } from '../store/tourSlice';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -347,7 +348,10 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
       from: formatDate(startDate),
       to: formatDate(endDate),
       destinations: transformedItems as unknown as TourSavedItem[]
-    }));
+    })).then(() => {
+      // Rafraîchir la liste paginée après la création
+      dispatch(fetchPaginatedTours({ page: 0, size: 6 }));
+    });
     
     // Navigate immediately without waiting for the API call to finish
     // This prevents the component from re-rendering during the API call
