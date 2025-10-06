@@ -397,7 +397,7 @@ const MonumentsScreenContent: React.FC = () => {
         onClose={handleCloseFilter}
         filterOptions={filterOptions}
         onApplyFilters={handleApplyFilters}
-        title={i18n.t('monuments.filterMonuments')}
+        title={i18n.t('monuments.filterTitle')}
         categories={categoriesWithIcons}
       />
     </SafeAreaView>

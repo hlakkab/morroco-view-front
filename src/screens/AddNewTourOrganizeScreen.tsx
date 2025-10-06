@@ -408,10 +408,11 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
           day.items.some(dayItem => dayItem.id === item.id)
         );
 
-        
+        const { images, ...rest } = item;
         
         return {
-          ...item,
+          ...rest,
+          image: images?.[0] || undefined, // Transform images array to single image
           date: daySchedule?.date ? transformDateString(daySchedule.date) : undefined,
           day: schedule.findIndex(day => day.items.some(dayItem => dayItem.id === item.id)) + 1,
           //selectedDay: selectedDayIndex + 1
