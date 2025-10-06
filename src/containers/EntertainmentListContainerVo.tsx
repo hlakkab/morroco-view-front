@@ -1,24 +1,34 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import CardItem from '../components/cards/CardItem';
 import SaveButton from '../components/SaveButton';
+import AuthModal from '../components/AuthModal';
 import { setSelectedEntertainment, toggleEntertainmentBookmark } from '../store/entertainmentSlice';
 import { useAppDispatch } from '../store/hooks';
 import i18n from '../translations/i18n';
 import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 import { RootStackParamList } from '../types/navigation';
+import { useAuth } from '../contexts/AuthContext';
 
 interface EntertainmentListContainerProps {
   entertainments: Entertainment[];
+  loading: boolean;
+  error: string | null;
 }
 
-const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = ({ entertainments }) => {
+const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = ({
+  entertainments,
+  loading,
+  error,
+}) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleEntertainmentPress = (ent: Entertainment) => {
     dispatch(setSelectedEntertainment(ent));
@@ -29,6 +39,11 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
   };
 
   const handleSaveEntertainment = (ent: Entertainment) => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     dispatch(toggleEntertainmentBookmark(ent));
   };
 
@@ -53,6 +68,22 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
     }
     return i18n.t('entertainment.noEntertainmentFilters');
   };
+
+  if (loading) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>{i18n.t('entertainment.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -145,6 +176,11 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
           <Text style={styles.emptyText}>{getEmptyStateMessage()}</Text>
         </View>
       )}
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </View>
   );
 };

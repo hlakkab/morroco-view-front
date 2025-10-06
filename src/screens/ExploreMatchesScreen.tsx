@@ -1,7 +1,7 @@
 // src/screens/ExploreMatchesScreen.tsx
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MatchCard from '../components/cards/MatchCard';
@@ -12,6 +12,8 @@ import Pagination from '../components/Pagination';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 import {
   createFilterOptions,
   matchCities,
@@ -31,10 +33,12 @@ const WalkthroughableView = walkthroughable(View);
 const ExploreMatchesScreenContent: React.FC = () => {
   // États et dispatch
   const dispatch = useAppDispatch();
-  const { matches } = useAppSelector(state => state.match);
+  const { matches, loading } = useAppSelector(state => state.match);
+  const { isAuthenticated } = useAuth();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,7 +64,6 @@ const ExploreMatchesScreenContent: React.FC = () => {
     }
   }, [filterOptions]);
 
-  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
     AsyncStorage.getItem(TOUR_FLAG)
       .then(value => {
@@ -73,7 +76,6 @@ const ExploreMatchesScreenContent: React.FC = () => {
       });
   }, []);
 
-  // ─── 2. Démarrage automatique une seule fois ──────────
   useEffect(() => {
     console.log('Tour conditions:', {
       hasSeenTour,
@@ -91,7 +93,6 @@ const ExploreMatchesScreenContent: React.FC = () => {
     }
   }, [hasSeenTour, startTour, tourStarted, visible]);
 
-  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
     const handleStop = async () => {
       console.log('Tour stopped, saving status...');
@@ -118,7 +119,6 @@ const ExploreMatchesScreenContent: React.FC = () => {
     };
   }, [copilotEvents]);
 
-  // Reset page quand filtre ou recherche change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCityId, filterOptions]);
@@ -129,7 +129,6 @@ const ExploreMatchesScreenContent: React.FC = () => {
     startTour();
   };
 
-  // Préparer les données filtrées
   const activeStadiums = filterOptions.filter(opt => opt.selected).map(opt => opt.id);
 
   const filteredMatches = matches.filter(match => {
@@ -140,7 +139,6 @@ const ExploreMatchesScreenContent: React.FC = () => {
     return searchMatch && cityMatch && stadiumMatch;
   });
 
-  // Pagination des données
   const start = (currentPage - 1) * itemsPerPage;
   const currentMatches = filteredMatches.slice(start, start + itemsPerPage);
 
@@ -187,7 +185,12 @@ const ExploreMatchesScreenContent: React.FC = () => {
           </WalkthroughableView>
         </CopilotStep>
 
-        {filteredMatches.length > 0 ? (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#CE1126" />
+            <Text style={styles.loadingText}>{i18n.t('common.loading')}</Text>
+          </View>
+        ) : filteredMatches.length > 0 ? (
           <>
             <CopilotStep
               text={i18n.t('copilot.browseMatches')}
@@ -207,6 +210,10 @@ const ExploreMatchesScreenContent: React.FC = () => {
                         setModalVisible(true);
                       }}
                       handleSaveMatch={id => {
+                        if (!isAuthenticated()) {
+                          setShowAuthModal(true);
+                          return;
+                        }
                         const matchToToggle = matches.find(match => match.id === id);
                         if (matchToToggle) {
                           dispatch(toggleMatchBookmark(matchToToggle));
@@ -252,6 +259,13 @@ const ExploreMatchesScreenContent: React.FC = () => {
           categories={{ stadium: { ...matchFilterCategories.stadium, icon: <Ionicons name="football" size={20} color="#CE1126" /> } }}
         />
       </View>
+
+      {/* Auth Modal for login prompt */}
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        type="auth"
+      />
     </SafeAreaView>
   );
 };
@@ -349,7 +363,18 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  }
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
 });
 
 export default ExploreMatchesScreen;

@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import BrokerCard from '../components/cards/BrokerCard';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
 import { useAppDispatch } from '../store/hooks';
 import i18n from '../translations/i18n';
@@ -15,13 +18,19 @@ const WalkthroughableView = walkthroughable(View);
 
 interface BrokerListContainerProps {
   brokers: Broker[];
+  loading: boolean;
+  error: string | null;
 }
 
 const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
-  brokers
+  brokers,
+  loading,
+  error,
 }) => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleBrokerPress = (broker: Broker) => {
     // Navigate to broker detail screen
@@ -29,11 +38,32 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
   };
 
   const handleSaveBroker = (id: string) => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     const broker = brokers.find(b => b.id === id);
     if (broker) {
       dispatch(toggleBrokerBookmark(broker));
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>{i18n.t('broker.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -61,6 +91,11 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
           )}
         </WalkthroughableView>
       </CopilotStep>
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </View>
   );
 };
@@ -88,6 +123,21 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#666',
+    marginTop: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: 'red',
     marginTop: 16,
   }
 });

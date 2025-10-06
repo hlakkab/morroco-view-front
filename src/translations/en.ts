@@ -1,4 +1,32 @@
 export default {
+  register: {
+    createAccount: 'Create an account',
+    connectWith: 'Connect with',
+    or: 'or',
+    enterDetails: 'Please enter your details',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    registerButton: 'Register',
+    alreadyHaveAccount: 'Already have an account?',
+    login: 'Login',
+    passwordMismatch: 'Passwords do not match',
+    registrationFailed: 'Registration failed',
+    success: 'Success',
+    registrationSuccess: 'Account created successfully! Please log in.',
+    registrationError: 'An error occurred during registration. Please try again.',
+    ok: 'OK',
+    passwordCriteria: {
+      title: 'Password must contain:',
+      minLength: 'At least 6 characters',
+      hasUpperCase: 'One uppercase letter',
+      hasLowerCase: 'One lowercase letter',
+      hasNumber: 'One number',
+      hasSpecialChar: 'One special character',
+    },
+  },
   common: {
     whereTo: 'Where to?',
     searchPlaceholder: 'Events.Monuments.Activities',
@@ -16,6 +44,7 @@ export default {
     skip: 'Skip',
     previous: 'Previous',
     done: 'Done',
+    loading: 'Loading...',
   },
   onboarding: {
     seeTitle: 'See Morocco',
@@ -37,6 +66,15 @@ export default {
     needAccount: 'Need an account?',
     register: 'Register',
     failed: 'Login failed',
+  },
+  forgotPassword: {
+    title: 'Reset Password',
+    description: 'Enter your email address to reset your password',
+    email: 'Email',
+    resetButton: 'Reset Password',
+    success: 'Success',
+    emailSent: 'Password reset email has been sent',
+    backToLogin: 'Back to Login',
   },
   home: {
     exploreMatches: 'Explore Matches',
@@ -374,10 +412,37 @@ export default {
     supportTeamHelp: 'Our support team is here to help! Choose your preferred way to contact us:',
     call: 'Call',
     talkToAgent: 'Talk to an agent',
-    emailSupport: 'support@moroccoview.ma',
+    emailSupport: 'contact@mview.ma',
     whatsapp: 'WhatsApp',
     quickChatSupport: 'Quick chat support',
     close: 'Close',
+    deleteAccount: 'Delete Account',
+    deleteAccountDescription: 'Are you sure you want to delete your account? This action cannot be undone.',
+    deleteAccountReason: 'Reason for deletion',
+    deleteAccountAdditionalInfo: 'Additional information (optional)',
+    deleteAccountConfirm: 'Yes, delete my account',
+    deleteAccountCancel: 'Cancel',
+    deleteReasons: {
+      notUsing: 'I\'m not using the app anymore',
+      foundAlternative: 'I found a better alternative',
+      privacy: 'Privacy concerns',
+      technicalIssues: 'Technical issues',
+      other: 'Other reason'
+    },
+    deleteAccountReasons: {
+      notUsing: 'I\'m not using the app anymore',
+      foundAlternative: 'I found a better alternative',
+      privacy: 'Privacy concerns',
+      technicalIssues: 'Technical issues',
+      other: 'Other reason'
+    },
+    error: 'Error',
+    selectReason: 'Please select a reason for deletion',
+    enterReason: 'Please enter a reason for deletion',
+    deleteError: 'Failed to delete account. Please try again.',
+    enterOtherReason: 'Please specify your reason...',
+    confirmDelete: 'Delete Account',
+    cancel: 'Cancel'
   },
   bookmark: {
     title: 'Bookmarks',
@@ -571,12 +636,12 @@ export default {
                   "2. Choose your preferred time\n" +
                   "3. Enter your location",
     confirmReservation: "Click here to confirm your reservation",
-    exploreDestinations: "Search for your favorite destinations, restaurants, or activities across Morocco",
-    discoverEvents: "Don't miss exciting events and matches happening during your visit to Morocco",
-    accessServices: "Access essential services to make your stay in Morocco comfortable and enjoyable",
-    discoverCategories: "Discover Morocco's beauty by exploring different categories of attractions and hidden gems",
-    findEmergency: "Access important emergency contacts in Morocco with just one tap",
-    navigateApp: "Navigate easily between different sections of the app",
+    exploreDestinations: "Explore destinations and find your next adventure",
+    discoverEvents: "Discover exciting events happening around you",
+    accessServices: "Access essential services and information",
+    discoverCategories: "Explore different categories of attractions",
+    findEmergency: "Quick access to emergency contacts",
+    navigateApp: "Navigate through the app using this menu",
     searchQRCodes: "Search for your QR codes by title",
     manageQRCodes: "View and manage your saved QR codes",
     addNewQRCode: "Add new QR codes to your collection",
@@ -645,4 +710,15 @@ export default {
     viewMapButton: "View all destinations on an interactive map",
     viewTimelineButton: "View your tour as an organized timeline",
   },
-}; 
+  auth: {
+    loginRequired: 'Login Required',
+    loginMessage: 'Please login or create an account to access this feature',
+    login: 'Login',
+    register: 'Create Account'
+  },
+  firstTime: {
+    welcome: 'Welcome to Morocco View!',
+    message: 'Discover the beauty of Morocco through our curated collection of stunning images. Get started to explore our gallery and save your favorite views.',
+    getStarted: 'Get Started'
+  }
+} as const; 

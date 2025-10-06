@@ -282,7 +282,13 @@ const RestaurantScreenContent: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={i18n.t('restaurants.title')} />
+        <View style={styles.headerContainer}>
+          <ScreenHeader
+            title={i18n.t('restaurants.title')}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#CE1126" />
           <Text style={styles.loadingText}>{i18n.t('restaurants.loading')}</Text>
@@ -295,7 +301,13 @@ const RestaurantScreenContent: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={i18n.t('restaurants.title')} />
+        <View style={styles.headerContainer}>
+          <ScreenHeader
+            title={i18n.t('restaurants.title')}
+            showTour={!visible}
+            onTourPress={handleStartTour}
+          />
+        </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
           <ButtonFixe 

@@ -1,4 +1,32 @@
 export default {
+  register: {
+    createAccount: 'Créer un compte',
+    connectWith: 'Se connecter avec',
+    or: 'ou',
+    enterDetails: 'Veuillez saisir vos informations',
+    firstName: 'Prénom',
+    lastName: 'Nom',
+    email: 'Email',
+    password: 'Mot de passe',
+    confirmPassword: 'Confirmer le mot de passe',
+    registerButton: 'S\'inscrire',
+    alreadyHaveAccount: 'Vous avez déjà un compte ?',
+    login: 'Se connecter',
+    passwordMismatch: 'Les mots de passe ne correspondent pas',
+    registrationFailed: 'Échec de l\'inscription',
+    success: 'Succès',
+    registrationSuccess: 'Compte créé avec succès ! Veuillez vous connecter.',
+    registrationError: 'Une erreur s\'est produite lors de l\'inscription. Veuillez réessayer.',
+    ok: 'OK',
+    passwordCriteria: {
+      title: 'Le mot de passe doit contenir :',
+      minLength: 'Au moins 6 caractères',
+      hasUpperCase: 'Une lettre majuscule',
+      hasLowerCase: 'Une lettre minuscule',
+      hasNumber: 'Un chiffre',
+      hasSpecialChar: 'Un caractère spécial',
+    },
+  },
   common: {
     whereTo: 'Où aller ?',
     searchPlaceholder: 'Événements.Monuments.Activités',
@@ -16,6 +44,7 @@ export default {
     skip: 'Passer',
     previous: 'Précédent',
     done: 'Terminer',
+    loading: 'Chargement...',
   },
   onboarding: {
     seeTitle: 'Découvrez le Maroc',
@@ -382,6 +411,33 @@ export default {
     whatsapp: 'WhatsApp',
     quickChatSupport: 'Support chat rapide',
     close: 'Fermer',
+    deleteAccount: 'Supprimer le compte',
+    deleteAccountDescription: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.',
+    deleteAccountReason: 'Raison de la suppression',
+    deleteAccountAdditionalInfo: 'Informations supplémentaires (optionnel)',
+    deleteAccountConfirm: 'Oui, supprimer mon compte',
+    deleteAccountCancel: 'Annuler',
+    deleteReasons: {
+      notUsing: 'Je n\'utilise plus l\'application',
+      foundAlternative: 'J\'ai trouvé une meilleure alternative',
+      privacy: 'Problèmes de confidentialité',
+      technicalIssues: 'Problèmes techniques',
+      other: 'Autre raison'
+    },
+    deleteAccountReasons: {
+      notUsing: 'Je n\'utilise plus l\'application',
+      foundAlternative: 'J\'ai trouvé une meilleure alternative',
+      privacy: 'Problèmes de confidentialité',
+      technicalIssues: 'Problèmes techniques',
+      other: 'Autre raison'
+    },
+    error: 'Erreur',
+    selectReason: 'Veuillez sélectionner une raison pour la suppression',
+    enterReason: 'Veuillez entrer une raison pour la suppression',
+    deleteError: 'Échec de la suppression du compte. Veuillez réessayer.',
+    enterOtherReason: 'Veuillez préciser votre raison...',
+    confirmDelete: 'Supprimer le Compte',
+    cancel: 'Annuler'
   },
   
   bookmark: {
@@ -654,4 +710,24 @@ export default {
     viewMapButton: "Voir toutes les destinations sur une carte interactive",
     viewTimelineButton: "Voir votre tour sous forme de chronologie organisée",
   },
-}; 
+  forgotPassword: {
+    title: 'Réinitialiser le mot de passe',
+    description: 'Entrez votre adresse e-mail pour réinitialiser votre mot de passe',
+    email: 'Email',
+    resetButton: 'Réinitialiser le mot de passe',
+    success: 'Succès',
+    emailSent: 'L\'email de réinitialisation a été envoyé',
+    backToLogin: 'Retour à la connexion',
+  },
+  auth: {
+    loginRequired: 'Connexion Requise',
+    loginMessage: 'Veuillez vous connecter ou créer un compte pour accéder à cette fonctionnalité',
+    login: 'Se Connecter',
+    register: 'Créer un Compte'
+  },
+  firstTime: {
+    welcome: 'Bienvenue sur Morocco View !',
+    message: 'Découvrez la beauté du Maroc à travers notre collection d\'images soigneusement sélectionnées. Commencez à explorer notre galerie et sauvegardez vos vues préférées.',
+    getStarted: 'Commencer'
+  }
+} as const; 

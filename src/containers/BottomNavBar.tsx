@@ -9,6 +9,7 @@ import BookmarkIcon from '../assets/navbarIcons/bookmark-icon.svg';
 import HomeIcon from '../assets/navbarIcons/home-icon.svg';
 import TicketsIcon from '../assets/navbarIcons/tickets-icon.svg';
 import ToursIcon from '../assets/navbarIcons/tours-icon.svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -46,9 +47,10 @@ interface BottomNavBarProps {
 
 const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeRoute, onNavigate }) => {
   const { currentLanguage } = useLanguage();
+
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <NavItem 
         icon={<HomeIcon width={24} height={24} 
         fill={activeRoute === 'Home' ? '#AE1913' : '#666'} 

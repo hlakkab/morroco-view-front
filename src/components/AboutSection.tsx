@@ -17,7 +17,11 @@ const AboutSection: React.FC<AboutSectionProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showViewMore, setShowViewMore] = useState(false);
-  const [truncatedText, setTruncatedText] = useState('');
+
+  // Simple character-based truncation
+  const maxLength = 150;
+  const shouldTruncate = text.length > maxLength;
+  const displayText = isExpanded ? text : (shouldTruncate ? text.slice(0, maxLength) + '...' : text);
 
   return (
     <View style={styles.aboutContainer}>
@@ -30,24 +34,17 @@ const AboutSection: React.FC<AboutSectionProps> = ({
       
       <Text
         style={[styles.aboutText, style]}
-        numberOfLines={isExpanded ? undefined : 3}
         onTextLayout={(e) => {
-          if (e.nativeEvent.lines.length > 3 && !showViewMore) {
+          if (e.nativeEvent.lines.length > 3 && !showViewMore && !isExpanded) {
             setShowViewMore(true);
-            // Get the text of the first 3 lines
-            const thirdLineEnd = e.nativeEvent.lines[2]?.end || 0;
-            if (thirdLineEnd > 0) {
-              // Leave some space for "... View More"
-              setTruncatedText(text.slice(0, thirdLineEnd - 10) + '...');
-            }
           }
         }}
       >
-        {isExpanded ? text : truncatedText || text}
+        {displayText}
       </Text>
       
       {/* Separate "View More/Less" button as its own Text component */}
-      {showViewMore && (
+      {(showViewMore || shouldTruncate) && (
         <Text 
           style={styles.viewMoreText}
           onPress={() => setIsExpanded(!isExpanded)}

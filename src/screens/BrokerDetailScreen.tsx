@@ -8,6 +8,8 @@ import AboutSection from '../components/AboutSection';
 import Button from '../components/Button';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import i18n from '../translations/i18n';
@@ -53,6 +55,8 @@ const BrokerDetailScreenContent: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactModal, setShowContactModal] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Get broker details from sample data or route params
   const brokerDetails = route.params as Broker;
@@ -131,6 +135,11 @@ const BrokerDetailScreenContent: React.FC = () => {
   };
 
   const handleSave = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     dispatch(toggleBrokerBookmark(brokerDetails));
   };
 
@@ -383,6 +392,11 @@ const BrokerDetailScreenContent: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </SafeAreaView>
   );
 };

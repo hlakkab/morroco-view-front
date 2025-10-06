@@ -3,7 +3,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View, SafeAreaView } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSelector } from 'react-redux';
 import ScreenHeader from '../components/ScreenHeader';
@@ -285,7 +285,7 @@ const TourMapScreen: React.FC = () => {
     }
     
     // Get unique days from tour items
-    const days = [...new Set(tourItems.map(item => item.day || 1))].sort((a, b) => a - b);
+    const days = Array.from(new Set(tourItems.map(item => item.day || 1))).sort((a, b) => a - b);
     setAvailableDays(days);
     
     // Set initial selected day if not already set
@@ -405,7 +405,7 @@ const TourMapScreen: React.FC = () => {
 
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <ScreenHeader title={`${currentCity} - ${getDateForDay(selectedDay)}`} />
       </View>
@@ -478,7 +478,7 @@ const TourMapScreen: React.FC = () => {
               style={styles.controlButton}
               onPress={() => handleChangeDay('prev')}
             >
-              <Ionicons name="arrow-back" size={24} color="#fff" />
+              <Ionicons name="arrow-back" size={24} color="#000" />
             </TouchableOpacity>
           )}
           <View style={[
@@ -495,12 +495,12 @@ const TourMapScreen: React.FC = () => {
               style={styles.controlButton}
               onPress={() => handleChangeDay('next')}
             >
-              <Ionicons name="arrow-forward" size={24} color="#fff" />
+              <Ionicons name="arrow-forward" size={24} color="#000" />
             </TouchableOpacity>
           )}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 30,
     left: 16,
     right: 16,
     flexDirection: 'row',

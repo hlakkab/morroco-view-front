@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CloseButton from '../assets/img/CloseButton.svg';
 import StadiumIconPopup from '../assets/img/stadium_icon_popup.svg';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { RootState } from '../store';
 import { useAppDispatch } from '../store/hooks';
 import { buyTicket, resetTicketPurchaseStatus, toggleMatchBookmark } from '../store/matchSlice';
@@ -19,6 +20,7 @@ import AboutSection from './AboutSection';
 import ButtonFixe from "./ButtonFixe";
 import LocationSection from './LocationSection';
 import TicketPurchaseStatus from './TicketPurchaseStatus';
+import AuthModal from './AuthModal';
 import { trackEvent } from '../service/Mixpanel';
 
 const TOUR_FLAG = '@matchPopupTourSeen';
@@ -33,11 +35,13 @@ const WalkthroughableView = walkthroughable(View);
 const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
   const { currentLanguage } = useLanguage();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { currentMatch, ticketPurchaseStatus, ticketPurchaseError } 
     = useSelector((state: RootState) => state.match);
   const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Reset ticket purchase status when component unmounts
   useEffect(() => {
@@ -95,7 +99,6 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
     })
   ).current;
 
-  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
     AsyncStorage.getItem(TOUR_FLAG)
       .then(value => {
@@ -108,7 +111,6 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
       });
   }, []);
 
-  // ─── 2. Démarrage automatique une seule fois ──────────
   useEffect(() => {
     console.log('Tour conditions:', {
       hasSeenTour,
@@ -126,7 +128,6 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
     }
   }, [hasSeenTour, startTour, tourStarted, tourVisible]);
 
-  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
     const handleStop = async () => {
       console.log('Tour stopped, saving status...');
@@ -154,12 +155,25 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
   }, [copilotEvents]);
 
   const handleSave = () => {
+    // Check if user is authenticated first
+    const isAuth = isAuthenticated();
+    if (!isAuth) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (currentMatch) {
       dispatch(toggleMatchBookmark(currentMatch));
     }
   };
 
   const handleBuyTicket = () => {
+    // Check if user is authenticated first
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (currentMatch && currentMatch.id) {
       dispatch(buyTicket(currentMatch.id));
       
@@ -306,7 +320,6 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
                       </Text>
                     </View>
 
-                    {/* Séparateur 2 */}
                     <View style={styles.separator}></View>
 
                     {/* Stadium */}
@@ -364,6 +377,13 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
           </WalkthroughableView>
         </CopilotStep>
       </View>
+      
+      {/* Auth Modal for login prompt */}
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        type="auth"
+      />
     </Animated.View>
   );
 };
@@ -393,7 +413,6 @@ const MatchPopup: React.FC<MatchPopupProps> = (props) => {
   );
 };
 
-const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {

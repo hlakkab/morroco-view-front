@@ -79,9 +79,9 @@ export const identifyUser = async (distinctId?: string, userProps: Record<string
     $set: userProps,
   }));
 
-  await fetch('https://api.mixpanel.com/engage', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `data=${payload}`,
-  });
+  // await fetch('https://api.mixpanel.com/engage', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  //   body: `data=${payload}`,
+  // });
 };

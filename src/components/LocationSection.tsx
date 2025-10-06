@@ -89,7 +89,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   addressText: {
-    top: -25,
     flex: 1,
     marginLeft: 10,
     fontSize: 14,

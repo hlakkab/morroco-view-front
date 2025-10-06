@@ -5,6 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import MonumentCard from '../components/cards/MonumentCard';
 import FilterSelector from '../components/FilterSelector';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import { useAppDispatch } from '../store/hooks';
 import { setSelectedMonument, toggleMonumentBookmark } from '../store/monumentSlice';
 import i18n from '../translations/i18n';
@@ -26,6 +28,8 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
 }) => {
   const [filteredMonuments, setFilteredMonuments] = useState<Monument[]>(monuments);
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Filter monuments according to the selected type
   useEffect(() => {
@@ -58,6 +62,11 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
   };
 
   const handleSaveMonument = (monument: Monument) => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     dispatch(toggleMonumentBookmark(monument));
   };
 
@@ -76,14 +85,18 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
     <View style={styles.container}>
       {showTypeFilter && (
         <View style={styles.filtersContainer}>
-          <FilterSelector
-            title={i18n.t('monuments.monumentType')}
-            options={typeOptions}
-            selectedOptionId={selectedType}
-            onSelectOption={(optionId) => onSelectType(optionId as MonumentType | "All Types")}
-          />
+          <View style={styles.filterSection}>
+            <FilterSelector
+              title={i18n.t('monuments.monumentType')}
+              options={typeOptions}
+              selectedOptionId={selectedType}
+              onSelectOption={(optionId) => onSelectType(optionId as MonumentType | "All Types")}
+              containerStyle={styles.filterContainer}
+            />
+          </View>
         </View>
       )}
+      
       {filteredMonuments.length > 0 ? (
         <FlatList
           data={filteredMonuments}
@@ -95,8 +108,8 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
               handleMonumentPress={handleMonumentPress}
             />
           )}
-          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
         />
       ) : (
         <View style={styles.emptyContainer}>
@@ -104,6 +117,11 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
           <Text style={styles.emptyText}>{getEmptyStateMessage()}</Text>
         </View>
       )}
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </View>
   );
 };
@@ -118,6 +136,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 8,
     marginBottom: 16,
+  },
+  filterSection: {
+    flex: 1,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   listContent: {
     paddingBottom: 16,

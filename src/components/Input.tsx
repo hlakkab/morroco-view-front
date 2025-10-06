@@ -8,8 +8,12 @@ interface InputProps extends TextInputProps {
 const Input = ({ icon, style, ...props }: InputProps) => {
   return (
     <View style={[styles.container, style]}>
+      <TextInput 
+        style={styles.input} 
+        placeholderTextColor="#666"
+        {...props} 
+      />
       {icon && <View style={styles.icon}>{icon}</View>}
-      <TextInput style={styles.input} {...props} />
     </View>
   );
 };
@@ -20,17 +24,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF',
     borderRadius: 32,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#AE191344',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   icon: {
-    marginRight: 8,
+    marginLeft: 8,
+    padding: 4,
   },
   input: {
     flex: 1,
     height: 50,
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: 6,
   },
 });
 

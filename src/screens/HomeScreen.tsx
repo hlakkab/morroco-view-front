@@ -1,6 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Image } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 // Import Container Components
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +12,10 @@ import SearchBarContainer from '../containers/SearchBarContainer';
 import ServiceCardsContainer from '../containers/ServiceCardsContainer';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
+import { getAccessToken } from '../service/KeycloakService';
 
 const TOUR_FLAG = '@homeTourSeen';
 
@@ -33,6 +37,10 @@ const HomeScreenContent: React.FC = () => {
   const [showTourButton, setShowTourButton] = useState(true);
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
@@ -92,8 +100,34 @@ const HomeScreenContent: React.FC = () => {
     };
   }, [copilotEvents]);
 
+  useEffect(() => {
+    checkFirstTime();
+  }, []);
+
+  const checkFirstTime = async () => {
+    try {
+      const isFirstTime = await AsyncStorage.getItem('FIRST_TIME');
+      if (isFirstTime === null) {
+        setShowFirstTimeModal(true);
+      }
+    } catch (error) {
+      console.error('Error checking first time:', error);
+    }
+  };
+
+  const handleFirstTimeComplete = async () => {
+    try {
+      await AsyncStorage.setItem('FIRST_TIME', 'false');
+    } catch (error) {
+      console.error('Error saving first time state:', error);
+    }
+  };
+
   const handleMatchesExplore = () => {
-    // Navigate to matches screen
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
     navigation.navigate('Matches');
   };
 
@@ -101,7 +135,7 @@ const HomeScreenContent: React.FC = () => {
     const routeNames = navigation.getState().routeNames;
 
     if (category === 'Restaurant') {
-      navigation.navigate('Restaurant'); // Navigation spécifique pour Restaurant
+      navigation.navigate('Restaurant');
     } else if (routeNames.includes(category as keyof RootStackParamList)) {
       navigation.navigate(category as keyof RootStackParamList as never);
     } else {
@@ -114,10 +148,22 @@ const HomeScreenContent: React.FC = () => {
     navigation.navigate('Emergency');
   };
 
-  const handleNavigation = (routeName: string) => {
-    // Use a type assertion to tell TypeScript that routeName is a valid key
-    // @ts-ignore - We're handling navigation in a generic way
-    navigation.navigate(routeName);
+  const handleNavigation = async (routeName: string) => {
+    
+      try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          setShowAuthModal(true);
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setShowAuthModal(true);
+        return;
+      }
+    
+    
+    navigation.navigate(routeName as never);
   };
 
   // Start the tour when the button is pressed
@@ -125,6 +171,8 @@ const HomeScreenContent: React.FC = () => {
     setTourStarted(true);
     startTour();
   };
+
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.mainContainer}>
@@ -223,6 +271,19 @@ const HomeScreenContent: React.FC = () => {
           <BottomNavBar activeRoute="Home" onNavigate={handleNavigation} />
         </WalkthroughableView>
       </CopilotStep> */}
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        type="auth"
+      />
+
+      <AuthModal
+        visible={showFirstTimeModal}
+        onClose={() => setShowFirstTimeModal(false)}
+        type="firstTime"
+        onFirstTimeComplete={handleFirstTimeComplete}
+      />
     </View>
   );
 };

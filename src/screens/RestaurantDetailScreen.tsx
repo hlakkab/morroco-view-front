@@ -24,6 +24,8 @@ import Button from '../components/Button';
 import ButtonFixe from '../components/ButtonFixe';
 import LocationSection from '../components/LocationSection';
 import ScreenHeader from '../components/ScreenHeader';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 import HeaderContainer from '../containers/HeaderContainer';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleRestaurantBookmark } from '../store/restaurantSlice';
@@ -48,6 +50,8 @@ const RestaurantDetailScreenContent: React.FC = () => {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const { selectedRestaurant } = useAppSelector((state) => state.restaurant);
 
@@ -121,6 +125,11 @@ const RestaurantDetailScreenContent: React.FC = () => {
   };
 
   const handleSave = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     if (selectedRestaurant) {
       dispatch(toggleRestaurantBookmark(selectedRestaurant));
     }
@@ -246,7 +255,7 @@ const RestaurantDetailScreenContent: React.FC = () => {
         </View>
       </ScrollView>
 
-      <CopilotStep
+      {/* <CopilotStep
         text={i18n.t('copilot.bookRestaurantTable')}
         order={5}
         name="reservation"
@@ -254,7 +263,12 @@ const RestaurantDetailScreenContent: React.FC = () => {
         <WalkthroughableView style={styles.reservationHighlight}>
           <ButtonFixe title={i18n.t('restaurants.bookReservation')} onPress={handleReservation} />
         </WalkthroughableView>
-      </CopilotStep>
+      </CopilotStep> */}
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </SafeAreaView>
   );
 };

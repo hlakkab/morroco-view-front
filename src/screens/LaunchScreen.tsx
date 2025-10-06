@@ -7,6 +7,7 @@ import BackgroundSvg from '../assets/img/lanch-screen-frame.svg';
 import LogoSvg from '../assets/img/morroco-view-logo.svg';
 import { getAccessToken } from '../service/KeycloakService';
 import i18n from '../translations/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,8 +23,8 @@ const LaunchScreen = () => {
 
   const checkLoginStatus = async () => {
 
-    const token = await getAccessToken();
-    if (token) {
+    const firstTime = await AsyncStorage.getItem('FIRST_TIME');
+    if (firstTime === 'false') {
       navigation.navigate('Home' as never);
       return;
     }

@@ -16,6 +16,7 @@ const EntertainmentScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCityId, setSelectedCityId] = useState('5408');
+  const [visible, setVisible] = useState(true);
 
   const {
     entertainments,
@@ -76,6 +77,10 @@ const EntertainmentScreen: React.FC = () => {
     // navigation.navigate('EntertainmentDetail', { productCode: entertainment.productCode });
   };
 
+  const handleStartTour = () => {
+    setVisible(false);
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -112,7 +117,14 @@ const EntertainmentScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title="Entertainment" onBack={handleBack} />
+      <View style={styles.headerContainer}>
+        <ScreenHeader 
+          title="Entertainment" 
+          onBack={handleBack}
+          showTour={!visible}
+          onTourPress={handleStartTour}
+        />
+      </View>
 
       <SearchBar
         placeholder="Search entertainment..."
@@ -215,7 +227,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#666',
-  }
+  },
+  headerContainer: {
+    padding: 16,
+  },
 });
 
 export default EntertainmentScreen; 

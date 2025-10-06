@@ -150,12 +150,11 @@ const login = async (email: string, password: string) => {
     const { access_token, refresh_token, expires_in } = data;
     await saveTokens(access_token, refresh_token, expires_in);
 
-    api.put("/verify")
+    api.put("/auth/verify")
 
 
     return data;
   } catch (error) {
-    console.error('Error logging in:', error);
     throw error;
   }
 };
@@ -165,6 +164,8 @@ const getAccessToken = async () => {
     const [accessToken, expiryTime] = await Promise.all([
       SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
       SecureStore.getItemAsync(TOKEN_EXPIRY_KEY),
+
+      
     ]);
 
     if(!(accessToken && expiryTime)) {
@@ -183,7 +184,7 @@ const getAccessToken = async () => {
 
     return accessToken;
   } catch (error) {
-    console.error('Error getting access token:', error);
+    //console.error('Error getting access token:', error);
     await clearTokens();
     return null;
   }
@@ -215,7 +216,7 @@ const getUserInfo = async () => {
   try {
     const accessToken = await getAccessToken();
     if (!accessToken) {
-      throw new Error('No access token available');
+      return {}
     }
 
     const decodedToken = decodeJWT(accessToken);
