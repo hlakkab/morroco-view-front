@@ -34,6 +34,48 @@ interface DatePickerModalProps {
   type?: DatePickerType;
 }
 
+// Fonction pour obtenir une locale supportée par react-native-modern-datepicker
+const getSupportedLocale = (locale: string): string => {
+  // Liste des locales supportées par react-native-modern-datepicker
+  const supportedLocales = ['en', 'fa']; // anglais et persan seulement
+  
+  // Gérer le cas où locale est null ou undefined
+  if (!locale) {
+    console.warn(`Locale is null/undefined, falling back to "en"`);
+    return 'en';
+  }
+  
+  // Extraire le code de langue principale (ex: 'fr' de 'fr-FR')
+  const primaryLocale = locale.split('-')[0];
+  
+  // Si la locale est supportée, l'utiliser
+  if (supportedLocales.includes(primaryLocale)) {
+    return primaryLocale;
+  }
+  
+  // Sinon, fallback vers l'anglais
+  console.warn(`Locale "${primaryLocale}" not supported by react-native-modern-datepicker, falling back to "en"`);
+  return 'en';
+};
+
+// Configuration française pour le calendrier
+const getFrenchConfigs = () => ({
+  dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+  dayNamesShort: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+  monthNames: [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ],
+  selectedFormat: 'YYYY/MM/DD',
+  dateFormat: 'YYYY/MM/DD',
+  monthYearFormat: 'YYYY MM',
+  timeFormat: 'HH:mm',
+  hour: 'Heure',
+  minute: 'Minute',
+  timeSelect: 'Sélectionner',
+  timeClose: 'Fermer',
+});
+
 const DatePickerModal: React.FC<DatePickerModalProps> = ({
   visible,
   onClose,
@@ -51,7 +93,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
     if (type === 'specific') {
       return new Date().toISOString().split('T')[0].replace(/-/g, '/');
     }
-    
+
     if (pickerMode === 'start') {
       return new Date().toISOString().split('T')[0].replace(/-/g, '/');
     } else {
@@ -82,6 +124,18 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
     return pickerMode === 'start' ? i18n.t('tours.selectStartDate') : i18n.t('tours.selectEndDate');
   };
 
+  // Obtenir la configuration selon la langue
+  const getConfigs = () => {
+    const currentLocale = i18n.locale ?? 'en';
+    const primaryLocale = currentLocale.split('-')[0];
+    
+    if (primaryLocale === 'fr') {
+      return getFrenchConfigs();
+    }
+    
+    return {}; // Configuration par défaut pour les autres langues
+  };
+
   return (
     <Modal
       transparent={true}
@@ -90,14 +144,14 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.modalOverlay}
         activeOpacity={1}
         onPress={onClose}
       >
         <View style={styles.modalContainer}>
-          <TouchableOpacity 
-            activeOpacity={1} 
+          <TouchableOpacity
+            activeOpacity={1}
             style={styles.pickerContainer}
             onPress={(e) => e.stopPropagation()}
           >
@@ -107,7 +161,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                 <Feather name="x" size={24} color={color} />
               </TouchableOpacity>
             </View>
-            
+
             {/* Date Selection Summary */}
             {type === 'start-end' && (
               <View style={styles.dateSelectionSummary}>
@@ -115,20 +169,20 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                   <View style={styles.dateInfoItem}>
                     <Text style={styles.dateInfoLabel}>{i18n.t('tours.startDate')}:</Text>
                     <Text style={[
-                      styles.dateInfoValue, 
+                      styles.dateInfoValue,
                       startDate ? styles.dateInfoValueFilled : null,
                       pickerMode === 'start' ? [styles.dateInfoValueActive, { color }] : null
                     ]}>
                       {startDate ? formatDisplayDate(startDate) : i18n.t('tours.notSelected')}
                     </Text>
                   </View>
-                  
+
                   <View style={styles.dateInfoDivider} />
-                  
+
                   <View style={styles.dateInfoItem}>
                     <Text style={styles.dateInfoLabel}>{i18n.t('tours.endDate')}:</Text>
                     <Text style={[
-                      styles.dateInfoValue, 
+                      styles.dateInfoValue,
                       endDate ? styles.dateInfoValueFilled : null,
                       pickerMode === 'end' ? [styles.dateInfoValueActive, { color }] : null
                     ]}>
@@ -136,7 +190,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                     </Text>
                   </View>
                 </View>
-                
+
                 {pickerMode === 'end' && startDate && (
                   <Text style={styles.dateSelectionHint}>
                     {i18n.t('tours.endDateHint')} {formatDisplayDate(startDate)}
@@ -144,12 +198,16 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                 )}
               </View>
             )}
-            
+
             <DatePicker
               mode="calendar"
+              isGregorian={true}
+              locale={getSupportedLocale(i18n.locale ?? 'en')}
+              configs={getConfigs()}
+              onSelectedChange={onDateSelect}
+              onDateChange={onDateSelect}
               current={getCurrentDate()}
               minimumDate={getMinimumDate()}
-              onDateChange={onDateSelect}
               options={{
                 backgroundColor: '#FFF',
                 textHeaderColor: '#000',
@@ -160,13 +218,14 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                 borderColor: `${color}33`,
               }}
             />
-            
+
+
             {type === 'start-end' && (
               <View style={styles.pickerFooter}>
                 <View style={styles.switchModeContainer}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[
-                      styles.switchModeButton, 
+                      styles.switchModeButton,
                       pickerMode === 'start' ? [styles.switchModeButtonActive, { backgroundColor: color }] : null
                     ]}
                     onPress={() => setPickerMode('start')}
@@ -178,10 +237,10 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                       {i18n.t('tours.selectStart')}
                     </Text>
                   </TouchableOpacity>
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     style={[
-                      styles.switchModeButton, 
+                      styles.switchModeButton,
                       pickerMode === 'end' ? [styles.switchModeButtonActive, { backgroundColor: color }] : null
                     ]}
                     onPress={() => setPickerMode('end')}
@@ -194,7 +253,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                     </Text>
                   </TouchableOpacity>
                 </View>
-                
+
                 <TouchableOpacity
                   style={styles.closeModalButton}
                   onPress={onClose}

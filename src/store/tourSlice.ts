@@ -3,6 +3,10 @@ import { api } from '../service';
 import { Tour, TourSavedItem } from '../types/tour';
 import { mapBookmarksToTourSavedItems } from '../utils/bookmarkMapper';
 import { RootState } from './store';
+import axios from 'axios';
+import { getAccessToken } from '../service/KeycloakService';
+
+
 // Define interfaces for tour items
 export interface TourItem {
   id: string;
@@ -26,10 +30,17 @@ export interface TourState {
   availableItems: TourSavedItem[];
   loading: boolean;
   error: string | null;
+  paginatedTours: Tour[];
+  totalPages: number;
+  totalItems: number;
 }
 
 // Initial state
 const initialState: TourState = {
+  paginatedTours: [],
+  totalPages: 0,
+  totalItems: 0,
+
   currentTour: {
     id: '',
     title: '',
@@ -44,7 +55,7 @@ const initialState: TourState = {
     from: '',
     to: '',
   },
-  savedTours: [], 
+  savedTours: [],
   loading: false,
   availableItems: [],
   error: null,
@@ -56,7 +67,7 @@ export const fetchBookmarksAsItems = createAsyncThunk(
   async ({ startDate, endDate }: { startDate?: string, endDate?: string } = {}, { dispatch, getState }) => {
     try {
       let datesFromParams = { startDate, endDate };
-      
+
       // If dates weren't provided as parameters, try to get them from the store
       if (!startDate || !endDate) {
         const state = getState() as RootState;
@@ -65,9 +76,9 @@ export const fetchBookmarksAsItems = createAsyncThunk(
           endDate: state.tour.currentTour.endDate
         };
       }
-      
+
       console.log("Raw tour dates:", datesFromParams.startDate, datesFromParams.endDate);
-      
+
       // Check if dates exist before formatting
       let queryParams = '';
       if (datesFromParams.startDate && datesFromParams.endDate) {
@@ -75,20 +86,20 @@ export const fetchBookmarksAsItems = createAsyncThunk(
         // First, standardize the format by replacing both / and - with /
         const normalizedStartDate = datesFromParams.startDate.replace(/\//g, '-');
         const normalizedEndDate = datesFromParams.endDate.replace(/\//g, '-');
-        
+
         console.log("Normalized dates:", normalizedStartDate, normalizedEndDate);
-        
+
         try {
           // Format dates as YYYY-MM-DD
           const startDateObj = new Date(normalizedStartDate);
           const endDateObj = new Date(normalizedEndDate);
-          
+
           const formattedStartDate = startDateObj.toISOString().slice(0, 19);
           const formattedEndDate = endDateObj.toISOString().slice(0, 19);
-          
+
           console.log("Date objects:", startDateObj, endDateObj);
           console.log("Formatted dates:", formattedStartDate, formattedEndDate);
-          
+
           if (formattedStartDate !== "Invalid Date" && formattedEndDate !== "Invalid Date") {
             queryParams = `?startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
           }
@@ -96,17 +107,17 @@ export const fetchBookmarksAsItems = createAsyncThunk(
           console.error("Error formatting dates:", e);
         }
       }
-      
+
       console.log("Final query params:", queryParams);
       const response = await api.get(`/bookmarks${queryParams}`);
       const bookmarks = response.data;
-      
+
       // Map bookmarks to saved items format
       const savedItems = mapBookmarksToTourSavedItems(bookmarks);
-      
+
       // Set these items as available items without type transformation
       dispatch(setAvailableItems(savedItems));
-      
+
       return savedItems;
     } catch (error) {
       console.error('Error fetching bookmarks:', error);
@@ -118,19 +129,19 @@ export const fetchBookmarksAsItems = createAsyncThunk(
 // Async thunk to save a tour
 export const saveTourThunk = createAsyncThunk(
   'tour/saveTourThunk',
-  async (tourData: { 
-    title: string; 
-    from: string; 
-    to: string; 
-    destinations: TourSavedItem[] 
+  async (tourData: {
+    title: string;
+    from: string;
+    to: string;
+    destinations: TourSavedItem[]
   }, { dispatch, getState }) => {
     try {
       // Optional: You can send the tour data to an API endpoint
       const response = await api.post('/tours', tourData);
-      
+
       // After successfully saving to the backend, save to the local state
       dispatch(saveTour());
-      
+
       return response.data;
     } catch (error) {
       console.error('Error saving tour:', error);
@@ -152,13 +163,36 @@ export const fetchTours = createAsyncThunk(
   }
 );
 
+
+export const fetchPaginatedTours = createAsyncThunk(
+  'tour/fetchPaginatedTours',
+  async ({ page, size }: { page: number; size: number }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/tours/paginated?page=${page}&size=${size}`);
+      //const response = await api.get(`/tours?page=${page}&size=${size}`);
+      console.log('✅ Résultat pagination JSON:', response.data);
+      console.log('📤 Pagination frontend - page demandée:', page);
+      console.log('📥 Résultat backend (data):', response.data);
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Erreur pagination backend (détail):", error?.response?.data || error);
+      const backendMessage = error?.response?.data?.message || error?.message || 'Failed to fetch paginated tours';
+      return rejectWithValue(backendMessage);
+    }
+  }
+);
+
+
+
+
 // Async thunk to fetch tour details by ID
 export const fetchTourDetails = createAsyncThunk(
   'tour/fetchTourDetails',
   async (tourId: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/tours/${tourId}`);
-      
+
       return response.data;
     } catch (error) {
       return rejectWithValue('Failed to fetch tour details');
@@ -194,27 +228,27 @@ const tourSlice = createSlice({
       state.currentTour.endDate = endDate;
 
     },
-    
+
     // Update tour title
     setTourTitle: (state, action: PayloadAction<string>) => {
       state.currentTour.title = action.payload;
     },
-    
+
     // Update tour start date
     setTourStartDate: (state, action: PayloadAction<string>) => {
       state.currentTour.startDate = action.payload;
     },
-    
+
     // Update tour end date
     setTourEndDate: (state, action: PayloadAction<string>) => {
       state.currentTour.endDate = action.payload;
     },
-    
+
     // Add destinations to the tour
     setTourDestinations: (state, action: PayloadAction<string[]>) => {
       state.currentTour.destinations = action.payload;
     },
-    
+
     // Set tour items with their coordinates
     setTourItems: (state, action: PayloadAction<{
       tourItems: TourSavedItem[],
@@ -225,12 +259,12 @@ const tourSlice = createSlice({
       state.currentTour.selectedItemsByDay = action.payload.selectedItemsByDay;
       state.currentTour.cities = action.payload.cities;
     },
-    
+
     // Add a new available item
     addAvailableItem: (state, action: PayloadAction<TourSavedItem>) => {
       state.availableItems.push(action.payload);
     },
-    
+
     // Update an existing available item
     updateAvailableItem: (state, action: PayloadAction<TourSavedItem>) => {
       const index = state.availableItems.findIndex(item => item.id === action.payload.id);
@@ -238,13 +272,13 @@ const tourSlice = createSlice({
         state.availableItems[index] = action.payload;
       }
     },
-    
+
     // Save current tour
     saveTour: (state) => {
       // Only save if the tour has required fields
       if (state.currentTour.title && state.currentTour.startDate && state.currentTour.endDate) {
         state.savedTours.push({ ...state.currentTour });
-        
+
         // Reset current tour
 
         // call the resetCurrentTour action
@@ -264,7 +298,7 @@ const tourSlice = createSlice({
         };
       }
     },
-    
+
     // Reset the current tour
     resetCurrentTour: (state) => {
       state.currentTour = {
@@ -282,12 +316,12 @@ const tourSlice = createSlice({
         to: '',
       };
     },
-    
+
     // Clear any errors
     clearError: (state) => {
       state.error = null;
     },
-    
+
     // Set all available items (replacing existing ones)
     setAvailableItems: (state, action: PayloadAction<TourSavedItem[]>) => {
       state.availableItems = action.payload;
@@ -366,23 +400,39 @@ const tourSlice = createSlice({
       .addCase(deleteTourThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to delete tour';
-      });
+      })
+      .addCase(fetchPaginatedTours.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPaginatedTours.fulfilled, (state, action) => {
+        state.loading = false;
+        state.paginatedTours = Array.isArray(action.payload) ? action.payload : action.payload.content || [];
+        state.totalPages = action.payload.totalPages || 1;
+        state.totalItems = action.payload.totalItems || (Array.isArray(action.payload) ? action.payload.length : 0);
+      })
+      .addCase(fetchPaginatedTours.rejected, (state, action) => {
+        console.error('Erreur pagination backend :', action.error);
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch paginated tours';
+      })
+
   },
 });
 
-export const { 
-  setTourInfo, 
-  setTourTitle, 
-  setTourStartDate, 
-  setTourEndDate, 
+export const {
+  setTourInfo,
+  setTourTitle,
+  setTourStartDate,
+  setTourEndDate,
   setTourDestinations,
   setTourItems,
   addAvailableItem,
   updateAvailableItem,
   setAvailableItems,
-  saveTour, 
+  saveTour,
   resetCurrentTour,
-  clearError 
+  clearError
 } = tourSlice.actions;
 
 export default tourSlice.reducer; 

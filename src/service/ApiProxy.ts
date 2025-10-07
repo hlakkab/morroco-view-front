@@ -10,6 +10,8 @@ import { getImagesWithDefaults } from '../utils/imageUtils';
 
 //const API_URL = "http://192.168.0.205:9090";
 const baseURL = 'https://agence.mview.ma/api';
+//const baseURL = 'http://192.168.1.2:9090';
+
 
 // Create axios instance
 const api: AxiosInstance = axios.create({

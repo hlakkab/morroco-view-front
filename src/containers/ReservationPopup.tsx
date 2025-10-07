@@ -153,7 +153,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
       copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
-  
+
   // Track when reservation popup is opened
   useEffect(() => {
     trackEvent('Pickup_Reservation_Opened', {
@@ -838,7 +838,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
                 </View>
 
                 <Text style={styles.sectionTitle}>{i18n.t('reservation.whereAreYouStaying')}</Text>
-                
+
                 {/* Location search input - always visible */}
                 <View style={styles.locationInputContainer}>
                   <GooglePlacesAutocomplete
@@ -851,6 +851,10 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
                       components: 'country:ma',
                     }}
                     fetchDetails={true}
+                    predefinedPlaces={[]}                 // ← évite .filter sur undefined
+                    predefinedPlacesAlwaysVisible={false}
+                    minLength={2}                         // ← recommandé pour éviter des états vides
+                    timeout={20000}                       // ← évite d’autres erreurs réseau/latence
                     onFail={(error) => console.error(error)}
                     onNotFound={() => console.log('No results found')}
                     styles={{
@@ -864,16 +868,14 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
                       poweredContainer: { display: 'none' }
                     }}
                     enablePoweredByContainer={false}
-                    minLength={1}
+                    //minLength={1}
                     listViewDisplayed={true}
-                    textInputProps={{
+                    textInputProps={{                     // certaines versions exigent un objet complet
                       placeholderTextColor: '#999',
                       returnKeyType: 'search',
                       clearButtonMode: 'while-editing',
-                      onChangeText: (text) => {
-                        if (text === '') {
-                          handleClearLocation();
-                        }
+                      onChangeText: (text: string) => {
+                        if (text === '') handleClearLocation();
                       }
                     }}
                     keyboardShouldPersistTaps="handled"
@@ -1582,7 +1584,7 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   mapContainer: {
-    height: 160, 
+    height: 160,
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,

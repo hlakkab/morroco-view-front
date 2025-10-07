@@ -23,6 +23,8 @@ import { Destination, Tour } from '../types/tour';
 import { getFlagUrl } from '../utils/flagResolver';
 import { mapTourForDetailsModal } from '../utils/tourMapper';
 import { setTourItems, setTourInfo } from '../store/tourSlice';
+import Pagination from '../components/Pagination';
+
 
 interface TourDetailsModalProps {
   visible: boolean;
@@ -48,6 +50,9 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   const { start: startTour, copilotEvents, visible: isCopilotVisible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+
 
   // Check if tour has been seen before
   useEffect(() => {
@@ -133,7 +138,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   }, [visible, pan]);
 
   // Generate an array of day numbers based on duration
-  
+
 
   // Get type icon based on destination type
   const getTypeIcon = (type: string) => {
@@ -172,9 +177,9 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   // Handle navigating to timeline preview
   const handleViewTimeline = () => {
     if (!currentTour) return;
-    
+
     const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
-    
+
     // Convert to the format expected by AddNewTourOrganizeScreen
     const selectedItemsByDay: Record<number, string[]> = {};
     const cities: Record<number, string> = {};
@@ -184,7 +189,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
       const dayNumber = index + 1;
       selectedItemsByDay[dayNumber] = dayDestinations.map(d => d.id);
       cities[dayNumber] = dayDestinations[0]?.city || 'Unknown';
-      
+
       // Add items to savedItems with coordinates
       dayDestinations.forEach(dest => {
         allSavedItems.push({
@@ -210,7 +215,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
       selectedItemsByDay,
       cities
     }));
-    
+
     onClose();
     // Navigate to the organize screen with only viewMode param
     navigation.navigate('AddNewTourOrganize', { viewMode: true });
@@ -219,11 +224,11 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   // Handle navigating to map view
   const handleViewMap = () => {
     if (!currentTour) return;
-    
+
     const mappedData = mapTourForDetailsModal(currentTour, selectedDay);
 
     //console.log('mappedData', mappedData.destinationsByDate);
-    
+
     onClose();
     navigation.navigate('TourMapScreen', mappedData);
   };
@@ -236,17 +241,23 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
 
   // Filter destinations based on the selected day (in a real app, this would use day-specific data)
   const destinations = currentTour?.destinations as Destination[] || [];
-  
+
 
   const dates = Array.from(new Set(destinations.map(d => d.date)));
-  const days =  Array.from({ length: dates.length || 1 }, (_, i) => i + 1);
+  const days = Array.from({ length: dates.length || 1 }, (_, i) => i + 1);
 
   const filteredDestinations = destinations.filter(d => d.date === dates[selectedDay - 1]);
+
+  const totalPages = Math.ceil(filteredDestinations.length / itemsPerPage);
+  const paginatedDestinations = filteredDestinations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
 
   // Function to format date as "DD MMM"
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short'
     });
@@ -278,7 +289,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
     const renderMatchContent = () => {
       const teams = item.title.split(' vs ');
       if (teams.length !== 2) return null;
-      
+
       return (
         <View style={styles.matchContainer}>
           <Image source={{ uri: getFlagUrl(teams[0]) }} style={styles.teamFlag} />
@@ -294,9 +305,9 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
           {item.type === 'match' ? (
             renderMatchContent()
           ) : (item.image || getDefaultImageForType(item.type)) ? (
-            <Image 
-              source={{ uri: item.image || getDefaultImageForType(item.type) }} 
-              style={styles.destinationImage} 
+            <Image
+              source={{ uri: item.image || getDefaultImageForType(item.type) }}
+              style={styles.destinationImage}
             />
           ) : (
             <View style={[styles.destinationImagePlaceholder, { backgroundColor: '#F5F5F5' }]}>
@@ -320,7 +331,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
 
   // Render each day option in the dropdown
   const renderDayOption = ({ item }: { item: number }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.dayOption}
       onPress={() => handleDaySelect(item)}
     >
@@ -361,7 +372,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Ionicons name="close" size={16} color="black" />
+                  <Ionicons name="close" size={20} color="black" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -402,21 +413,21 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
             >
               <WalkthroughableView style={styles.destinationsHeader}>
                 <Text style={styles.sectionTitle}>{i18n.t('tours.selectedDestinations')}</Text>
-                
+
                 {/* Day Selector Dropdown */}
                 <View style={styles.dayDropdownContainer}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.dayDropdown}
                     onPress={() => setShowDayPicker(!showDayPicker)}
                   >
                     <Text style={styles.dayDropdownText}>{getDateForDay(selectedDay)}</Text>
-                    <Feather 
-                      name={showDayPicker ? "chevron-up" : "chevron-down"} 
-                      size={16} 
-                      color="#666" 
+                    <Feather
+                      name={showDayPicker ? "chevron-up" : "chevron-down"}
+                      size={16}
+                      color="#666"
                     />
                   </TouchableOpacity>
-                  
+
                   {/* Day Picker Dropdown */}
                   {showDayPicker && (
                     <View style={styles.dayPickerContainer}>
@@ -440,7 +451,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
             >
               <WalkthroughableView style={{ flex: 1 }}>
                 <FlatList
-                  data={filteredDestinations}
+                  data={paginatedDestinations}
                   renderItem={renderDestinationItem}
                   keyExtractor={(item) => item.id}
                   contentContainerStyle={styles.destinationsList}
@@ -452,6 +463,18 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
                     </View>
                   }
                 />
+
+                {totalPages > 1 && (
+                  <View style={{ alignItems: 'center', marginTop: 10 }}>
+                    <Pagination
+                      totalItems={filteredDestinations.length}
+                      itemsPerPage={itemsPerPage}
+                      currentPage={currentPage}
+                      onPageChange={(page) => setCurrentPage(page)}
+                    />
+                  </View>
+                )}
+
               </WalkthroughableView>
             </CopilotStep>
 
@@ -683,7 +706,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    
+
     borderRadius: 12,
     marginBottom: 12,
     elevation: 2,
