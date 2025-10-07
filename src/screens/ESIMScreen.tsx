@@ -1,18 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useDispatch, useSelector } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import AuthModal from '../components/AuthModal';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import BuyESIMModal from '../containers/BuyESIMModal';
 import ESIMCardsContainer from '../containers/ESIMCardsContainer';
 import QRCodeModal from '../containers/QRCodeModal';
-import { AppDispatch, RootState } from '../store';
+import { useAuth } from '../contexts/AuthContext';
 import { trackEvent } from '../service/Mixpanel';
+import { AppDispatch, RootState } from '../store';
 import { createEsim, fetchEsims } from '../store/slices/esimSlice';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
@@ -32,10 +34,17 @@ const ESIMScreenContent: React.FC = () => {
   const { start, copilotEvents, visible, stop } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
+  // Check authentication on mount and show modal if not authenticated
   useEffect(() => {
-    dispatch(fetchEsims());
-  }, [dispatch]);
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+    } else {
+      dispatch(fetchEsims());
+    }
+  }, [dispatch, isAuthenticated]);
 
   // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
@@ -104,6 +113,10 @@ const ESIMScreenContent: React.FC = () => {
   };
 
   const handleBuyOne = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
     trackEvent('BuyEsimModal_Opened');
     // Stop the tour before opening the modal
     stop();
@@ -116,6 +129,17 @@ const ESIMScreenContent: React.FC = () => {
 
   const handleCloseQrModal = () => {
     setQrModalVisible(false);
+  };
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
+    // If user is now authenticated, fetch ESIMs
+    if (isAuthenticated()) {
+      dispatch(fetchEsims());
+    } else {
+      // If user closed modal without authenticating, go back
+      navigation.goBack();
+    }
   };
 
   // Add a button to manually start the tour
@@ -194,6 +218,12 @@ const ESIMScreenContent: React.FC = () => {
         visible={qrModalVisible}
         onClose={handleCloseQrModal}
         qrCodeUrl="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ESIM-123456789"
+      />
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={handleAuthModalClose}
+        type="auth"
       />
     </SafeAreaView>
   );

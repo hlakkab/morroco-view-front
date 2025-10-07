@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import QRCodeLargeSvg from '../assets/serviceIcons/qrcode-large.svg'; // Ensure this exists
 import ESIMCard from '../components/ESIMCard';
 import QRCodeModal from '../components/QRCodeModal';
@@ -58,8 +58,11 @@ const ESIMCardsContainer: React.FC<ESIMCardsContainerProps> = ({ esims, loading,
 
   if (esims.length === 0) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.emptyText}>No ESIMs available</Text>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyTitle}>{i18n.t('qrcode.noESIM')}</Text>
+        <Text style={styles.emptyDescription}>
+          {i18n.t('qrcode.noESIMDescription')}
+        </Text>
       </View>
     );
   }
@@ -105,10 +108,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
-  emptyText: {
-    fontSize: 16,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#333',
+    marginBottom: 12,
+  },
+  emptyDescription: {
+    fontSize: 14,
     textAlign: 'center',
     color: '#666',
+    lineHeight: 20,
   },
 });
 

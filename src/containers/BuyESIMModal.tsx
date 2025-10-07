@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import {
   Animated,
@@ -13,13 +14,12 @@ import {
 } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import { useDispatch } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import { AppDispatch } from '../store';
 import { createEsim } from '../store/slices/esimSlice';
 
 // SVG imports for different providers
-import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
+// import InwiSvg from '../assets/serviceIcons/inwi-img.svg';
 import OrangeSvg from '../assets/serviceIcons/orange-img.svg';
 import i18n from '../translations/i18n';
 
@@ -126,27 +126,28 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
 
   // Available operators
   const operators: OperatorOption[] = [
-    {
-      id: 'inwi',
-      name: 'eSim Inwi',
-      logo: <InwiSvg width={50} height={35} />,
-      price: '2€'
-    },
+    // Temporarily hide Inwi offers
+    // {
+    //   id: 'inwi',
+    //   name: 'eSim Inwi',
+    //   logo: <InwiSvg width={50} height={35} />,
+    //   price: '2€'
+    // },
     {
       id: 'orange',
       name: 'eSim Orange',
       logo: <OrangeSvg width={50} height={35} />,
-      price: '2€'
+      price: '—'
     }
   ];
 
   // Available offers
+  // Orange offers (prices in DH)
   const offers: Offer[] = [
-    { id: '0', data: 'eSIM Only', price: '2' },
-    { id: '1', data: '3h + 5GO', price: '5' },
-    { id: '2', data: '5h + 10GO', price: '8' },
-    { id: '3', data: '10h + 20GO', price: '11' },
-    { id: '4', data: '20h + 50GO', price: '14' }
+    { id: 'marhaba-20go', data: i18n.t('qrcode.offers.marhaba20go'), price: '120' },
+    { id: 'marhaba-40go', data: i18n.t('qrcode.offers.marhaba40go'), price: '220' },
+    { id: 'illimite-internet', data: i18n.t('qrcode.offers.unlimitedInternet'), price: '320' },
+    { id: 'carte-seule', data: i18n.t('qrcode.offers.cardOnly'), price: '20' },
   ];
 
   // Selected operator and offer
@@ -185,7 +186,7 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
   React.useEffect(() => {
     if (visible) {
       pan.setValue({ x: 0, y: 0 });
-      // Default to first operator selected
+      // Default to first operator selected (Orange only for now)
       if (operators.length > 0 && !selectedOperator) {
         setSelectedOperator(operators[0].id);
       }
@@ -303,7 +304,7 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
                 name="offer-selection"
               >
                 <WalkthroughableView style={styles.enhancedHighlight}>
-                  <Text style={styles.label}>Select Offer <Text style={styles.required}>*</Text></Text>
+                  <Text style={styles.label}>{i18n.t('qrcode.selectOffer')} <Text style={styles.required}>*</Text></Text>
                   <View style={styles.offersList}>
                     {offers.map((offer) => (
                       <TouchableOpacity
@@ -320,7 +321,7 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
                             styles.offerPrice,
                             selectedOffer === offer.id && styles.offerPriceSelected
                           ]}>
-                            {`${offer.price}€`}
+                            {`${offer.price} DH`}
                           </Text>
                           {selectedOffer === offer.id && (
                             <View style={styles.checkmarkContainer}>
@@ -347,9 +348,9 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
                     title={`${i18n.t('qrcode.buyFor')} ${(() => {
                       const offerPrice = offers.find(o => o.id === selectedOffer)?.price;
                       if (offerPrice) {
-                        return Math.round(parseFloat(offerPrice)) + '€';
+                        return Math.round(parseFloat(offerPrice)) + ' DH';
                       }
-                      return '0€';
+                      return '0 DH';
                     })()}`} 
                     onPress={handleBuy}
                     disabled={!selectedOperator || !selectedOffer}

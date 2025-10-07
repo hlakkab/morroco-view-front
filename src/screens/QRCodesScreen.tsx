@@ -5,16 +5,17 @@ import { ActivityIndicator, Platform, SafeAreaView, StyleSheet, Text, TouchableO
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
 // Import components and containers
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AuthModal from '../components/AuthModal';
 import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import SearchBar from '../components/SearchBar';
 import AddQRCodeModal from '../containers/AddQRCodeModal';
 import QRCodesContainer from '../containers/QRCodesContainer';
+import { useAuth } from '../contexts/AuthContext';
 import i18n from '../translations/i18n';
 import { RootStackParamList } from '../types/navigation';
 import QRCode from '../types/qrcode';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../hooks/reduxHooks';
@@ -33,17 +34,21 @@ const QRCodesScreenContent: React.FC = () => {
   const { start, copilotEvents, visible, stop } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
-  
-
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Redux state and dispatch
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector(state => state.qrCodes);
   
-  // Fetch QR codes when component mounts
+  // Check authentication on mount and show modal if not authenticated
   useEffect(() => {
-    dispatch(fetchQRCodes());
-  }, [dispatch]);
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+    } else {
+      dispatch(fetchQRCodes());
+    }
+  }, [dispatch, isAuthenticated]);
 
     // ─── 1. Lire si le tour a déjà été vu ─────────────────
     useEffect(() => {
@@ -120,11 +125,26 @@ const QRCodesScreenContent: React.FC = () => {
   };
 
   const handleAddQrCode = () => {
+    if (!isAuthenticated()) {
+      setShowAuthModal(true);
+      return;
+    }
     setAddModalVisible(true);
   };
 
   const handleCloseAddModal = () => {
     setAddModalVisible(false);
+  };
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
+    // If user is now authenticated, fetch QR codes
+    if (isAuthenticated()) {
+      dispatch(fetchQRCodes());
+    } else {
+      // If user closed modal without authenticating, go back
+      navigation.goBack();
+    }
   };
 
   const handleSaveQrCode = (data: Omit<QRCode, 'id' |'createdAt'>) => {
@@ -172,14 +192,14 @@ const QRCodesScreenContent: React.FC = () => {
       </View>
 
       {/* Loading indicator */}
-      {loading && (
+      {loading && isAuthenticated() && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
       
-      {/* Error message */}
-      {error && (
+      {/* Error message - only show if authenticated and there's an actual error */}
+      {error && isAuthenticated() && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
         </View>
@@ -214,6 +234,12 @@ const QRCodesScreenContent: React.FC = () => {
         visible={addModalVisible}
         onClose={handleCloseAddModal}
         onSave={handleSaveQrCode}
+      />
+
+      <AuthModal
+        visible={showAuthModal}
+        onClose={handleAuthModalClose}
+        type="auth"
       />
     </SafeAreaView>
   );

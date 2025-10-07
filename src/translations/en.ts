@@ -274,7 +274,18 @@ export default {
     buyOne: 'Buy one',
     buyNew: 'Buy new eSIM',
     selectOperator: 'Select operator',
+    selectOffer: 'Select Offer',
     buyFor: 'Buy for',
+    noESIM: 'No eSIM Cards Yet',
+    noESIMDescription: 'You haven\'t purchased any eSIM cards yet. Tap "Buy one" below to get started and stay connected during your trip.',
+    noQRCodes: 'No QR Codes Yet',
+    noQRCodesDescription: 'You haven\'t saved any QR codes yet. Tap "Add QR Code" below to start scanning and organizing your QR codes.',
+    offers: {
+      marhaba20go: '20 Go (30 days)',
+      marhaba40go: '40 Go (30 days)',
+      unlimitedInternet: 'Unlimited Internet (30 days)',
+      cardOnly: 'SIM Card Only',
+    },
   },
   monuments: {
     title: 'Monuments',
@@ -555,6 +566,9 @@ export default {
     delete: 'Delete',
     deleteTourConfirmation: 'Are you sure you want to delete "{title}"? This action cannot be undone.',
     loadingRoutes: 'Loading routes...',
+    noTours: 'No Tours Yet',
+    noToursDescription: 'You haven\'t created any tours yet. Tap "Add New Tour" above to start planning your perfect Moroccan adventure.',
+    errorLoadingTours: 'Failed to load tours. Please try again later.',
     onboarding: {
       title: 'Welcome to Tours',
       subtitle: 'Create personalized itineraries for your Moroccan adventure by following these simple steps:',

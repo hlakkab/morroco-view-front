@@ -1,14 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import Pagination from '../components/Pagination';
 import TourDetailsModal from '../components/TourDetailsModal';
 import TourCard from '../components/cards/TourCard';
 import DeleteTourConfirmationModal from '../components/modals/DeleteTourConfirmationModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { deleteTourThunk, fetchPaginatedTours, fetchTourDetails, fetchTours } from '../store/tourSlice';
 import i18n from '../translations/i18n';
 import { Tour } from '../types/tour';
-import Pagination from '../components/Pagination';
-import { deleteTourThunk, fetchTourDetails, fetchTours, fetchPaginatedTours } from '../store/tourSlice';
 
 
 const TourListContainer: React.FC = () => {
@@ -104,10 +104,29 @@ const TourListContainer: React.FC = () => {
     );
   }
 
+  // If there's an error that indicates no tours found, show empty state instead
   if (error && !isDeletingTour) {
+    // Check if the error is about no tours being found
+    const isNoToursError = error.toLowerCase().includes('not found') || 
+                          error.toLowerCase().includes('no tours') ||
+                          error.toLowerCase().includes('rejected');
+    
+    if (isNoToursError) {
+      // Show empty state instead of error for "not found" cases
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>{i18n.t('tours.noTours')}</Text>
+          <Text style={styles.emptyDescription}>
+            {i18n.t('tours.noToursDescription')}
+          </Text>
+        </View>
+      );
+    }
+    
+    // For actual errors, show error message
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Erreur : {error || 'Une erreur est survenue'}</Text>
+        <Text style={styles.errorText}>{i18n.t('tours.errorLoadingTours')}</Text>
       </View>
     );
   }
@@ -115,7 +134,10 @@ const TourListContainer: React.FC = () => {
   if (!paginatedTours || paginatedTours.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>{i18n.t('common.noData')}</Text>
+        <Text style={styles.emptyTitle}>{i18n.t('tours.noTours')}</Text>
+        <Text style={styles.emptyDescription}>
+          {i18n.t('tours.noToursDescription')}
+        </Text>
       </View>
     );
   }
@@ -199,10 +221,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
-  emptyText: {
-    fontSize: 16,
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#333',
+    marginBottom: 12,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    textAlign: 'center',
     color: '#666',
+    lineHeight: 20,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

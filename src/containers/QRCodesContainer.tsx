@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import QRCodeCard from '../components/QRCodeCard';
 import QRCodeModal from '../components/QRCodeModal';
 import { useAppSelector } from '../hooks/reduxHooks';
@@ -32,6 +32,18 @@ const QRCodesContainer: React.FC<QRCodesContainerProps> = ({ searchQuery = '' })
     setModalVisible(false);
   };
 
+  // Show empty state if no QR codes
+  if (filteredQrCodes.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyTitle}>{i18n.t('qrcode.noQRCodes')}</Text>
+        <Text style={styles.emptyDescription}>
+          {i18n.t('qrcode.noQRCodesDescription')}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
@@ -63,7 +75,27 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     paddingHorizontal: 16
-  }
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#333',
+    marginBottom: 12,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#666',
+    lineHeight: 20,
+  },
 });
 
 export default QRCodesContainer;

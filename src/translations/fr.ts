@@ -265,7 +265,18 @@ export default {
     buyOne: 'Acheter Une',
     buyNew: 'Acheter Nouvelle eSIM',
     selectOperator: 'Sélectionner un Opérateur',
-    buyFor: 'Acheter pour'
+    selectOffer: 'Sélectionner une Offre',
+    buyFor: 'Acheter pour',
+    noESIM: 'Aucune Carte eSIM',
+    noESIMDescription: 'Vous n\'avez pas encore acheté de carte eSIM. Appuyez sur "Acheter Une" ci-dessous pour commencer et rester connecté pendant votre voyage.',
+    noQRCodes: 'Aucun Code QR',
+    noQRCodesDescription: 'Vous n\'avez pas encore enregistré de codes QR. Appuyez sur "Ajouter un Code QR" ci-dessous pour commencer à scanner et organiser vos codes QR.',
+    offers: {
+      marhaba20go: '20 Go (30 jours)',
+      marhaba40go: '40 Go (30 jours)',
+      unlimitedInternet: 'Internet illimité (30 jours)',
+      cardOnly: 'Carte seule',
+    },
   },
   monuments: {
     title: 'Monuments',
@@ -555,6 +566,9 @@ export default {
     delete: 'Supprimer',
     deleteTourConfirmation: 'Êtes-vous sûr de vouloir supprimer "{title}"? Cette action ne peut pas être annulée.',
     loadingRoutes: 'Chargement des itinéraires...',
+    noTours: 'Aucun Tour',
+    noToursDescription: 'Vous n\'avez pas encore créé de tour. Appuyez sur "Ajouter un nouveau tour" ci-dessus pour commencer à planifier votre parfaite aventure marocaine.',
+    errorLoadingTours: 'Échec du chargement des tours. Veuillez réessayer plus tard.',
     onboarding: {
       title: 'Bienvenue dans Tours',
       subtitle: 'Créez des itinéraires personnalisés pour votre aventure marocaine en suivant ces étapes simples:',
