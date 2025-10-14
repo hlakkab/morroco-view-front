@@ -7,7 +7,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '1.1.1',
   orientation: 'portrait',
   userInterfaceStyle: 'light',
+  newArchEnabled: false,
   splash: {
+    image: './assets/adaptive-icon.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff'
   },
@@ -51,6 +53,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         locationAlwaysAndWhenInUsePermission: 'Allow $(PRODUCT_NAME) to use your location.',
       },
+    ],
+    'expo-font',
+    'expo-localization',
+    'expo-secure-store',
+    'expo-web-browser',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          targetSdkVersion: 36,
+          compileSdkVersion: 36,
+          
+        }
+      }
     ],
   ],
 }); 
