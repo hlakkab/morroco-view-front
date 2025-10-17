@@ -1,17 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
-import artisanReducer from './artisanSlice';
-import bookmarkReducer from './bookmarkSlice';
-import entertainmentReducer from './entertainmentSlice';
-import exchangeBrokerReducer from './exchangeBrokerSlice';
-import hotelPickupDetailsReducer from "./hotelPickupDetailsSlice";
-import hotelPickupReducer from "./hotelPickupSlice";
-import matchReducer from './matchSlice';
-import monumentReducer from './monumentSlice';
-import qrCodeReducer from "./qrCodeSlice";
-import restaurantReducer from './restaurantSlice';
-import ticketReducer from './ticketSlice';
-import tourReducer from './tourSlice';
-import esimReducer from './slices/esimSlice';
+
+// Import reducers directly from store files
+import artisanReducer from '../Artisan/store/artisanSlice';
+import bookmarkReducer from '../Bookmarks/store/bookmarkSlice';
+import entertainmentReducer from '../Entertainment/store/entertainmentSlice';
+import exchangeBrokerReducer from '../MoneyExchange/store/exchangeBrokerSlice';
+import hotelPickupReducer from '../Pickup/store/hotelPickupSlice';
+import hotelPickupDetailsReducer from '../Pickup/store/hotelPickupDetailsSlice';
+import matchReducer from '../Match/store/matchSlice';
+import monumentReducer from '../Monument/store/monumentSlice';
+import qrCodeReducer from '../QRCode/store/qrCodeSlice';
+import restaurantReducer from '../Restaurant/store/restaurantSlice';
+import ticketReducer from '../Tickets/store/ticketSlice';
+import tourReducer from '../Tours/store/tourSlice';
+import esimReducer from '../ESIM/store/esimSlice';
 
 const store = configureStore({
   reducer: {

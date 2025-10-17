@@ -1,5 +1,5 @@
 import { mockArtisans } from '../data/mockArtisans';
-import { Artisan, ArtisanType } from '../types/Artisan';
+import { Artisan, ArtisanType } from '../Artisan/types/Artisan';
 
 /**
  * Mock service that simulates API calls for artisan data

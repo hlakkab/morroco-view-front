@@ -38,24 +38,37 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   async (response: AxiosResponse) => {
+
+    console.log("NQJSFBSJKDFBJKSBDFKJBSKJDF")
     // Handle empty images array in successful responses
     if (response.status === 200 && response.data) {
 
-      // Handle array response
-      if (Array.isArray(response.data)) {
-        const processedData = await Promise.all(response.data.map(async item => {
-          if (item.images && Array.isArray(item.images) && item.images.length === 0) {
-            const id = item.id || 'default';
-            item.images = await getImagesWithDefaults(item.images, id);
+      // Handle paginated response (Spring Boot pagination format)
+      if (response.data.content && Array.isArray(response.data.content)) {
+        const processedContent = await Promise.all(response.data.content.map(async (item: any) => {
+          if (!item.images || (Array.isArray(item.images) && item.images.length === 0)) {
+            const id = item.code || item.id || 'default';
+            item.images = await getImagesWithDefaults(item.images || [], id);
+          }
+          return item;
+        }));
+        response.data.content = processedContent;
+      }
+      // Handle direct array response
+      else if (Array.isArray(response.data)) {
+        const processedData = await Promise.all(response.data.map(async (item: any) => {
+          if (!item.images || (Array.isArray(item.images) && item.images.length === 0)) {
+            const id = item.code || item.id || 'default';
+            item.images = await getImagesWithDefaults(item.images || [], id);
           }
           return item;
         }));
         response.data = processedData;
       }
       // Handle single object response
-      else if (response.data.images && Array.isArray(response.data.images) && response.data.images.length === 0) {
-        const id = response.data.id || 'default';
-        response.data.images = await getImagesWithDefaults(response.data.images, id);
+      else if (!response.data.images || (Array.isArray(response.data.images) && response.data.images.length === 0)) {
+        const id = response.data.code || response.data.id || 'default';
+        response.data.images = await getImagesWithDefaults(response.data.images || [], id);
       }
     }
     return response;

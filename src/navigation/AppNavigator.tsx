@@ -1,41 +1,60 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import AccountScreen from '../screens/AccountScreen';
-import AddNewTourDestinationsScreen from '../screens/AddNewTourDestinationsScreen';
-import AddNewTourOrganizeScreen from '../screens/AddNewTourOrganizeScreen';
-import AddNewTourScreen from '../screens/AddNewTourScreen';
-import ArtisanDetailScreen from '../screens/ArtisanDetailScreen';
-import ArtisansScreen from '../screens/ArtisansScreen';
-import BookmarkScreen from '../screens/BookmarkScreen';
-import BrokerDetailScreen from '../screens/BrokerDetailScreen';
-import BrokerListScreen from '../screens/BrokerListScreen';
-import EmergencyScreen from "../screens/EmergencyScreen";
-import EntertainmentDetailScreenVo from '../screens/EntertainmentDetailScreenVo';
-import EntertainmentScreen from '../screens/EntertainmentScreen';
-import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
-import ESIMScreen from '../screens/ESIMScreen';
-import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
-import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
-import HomeScreen from '../screens/HomeScreen';
-import HotelPickupScreen from '../screens/HotelPickupScreen';
-import LaunchScreen from '../screens/LaunchScreen';
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
-import MonumentDetailScreen from '../screens/MonumentDetailScreen';
-import MonumentsListScreen from '../screens/MonumentsListScreen';
-import OnboardingScreen from '../screens/OnboardingScreen';
-import QRCodesScreen from '../screens/QRCodesScreen';
-import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
-import RestaurantScreen from '../screens/RestaurantScreen';
-import TicketsScreen from '../screens/TicketsScreen';
-import TourMapScreen from '../screens/TourMapScreen';
-import ToursScreen from '../screens/ToursScreen';
-import TransportDetailScreen from '../screens/TransportDetailScreen';
-import { RootStackParamList } from '../types/navigation';
 
-import EventDetailScreen from '../screens/EventDetailScreen';
-import MonumentsScreen from '../screens/MonumentsScreen';
+// Import screens directly from their screen files
+import AccountScreen from '../Account/screens/AccountScreen';
+import LoginScreen from '../Account/screens/LoginScreen';
+import RegisterScreen from '../Account/screens/RegisterScreen';
+import ForgotPasswordScreen from '../Account/screens/ForgotPasswordScreen';
+
+import ArtisanDetailScreen from '../Artisan/screens/ArtisanDetailScreen';
+import ArtisansScreen from '../Artisan/screens/ArtisansScreen';
+
+import BookmarkScreen from '../Bookmarks/screens/BookmarkScreen';
+
+import BrokerDetailScreen from '../MoneyExchange/screens/BrokerDetailScreen';
+import BrokerListScreen from '../MoneyExchange/screens/BrokerListScreen';
+import MoneyExchangeScreen from '../MoneyExchange/screens/MoneyExchangeScreen';
+
+import EmergencyScreen from '../Emergency/screens/EmergencyScreen';
+
+import EntertainmentDetailScreenVo from '../Entertainment/screens/EntertainmentDetailScreenVo';
+import EntertainmentScreen from '../Entertainment/screens/EntertainmentScreen';
+import EntertainmentScreenVo from '../Entertainment/screens/EntertainmentScreenVo';
+
+import ESIMScreen from '../ESIM/screens/ESIMScreen';
+
+import EventDetailScreen from '../Event/screens/EventDetailScreen';
+
+import ExploreMatchesScreen from '../Match/screens/ExploreMatchesScreen';
+
+import MonumentDetailScreen from '../Monument/screens/MonumentDetailScreen';
+import MonumentsListScreen from '../Monument/screens/MonumentsListScreen';
+import MonumentsScreen from '../Monument/screens/MonumentsScreen';
+
+import HotelPickupScreen from '../Pickup/screens/HotelPickupScreen';
+import TransportDetailScreen from '../Pickup/screens/TransportDetailScreen';
+
+import QRCodesScreen from '../QRCode/screens/QRCodesScreen';
+
+import RestaurantDetailScreen from '../Restaurant/screens/RestaurantDetailScreen';
+import RestaurantScreen from '../Restaurant/screens/RestaurantScreen';
+
+import TicketsScreen from '../Tickets/screens/TicketsScreen';
+
+import AddNewTourDestinationsScreen from '../Tours/screens/AddNewTourDestinationsScreen';
+import AddNewTourOrganizeScreen from '../Tours/screens/AddNewTourOrganizeScreen';
+import AddNewTourScreen from '../Tours/screens/AddNewTourScreen';
+import TourMapScreen from '../Tours/screens/TourMapScreen';
+import ToursScreen from '../Tours/screens/ToursScreen';
+
+// Import remaining screens not yet organized
+import HomeScreen from '../screens/HomeScreen';
+import LaunchScreen from '../screens/LaunchScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import PlaceholderScreen from '../screens/PlaceholderScreen';
+
+import { RootStackParamList } from '../types/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

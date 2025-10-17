@@ -13,7 +13,7 @@ export const trackEvent = async (eventName: string, properties: Record<string, a
       distinctId = userInfo.email;
     }
   } catch (error) {
-    console.log('User not authenticated, using anonymous ID');
+    
   }
   
   const event = {
@@ -37,7 +37,7 @@ export const trackEvent = async (eventName: string, properties: Record<string, a
       },
       body: `data=${payload}`,
     });
-    console.log('Mixpanel event sent:', eventName);
+    
   } catch (err) {
     console.error('Mixpanel event failed:', err);
   }
@@ -62,14 +62,14 @@ export const identifyUser = async (distinctId?: string, userProps: Record<string
         }
       }
     } catch (error) {
-      console.log('User not authenticated, cannot identify');
+      
       return;
     }
   }
   
   // Don't proceed if we still don't have a distinctId
   if (!distinctId) {
-    console.log('No distinct ID available, skipping identify');
+    
     return;
   }
 

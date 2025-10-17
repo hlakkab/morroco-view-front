@@ -1,9 +1,9 @@
-import { Bookmark } from '../types/bookmark';
-import { Monument } from '../types/Monument';
-import { Restaurant } from '../types/Restaurant';
-import { Match } from '../types/match';
+import { Bookmark } from '../Bookmarks/types/bookmark';
+import { Monument } from '../Monument/types/Monument';
+import { Restaurant } from '../Restaurant/types/Restaurant';
+import { Match } from '../Match/types/match';
 import { Broker } from '../types/exchange-broker';
-import { TourSavedItem } from '../types/tour';
+import { TourSavedItem } from '../Tours/types/tour';
 import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 // Define the SavedItem type for tours
 

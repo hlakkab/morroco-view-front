@@ -2,21 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FilterCategory, FilterOption } from '../components/FilterPopup';
 import i18n from '../translations/i18n';
-import { ArtisanType } from '../types/Artisan';
-import { MonumentType } from '../types/Monument';
+import { ArtisanType } from '../Artisan/types/Artisan';
+import { MonumentType } from '../Monument/types/Monument';
 
 // Cities data
 export const cities = [
     { id: 'casablanca', label: 'Casablanca' },
     { id: 'rabat', label: 'Rabat' },
     { id: 'marrakech', label: 'Marrakech' },
-    { id: 'fez', label: 'Fez' },
+    { id: 'fes', label: 'Fès' },
     { id: 'tangier', label: 'Tangier' },
     { id: 'agadir', label: 'Agadir' },
-    { id: 'oujda', label: 'Oujda' },
-    { id: 'kenitra', label: 'Kenitra' },
-    { id: 'tetouan', label: 'Tetouan' },
-    { id: 'safi', label: 'Safi' },
 ];
 
 // Match cities data (only for matches)

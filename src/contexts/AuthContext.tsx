@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getUserInfo, login as keycloakLogin, getAccessToken } from '../service/KeycloakService';
+import { getUserInfo, login as keycloakLogin, getAccessToken, clearTokens } from '../service/KeycloakService';
 import { User } from '../types/user';
-import * as SecureStore from 'expo-secure-store';
 
 interface AuthContextType {
   isAuthenticated: () => boolean;
@@ -43,15 +42,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAuthenticated = () => {
-
-    const token = SecureStore.getItem("access_token")
-    return token !== null;
+    return user !== null;
   };
 
   const login = async (username: string, password: string) => {
     try {
       setLoading(true);
       await keycloakLogin(username, password);
+      await checkAuth(); // Update user info after successful login
     } catch (error) {
       setUser(null);
       throw error;
@@ -63,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       setLoading(true);
-      // Add your logout logic here (e.g., calling keycloak logout)
+      await clearTokens(); // Clear stored tokens
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);

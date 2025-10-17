@@ -1,9 +1,9 @@
 import { NavigationProp } from "@react-navigation/native";
-import { Artisan } from "./Artisan";
-import { Event } from "./Event";
-import { Monument } from "./Monument";
-import { Restaurant } from "./Restaurant";
-import { Destination } from "./tour";
+import { Artisan } from "../Artisan/types/Artisan";
+import { Event } from "../Event/types/Event";
+import { Monument } from "../Monument/types/Monument";
+import { Restaurant } from "../Restaurant/types/Restaurant";
+import { Destination } from "../Tours/types/tour";
 
 export interface SavedItem {
   id: string;

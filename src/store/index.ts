@@ -1,35 +1,39 @@
 import { useAppDispatch, useAppSelector } from './hooks';
 import store, { AppDispatch, RootState } from './store';
-import esimReducer from './slices/esimSlice';
 
-import MatchState, {
+// Import directly from store files
+import esimReducer from '../ESIM/store/esimSlice';
+
+import {
   fetchMatches,
   saveMatchBookmark,
-  toggleMatchBookmark
-} from './matchSlice';
+  toggleMatchBookmark,
+  MatchState
+} from '../Match/store/matchSlice';
 
-import TicketState, {
+import {
   clearError,
   fetchTicketById,
-  fetchTickets
-} from './ticketSlice';
+  fetchTickets,
+  TicketState
+} from '../Tickets/store/ticketSlice';
 
 import {
   fetchRestaurants,
   setSelectedRestaurant,
   setSelectedType as setSelectedRestaurantType
-} from './restaurantSlice';
+} from '../Restaurant/store/restaurantSlice';
 
 import {
   fetchMonuments,
   setSelectedMonument,
   setSelectedType as setSelectedMonumentType
-} from './monumentSlice';
+} from '../Monument/store/monumentSlice';
 
 import {
   fetchArtisans,
   setSelectedType as setSelectedArtisanType
-} from './artisanSlice';
+} from '../Artisan/store/artisanSlice';
 
 export {
   AppDispatch,

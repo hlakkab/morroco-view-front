@@ -1,0 +1,3 @@
+﻿error TS2688: Cannot find type definition file for 'i18n-js'.
+  The file is in the program because:
+    Entry point for implicit type library 'i18n-js'

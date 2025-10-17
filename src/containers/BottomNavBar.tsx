@@ -9,7 +9,6 @@ import BookmarkIcon from '../assets/navbarIcons/bookmark-icon.svg';
 import HomeIcon from '../assets/navbarIcons/home-icon.svg';
 import TicketsIcon from '../assets/navbarIcons/tickets-icon.svg';
 import ToursIcon from '../assets/navbarIcons/tours-icon.svg';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 

@@ -94,14 +94,14 @@ export const checkImageExists = async (url: string): Promise<boolean> => {
  * @returns Promise<string[]> - Array of available default image URLs
  */
 export const getDefaultImages = async (id: string): Promise<string[]> => {
-  const baseUrl = 'https://storage.googleapis.com/mview-media/';
+  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
   const images: string[] = [];
-  let i = 1;
+  let i = 0;
   
   while (true) {
     // Try both webp and jpg extensions
-    const webpUrl = `${baseUrl}${id}.${i}.webp`;
-    const jpgUrl = `${baseUrl}${id}.${i}.jpg`;
+    const webpUrl = `${baseUrl}${id}-${i}.webp`;
+    const jpgUrl = `${baseUrl}${id}-${i}.jpg`;
     
     const webpExists = await checkImageExists(webpUrl);
     const jpgExists = await checkImageExists(jpgUrl);
@@ -121,7 +121,7 @@ export const getDefaultImages = async (id: string): Promise<string[]> => {
   }
 
   if(images.length > 0) {
-    console.log("images", images)
+    
   }
   
   return images;
@@ -134,8 +134,12 @@ export const getDefaultImages = async (id: string): Promise<string[]> => {
  * @returns Promise<string[]> - Either the original images or default images
  */
 export const getImagesWithDefaults = async (images: string[], id: string): Promise<string[]> => {
+  
+  
   if (!images || images.length === 0) {
+    console.log(id)
     return await getDefaultImages(id);
+    
   }
   return images;
 }; 

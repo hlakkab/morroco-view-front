@@ -7,7 +7,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '1.1.1',
   orientation: 'portrait',
   userInterfaceStyle: 'light',
-  newArchEnabled: false,
   splash: {
     image: './assets/adaptive-icon.png',
     resizeMode: 'contain',
@@ -64,9 +63,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         android: {
           targetSdkVersion: 36,
           compileSdkVersion: 36,
-          
+          enableMinifyInReleaseBuilds: true
         }
       }
     ],
   ],
+  jsEngine: "hermes"
 }); 

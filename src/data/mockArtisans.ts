@@ -1,4 +1,4 @@
-import { Artisan, ArtisanType } from '../types/Artisan';
+import { Artisan, ArtisanType } from '../Artisan/types/Artisan';
 
 export const mockArtisans: Artisan[] = [
   {

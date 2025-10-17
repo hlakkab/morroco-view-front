@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
-import api from './ApiProxy';
 
 const KEYCLOAK_URL = `https://agence.mview.ma/auth/realms/morocco-view/protocol/openid-connect/token`;
+const API_BASE_URL = 'https://agence.mview.ma/api';
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const TOKEN_EXPIRY_KEY = 'token_expiry';
@@ -150,8 +150,18 @@ const login = async (email: string, password: string) => {
     const { access_token, refresh_token, expires_in } = data;
     await saveTokens(access_token, refresh_token, expires_in);
 
-    api.put("/auth/verify")
-
+    // Verify authentication with the backend
+    try {
+      await fetch(`${API_BASE_URL}/auth/verify`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (verifyError) {
+      console.error('Auth verification failed:', verifyError);
+    }
 
     return data;
   } catch (error) {
@@ -177,7 +187,7 @@ const getAccessToken = async () => {
 
     // Check if token is expired or will expire in the next 10 seconds
     if (now >= expiry - 5000) {
-      console.log('Token expired or about to expire');
+      
       await clearTokens();
       return null;
     }

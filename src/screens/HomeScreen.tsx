@@ -5,8 +5,8 @@ import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react
 // Import Container Components
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomNavBar from '../containers/BottomNavBar';
-import EmergencyContactsButton from '../containers/EmergencyContactsButton';
-import EventBannerContainer from '../containers/EventBannerContainer';
+import EmergencyContactsButton from '../Emergency/containers/EmergencyContactsButton';
+import EventBannerContainer from '../Event/containers/EventBannerContainer';
 import ExploreCardsContainer from '../containers/ExploreCardsContainer';
 import SearchBarContainer from '../containers/SearchBarContainer';
 import ServiceCardsContainer from '../containers/ServiceCardsContainer';
@@ -42,11 +42,10 @@ const HomeScreenContent: React.FC = () => {
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // ─── 1. Lire si le tour a déjà été vu ─────────────────
   useEffect(() => {
     AsyncStorage.getItem(TOUR_FLAG)
       .then(value => {
-        console.log('Tour seen status:', value);
+        
         setHasSeenTour(value === 'true');
       })
       .catch(error => {
@@ -55,16 +54,10 @@ const HomeScreenContent: React.FC = () => {
       });
   }, []);
 
-  // ─── 2. Démarrage automatique une seule fois ──────────
   useEffect(() => {
-    console.log('Tour conditions:', {
-      hasSeenTour,
-      tourStarted,
-      visible
-    });
 
     if (hasSeenTour === false && !tourStarted && !visible) {
-      console.log('Starting tour automatically...');
+      
       const timer = setTimeout(() => {
         startTour();
         setTourStarted(true);
@@ -73,22 +66,21 @@ const HomeScreenContent: React.FC = () => {
     }
   }, [hasSeenTour, startTour, tourStarted, visible]);
 
-  // ─── 3. Enregistrer la fin ou le skip du tour ────────
   useEffect(() => {
     const handleStop = async () => {
-      console.log('Tour stopped, saving status...');
+      
       try {
         await AsyncStorage.setItem(TOUR_FLAG, 'true');
         setHasSeenTour(true);
         setTourStarted(false);
-        console.log('Tour status saved successfully');
+        
       } catch (error) {
         console.error('Error saving tour status:', error);
       }
     };
 
     const handleStepChange = (step: any) => {
-      console.log('Step changed to:', step);
+      
     };
 
     copilotEvents.on('stop', handleStop);
@@ -139,7 +131,7 @@ const HomeScreenContent: React.FC = () => {
     } else if (routeNames.includes(category as keyof RootStackParamList)) {
       navigation.navigate(category as keyof RootStackParamList as never);
     } else {
-      console.log(`Invalid navigation destination: ${category}`);
+      
     }
   };
 

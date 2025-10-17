@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { HotelPickup, HotelPickupState } from '../types/transport';
 import { api } from '../service';
-import { BookmarkState } from '../types/bookmark';
-import { removeBookmark } from './bookmarkSlice';
+import { BookmarkState } from '../Bookmarks/types/bookmark';
+import { removeBookmark } from '../Bookmarks/store/bookmarkSlice';
 import { RootState } from './store';
 
 // API functions
@@ -84,14 +84,14 @@ const hotelPickupSlice = createSlice({
       state.searchQuery = action.payload;
     },
     togglePickupDirection: (state) => {
-      console.log('Toggling pickup direction from:', state.pickupDirection);
+      
       state.pickupDirection = state.pickupDirection === 'a2h' ? 'h2a' : 'a2h';
-      console.log('New pickup direction:', state.pickupDirection);
+      
       // Swap cities when direction changes
       const temp = state.selectedCity;
       state.selectedCity = state.selectedCity;
       state.selectedCity = temp;
-      console.log('Cities swapped - From:', state.selectedCity, 'To:', state.selectedCity);
+      
     },
   },
   extraReducers: (builder) => {

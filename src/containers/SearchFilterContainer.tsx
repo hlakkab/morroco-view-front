@@ -9,7 +9,7 @@ const SearchFilterContainer = () => {
       <View style={styles.searchBarWrapper}>
         <SearchBar2 />
         <View style={styles.filterButtonContainer}>
-          <FilterButton onPress={() => console.log("Filter clicked")} />
+          <FilterButton onPress={() => 
         </View>      </View>
     </View>
   );

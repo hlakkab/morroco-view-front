@@ -118,8 +118,8 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               }}
               fetchDetails={true}
               onFail={(error) => console.error(error)}
-              onNotFound={() => console.log('No results found')}
-              onTimeout={() => console.log('timeout')}
+              onNotFound={() => 
+              onTimeout={() => 
               textInputProps={{
                 style: styles.searchInput,
                 placeholderTextColor: '#999',
