@@ -1,13 +1,14 @@
 import { NavigationProp } from "@react-navigation/native";
 import { Artisan } from "./Artisan";
 import { Event } from "./Event";
+import { Guide } from "./guide";
 import { Monument } from "./Monument";
 import { Restaurant } from "./Restaurant";
 import { Destination } from "./tour";
 
 export interface SavedItem {
   id: string;
-  type: 'hotel' | 'restaurant' | 'match' | 'entertainment' | 'monument' | 'money-exchange' | 'artisan';
+  type: 'hotel' | 'restaurant' | 'match' | 'entertainment' | 'monument' | 'money-exchange' | 'artisan' | 'guide';
   title: string;
   subtitle?: string;
   images?: string[];
@@ -78,6 +79,8 @@ export type RootStackParamList = {
   Emergency: undefined;
   MoneyExchange: undefined;
   BrokerList: undefined;
+  GuideList: undefined;
+  GuideDetail: Guide;
   ExploreMatches: undefined;
   Test: undefined;
   AddNewTour: undefined;

@@ -9,8 +9,9 @@ import MoneySvg from '../assets/serviceIcons/money-icon.svg';
 import QrCodeSvg from '../assets/serviceIcons/qrcode-icon.svg';
 import SimCardSvg from '../assets/serviceIcons/sim-card-icon.svg';
 // Import navigation types
-import { RootStackParamList } from '../types/navigation';
+import { Ionicons } from '@expo/vector-icons';
 import { trackEvent } from '../service/Mixpanel';
+import { RootStackParamList } from '../types/navigation';
 
 const { width } = Dimensions.get('window');
 
@@ -73,6 +74,14 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
     navigation.navigate('MoneyExchange');
   };
 
+  const handleEGuidePress = () => {
+    trackEvent('Service Clicked', {
+      service_name: 'E-Guide',
+      language: currentLanguage
+    });
+    navigation.navigate('GuideList' as never);
+  };
+
   return (
       <View>
         <Text style={styles.sectionTitle}>{i18n.t('services.title')}</Text>
@@ -98,6 +107,11 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
               title={i18n.t('services.qrCodes')}
               onPress={handleQRCodesPress}
           />
+          <ServiceCard
+              icon={<Ionicons name="person-outline" size={28} color="#CE1126" />}
+              title={i18n.t('services.eGuide')}
+              onPress={handleEGuidePress}
+          />
         </View>
       </View>
   );
@@ -107,11 +121,13 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
 const styles = StyleSheet.create({
   serviceIconsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     // marginBottom: 15,
   },
   serviceItem: {
-    width: (width - 75) / 4,
+    width: (width - 80) / 5,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 16,

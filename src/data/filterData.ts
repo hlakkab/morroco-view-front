@@ -77,6 +77,28 @@ export const artisanTypes = [
     { id: ArtisanType.Textiles, label: 'Textiles' }
 ];
 
+// Guide specialty types data
+export const guideSpecialties = [
+    { id: 'history', label: 'History' },
+    { id: 'adventure', label: 'Adventure' },
+    { id: 'culture', label: 'Culture' },
+    { id: 'food', label: 'Food & Cuisine' },
+    { id: 'nature', label: 'Nature' },
+    { id: 'photography', label: 'Photography' }
+];
+
+// Guide language data
+export const guideLanguages = [
+    { id: 'english', label: 'English' },
+    { id: 'french', label: 'French' },
+    { id: 'spanish', label: 'Spanish' },
+    { id: 'arabic', label: 'Arabic' },
+    { id: 'german', label: 'German' },
+    { id: 'italian', label: 'Italian' },
+    { id: 'chinese', label: 'Chinese' },
+    { id: 'japanese', label: 'Japanese' }
+];
+
 /**
  * Helper function to normalize strings for comparison
  * Converts to lowercase and removes accents
@@ -184,6 +206,27 @@ export const createArtisanFilterOptions = (): FilterOption[] => {
 };
 
 /**
+ * Creates filter options for guides
+ */
+export const createGuideFilterOptions = (): FilterOption[] => {
+    const specialtyOptions = guideSpecialties.map(specialty => ({
+        id: normalizeString(specialty.id),
+        label: specialty.label,
+        selected: false,
+        category: 'guide_specialty'
+    }));
+
+    const languageOptions = guideLanguages.map(language => ({
+        id: normalizeString(language.id),
+        label: language.label,
+        selected: false,
+        category: 'guide_language'
+    }));
+
+    return [...specialtyOptions, ...languageOptions];
+};
+
+/**
  * Filter categories for matches - Using getters to ensure translations are fresh
  */
 export const getMatchFilterCategories = (): Record<string, FilterCategory> => ({
@@ -249,9 +292,24 @@ export const getArtisanFilterCategories = (): Record<string, FilterCategory> => 
     }
 });
 
+/**
+ * Filter categories for guides - Using getters to ensure translations are fresh
+ */
+export const getGuideFilterCategories = (): Record<string, FilterCategory> => ({
+    guide_specialty: {
+        key: 'guide_specialty',
+        label: i18n.t('filters.bySpecialty')
+    },
+    guide_language: {
+        key: 'guide_language',
+        label: i18n.t('filters.byLanguage')
+    }
+});
+
 // For backward compatibility, keep the old references but they should be deprecated
 export const matchFilterCategories = getMatchFilterCategories();
 export const pickupFilterCategories = getPickupFilterCategories();
 export const brokerFilterCategories = getBrokerFilterCategories();
 export const monumentFilterCategories = getMonumentFilterCategories();
-export const artisanFilterCategories = getArtisanFilterCategories(); 
+export const artisanFilterCategories = getArtisanFilterCategories();
+export const guideFilterCategories = getGuideFilterCategories(); 

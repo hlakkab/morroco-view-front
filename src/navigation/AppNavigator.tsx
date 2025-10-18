@@ -16,16 +16,18 @@ import EntertainmentScreenVo from '../screens/EntertainmentScreenVo';
 import ESIMScreen from '../screens/ESIMScreen';
 import ExploreMatchesScreen from '../screens/ExploreMatchesScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import GuideDetailScreen from '../screens/GuideDetailScreen';
+import GuideListScreen from '../screens/GuideListScreen';
 import HomeScreen from '../screens/HomeScreen';
 import HotelPickupScreen from '../screens/HotelPickupScreen';
 import LaunchScreen from '../screens/LaunchScreen';
 import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
 import MoneyExchangeScreen from '../screens/MoneyExchangeScreen';
 import MonumentDetailScreen from '../screens/MonumentDetailScreen';
 import MonumentsListScreen from '../screens/MonumentsListScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import QRCodesScreen from '../screens/QRCodesScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import RestaurantScreen from '../screens/RestaurantScreen';
 import TicketsScreen from '../screens/TicketsScreen';
@@ -116,6 +118,16 @@ export function AppNavigator() {
       <Stack.Screen
         name="BrokerDetail"
         component={BrokerDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GuideList"
+        component={GuideListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GuideDetail"
+        component={GuideDetailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

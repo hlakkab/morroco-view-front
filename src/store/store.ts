@@ -3,15 +3,16 @@ import artisanReducer from './artisanSlice';
 import bookmarkReducer from './bookmarkSlice';
 import entertainmentReducer from './entertainmentSlice';
 import exchangeBrokerReducer from './exchangeBrokerSlice';
+import guideReducer from './guideSlice';
 import hotelPickupDetailsReducer from "./hotelPickupDetailsSlice";
 import hotelPickupReducer from "./hotelPickupSlice";
 import matchReducer from './matchSlice';
 import monumentReducer from './monumentSlice';
 import qrCodeReducer from "./qrCodeSlice";
 import restaurantReducer from './restaurantSlice';
+import esimReducer from './slices/esimSlice';
 import ticketReducer from './ticketSlice';
 import tourReducer from './tourSlice';
-import esimReducer from './slices/esimSlice';
 
 const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ const store = configureStore({
     hotelPickupDetails: hotelPickupDetailsReducer,
     bookmark: bookmarkReducer,
     exchangeBroker: exchangeBrokerReducer,
+    guide: guideReducer,
     entertainment: entertainmentReducer,
     match: matchReducer,
     ticket: ticketReducer,
