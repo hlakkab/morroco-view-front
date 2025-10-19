@@ -18,6 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.advancedai.moroccoview.travel',
+    googleServicesFile: "./google-service.plist",
     config: {
       googleMapsApiKey: process.env.GOOGLE_PLACES_API_KEY,
     },
@@ -33,6 +34,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#ffffff'
     },
     package: 'com.moroccoview.app',
+    scheme: 'com.moroccoview.app',
     config: {
       googleMaps: {
         apiKey: process.env.GOOGLE_PLACES_API_KEY,
@@ -67,6 +69,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         }
       }
     ],
+    [
+      "@react-native-google-signin/google-signin",
+      {
+        "reservedClientId": null
+      }
+    ]
   ],
   jsEngine: "hermes"
 }); 

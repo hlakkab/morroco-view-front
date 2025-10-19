@@ -250,11 +250,74 @@ const getUserInfo = async () => {
   }
 };
 
+/**
+ * Exchange Google authorization code for Keycloak tokens
+ * This function sends the Google auth code to your backend,
+ * which then exchanges it with Keycloak
+ */
+const loginWithGoogle = async (googleAuthCode: string) => {
+  try {
+    console.log('🔄 Exchanging Google auth code for Keycloak tokens...');
+    
+    // Send to your backend API
+    const response = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        code: googleAuthCode,
+        provider: 'google'
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Google login failed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const { access_token, refresh_token, expires_in, first_name, last_name } = data;
+    
+    if (!access_token || !refresh_token) {
+      throw new Error('Invalid token response from server');
+    }
+
+    // Save tokens using existing function
+    await saveTokens(access_token, refresh_token, expires_in);
+
+    console.log('✅ Successfully authenticated with Keycloak via Google');
+
+    // Extract user information from the response and token
+    const decodedToken = decodeJWT(access_token);
+    const userInfo = {
+      firstName: first_name || '',
+      lastName: last_name || '',
+      email: decodedToken?.email || '',
+    };
+    
+    console.log('📋 User Information:');
+    console.log('  First Name:', userInfo.firstName);
+    console.log('  Last Name:', userInfo.lastName);
+    console.log('  Email:', userInfo.email);
+    
+    // Return both the original data and extracted user info
+    return {
+      ...data,
+      userInfo
+    };
+  } catch (error) {
+    console.error('Error logging in with Google:', error);
+    throw error;
+  }
+};
+
 export { 
   refreshToken, 
   saveTokens, 
   clearTokens, 
   login, 
+  loginWithGoogle,
   getAccessToken, 
   getRefreshToken, 
   getTokenExpiry,

@@ -1,5 +1,5 @@
-import { login } from './KeycloakService';
+import { login, loginWithGoogle } from './KeycloakService';
 import api from './ApiProxy';
 import { register } from './AuthService';
 
-export { login, api, register };
+export { login, loginWithGoogle, api, register };
