@@ -1,60 +1,81 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 
-// Import screens directly from their screen files
-import AccountScreen from '../Account/screens/AccountScreen';
-import LoginScreen from '../Account/screens/LoginScreen';
-import RegisterScreen from '../Account/screens/RegisterScreen';
-import ForgotPasswordScreen from '../Account/screens/ForgotPasswordScreen';
+import { RootStackParamList } from '../types/navigation';
+import { lazyScreen } from './LazyScreen';
 
-import ArtisanDetailScreen from '../Artisan/screens/ArtisanDetailScreen';
-import ArtisansScreen from '../Artisan/screens/ArtisansScreen';
-
-import BookmarkScreen from '../Bookmarks/screens/BookmarkScreen';
-
-import BrokerDetailScreen from '../MoneyExchange/screens/BrokerDetailScreen';
-import BrokerListScreen from '../MoneyExchange/screens/BrokerListScreen';
-import MoneyExchangeScreen from '../MoneyExchange/screens/MoneyExchangeScreen';
-
-import EmergencyScreen from '../Emergency/screens/EmergencyScreen';
-
-import EntertainmentDetailScreenVo from '../Entertainment/screens/EntertainmentDetailScreenVo';
-import EntertainmentScreen from '../Entertainment/screens/EntertainmentScreen';
-import EntertainmentScreenVo from '../Entertainment/screens/EntertainmentScreenVo';
-
-import ESIMScreen from '../ESIM/screens/ESIMScreen';
-
-import EventDetailScreen from '../Event/screens/EventDetailScreen';
-
-import ExploreMatchesScreen from '../Match/screens/ExploreMatchesScreen';
-
-import MonumentDetailScreen from '../Monument/screens/MonumentDetailScreen';
-import MonumentsListScreen from '../Monument/screens/MonumentsListScreen';
-import MonumentsScreen from '../Monument/screens/MonumentsScreen';
-
-import HotelPickupScreen from '../Pickup/screens/HotelPickupScreen';
-import TransportDetailScreen from '../Pickup/screens/TransportDetailScreen';
-
-import QRCodesScreen from '../QRCode/screens/QRCodesScreen';
-
-import RestaurantDetailScreen from '../Restaurant/screens/RestaurantDetailScreen';
-import RestaurantScreen from '../Restaurant/screens/RestaurantScreen';
-
-import TicketsScreen from '../Tickets/screens/TicketsScreen';
-
-import AddNewTourDestinationsScreen from '../Tours/screens/AddNewTourDestinationsScreen';
-import AddNewTourOrganizeScreen from '../Tours/screens/AddNewTourOrganizeScreen';
-import AddNewTourScreen from '../Tours/screens/AddNewTourScreen';
-import TourMapScreen from '../Tours/screens/TourMapScreen';
-import ToursScreen from '../Tours/screens/ToursScreen';
-
-// Import remaining screens not yet organized
-import HomeScreen from '../screens/HomeScreen';
+// ========== EAGER LOAD: Critical Path (5 screens) ==========
+// These screens are loaded immediately for optimal startup experience
 import LaunchScreen from '../screens/LaunchScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
-import PlaceholderScreen from '../screens/PlaceholderScreen';
+import LoginScreen from '../Account/screens/LoginScreen';
+import RegisterScreen from '../Account/screens/RegisterScreen';
+import HomeScreen from '../screens/HomeScreen';
 
-import { RootStackParamList } from '../types/navigation';
+// ========== LAZY LOAD: All Other Screens (35 screens) ==========
+// These screens load on-demand or are prefetched based on user navigation patterns
+
+// Account Module
+const AccountScreen = lazyScreen(() => import('../Account/screens/AccountScreen'));
+const ForgotPasswordScreen = lazyScreen(() => import('../Account/screens/ForgotPasswordScreen'));
+
+// Artisan Module
+const ArtisansScreen = lazyScreen(() => import('../Artisan/screens/ArtisansScreen'));
+const ArtisanDetailScreen = lazyScreen(() => import('../Artisan/screens/ArtisanDetailScreen'));
+
+// Bookmark Module
+const BookmarkScreen = lazyScreen(() => import('../Bookmarks/screens/BookmarkScreen'));
+
+// Money Exchange Module
+const MoneyExchangeScreen = lazyScreen(() => import('../MoneyExchange/screens/MoneyExchangeScreen'));
+const BrokerListScreen = lazyScreen(() => import('../MoneyExchange/screens/BrokerListScreen'));
+const BrokerDetailScreen = lazyScreen(() => import('../MoneyExchange/screens/BrokerDetailScreen'));
+
+// Emergency Module
+const EmergencyScreen = lazyScreen(() => import('../Emergency/screens/EmergencyScreen'));
+
+// Entertainment Module
+const EntertainmentScreenVo = lazyScreen(() => import('../Entertainment/screens/EntertainmentScreenVo'));
+const EntertainmentDetailScreenVo = lazyScreen(() => import('../Entertainment/screens/EntertainmentDetailScreenVo'));
+const EntertainmentScreen = lazyScreen(() => import('../Entertainment/screens/EntertainmentScreen'));
+
+// ESIM Module
+const ESIMScreen = lazyScreen(() => import('../ESIM/screens/ESIMScreen'));
+
+// Event Module
+const EventDetailScreen = lazyScreen(() => import('../Event/screens/EventDetailScreen'));
+
+// Match Module
+const ExploreMatchesScreen = lazyScreen(() => import('../Match/screens/ExploreMatchesScreen'));
+
+// Monument Module
+const MonumentsScreen = lazyScreen(() => import('../Monument/screens/MonumentsScreen'));
+const MonumentDetailScreen = lazyScreen(() => import('../Monument/screens/MonumentDetailScreen'));
+const MonumentsListScreen = lazyScreen(() => import('../Monument/screens/MonumentsListScreen'));
+
+// Pickup/Transport Module
+const HotelPickupScreen = lazyScreen(() => import('../Pickup/screens/HotelPickupScreen'));
+const TransportDetailScreen = lazyScreen(() => import('../Pickup/screens/TransportDetailScreen'));
+
+// QR Code Module
+const QRCodesScreen = lazyScreen(() => import('../QRCode/screens/QRCodesScreen'));
+
+// Restaurant Module
+const RestaurantScreen = lazyScreen(() => import('../Restaurant/screens/RestaurantScreen'));
+const RestaurantDetailScreen = lazyScreen(() => import('../Restaurant/screens/RestaurantDetailScreen'));
+
+// Tickets Module
+const TicketsScreen = lazyScreen(() => import('../Tickets/screens/TicketsScreen'));
+
+// Tours Module
+const ToursScreen = lazyScreen(() => import('../Tours/screens/ToursScreen'));
+const AddNewTourScreen = lazyScreen(() => import('../Tours/screens/AddNewTourScreen'));
+const AddNewTourDestinationsScreen = lazyScreen(() => import('../Tours/screens/AddNewTourDestinationsScreen'));
+const AddNewTourOrganizeScreen = lazyScreen(() => import('../Tours/screens/AddNewTourOrganizeScreen'));
+const TourMapScreen = lazyScreen(() => import('../Tours/screens/TourMapScreen'));
+
+// Utility Screens
+const PlaceholderScreen = lazyScreen(() => import('../screens/PlaceholderScreen'));
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

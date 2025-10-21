@@ -34,10 +34,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, onPress }) => {
 };
 
 interface ServiceCardsContainerProps {
-  // You can add props here if needed in the future
+  onNavigate?: (routeName: string) => void; // For auth-protected navigation
 }
 
-const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
+const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = ({ onNavigate }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { currentLanguage } = useLanguage();
 
@@ -46,7 +46,13 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
       service_name: 'eSIM',
       language: currentLanguage
     });
-    navigation.navigate('ESIM');
+    
+    // Use auth-protected navigation if provided, otherwise direct navigation
+    if (onNavigate) {
+      onNavigate('ESIM');
+    } else {
+      navigation.navigate('ESIM');
+    }
   };
 
   const handleQRCodesPress = () => {
@@ -54,7 +60,13 @@ const ServiceCardsContainer: React.FC<ServiceCardsContainerProps> = () => {
       service_name: 'QR Codes',
       language: currentLanguage
     });
-    navigation.navigate('QRCodes');
+    
+    // Use auth-protected navigation if provided, otherwise direct navigation
+    if (onNavigate) {
+      onNavigate('QRCodes');
+    } else {
+      navigation.navigate('QRCodes');
+    }
   };
 
   const handleHotelPickupPress = () => {
