@@ -4,6 +4,9 @@ export const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

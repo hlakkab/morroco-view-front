@@ -1,6 +1,6 @@
 // service/ViatorService.ts
 import axios from "axios";
-import { Entertainment } from "../types/Entertainment";
+import { Entertainment, EntertainmentFilters, EntertainmentListResponse } from "../Entertainment/types/Entertainment";
 import api from "./ApiProxy";
 
 const BASE_URL = "https://api.viator.com/partner/products/search";
@@ -32,8 +32,19 @@ const listEntertainments0 = async (cityCode: string = "5408") => {
   return response.data.products;
 };
 
-const listEntertainments = async () => {
-  const response = await api.get<Entertainment[]>("/activities");
+const listEntertainments = async (filters: EntertainmentFilters = {}): Promise<EntertainmentListResponse> => {
+  // Build query parameters
+  const params: Record<string, any> = {};
+  
+  if (filters.city) params.city = filters.city;
+  if (filters.type) params.type = filters.type;
+  if (filters.minRating !== undefined) params.minRating = filters.minRating;
+  if (filters.maxRating !== undefined) params.maxRating = filters.maxRating;
+  if (filters.page !== undefined) params.page = filters.page;
+  if (filters.size !== undefined) params.size = filters.size;
+  if (filters.sort) params.sort = filters.sort;
+
+  const response = await api.get<EntertainmentListResponse>("/entertainments", { params });
   return response.data;
 };
 

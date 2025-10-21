@@ -7,6 +7,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import CardItem from '../../components/cards/CardItem';
 import SaveButton from '../../components/SaveButton';
 import AuthModal from '../../components/AuthModal';
+import Pagination from '../../components/Pagination';
 import { setSelectedEntertainment, toggleEntertainmentBookmark } from '../store/entertainmentSlice';
 import { useAppDispatch } from '../../store/hooks';
 import i18n from '../../translations/i18n';
@@ -18,12 +19,20 @@ interface EntertainmentListContainerProps {
   entertainments: Entertainment[];
   loading: boolean;
   error: string | null;
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+  onPageChange: (page: number) => void;
 }
 
 const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = ({
   entertainments,
   loading,
   error,
+  currentPage,
+  totalPages,
+  totalElements,
+  onPageChange,
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
@@ -32,9 +41,11 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
 
   const handleEntertainmentPress = (ent: Entertainment) => {
     dispatch(setSelectedEntertainment(ent));
+    const productCode = ent.productCode || ent.code;
+    const title = ent.title || ent.name;
     navigation.navigate('EntertainmentDetail', {
-      productCode: ent.productCode,
-      title: ent.title,
+      productCode,
+      title,
     });
   };
 
@@ -48,7 +59,7 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
   };
 
   const renderStars = (entertainment: Entertainment) => {
-    const { rating, fullStars } = entertainmentHelpers.getRatingInfo(entertainment);
+    const { rating, fullStars, ratingCount } = entertainmentHelpers.getRatingInfo(entertainment);
 
     return (
       <View style={styles.starContainer}>
@@ -56,7 +67,10 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
           <FontAwesome key={`full-${index}`} name="star" size={20} color="#FFD700" />
         ))}
         {entertainment.hasHalfStar && <FontAwesome name="star-half-empty" size={20} color="#FFD700" />}
-        <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+        <Text style={styles.ratingText}>
+          {rating.toFixed(1)}
+          {ratingCount > 0 && ` (${ratingCount})`}
+        </Text>
       </View>
     );
   };
@@ -88,88 +102,104 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
   return (
     <View style={styles.container}>
       {entertainments.length > 0 ? (
-        <FlatList
-          data={entertainments}
-          keyExtractor={(item) => item.productCode}
-          renderItem={({ item }) => (
-            <View style={styles.CardEntertainmentContainer}>
-              <CardItem
-                imageUrl={entertainmentHelpers.getPrimaryImageUrl(item)}
-                title={item.title}
-                subtitle={`From $${entertainmentHelpers.getFormattedPrice(item)}`}
-                customStyles={{
-                  mainTag: {
-                    marginTop: 10,
-                    backgroundColor: '#F6FAFF',
-                    borderWidth: 0,
-                    borderColor: '#FFD700',
-                    paddingHorizontal: 6,
-                    paddingVertical: 3,
-                    borderRadius: 16,
-                  },
-                  mainTagText: {
-                    left: 2,
-                    color: 'black',
-                    fontWeight: '700',
-                    fontSize: 14.5,
-                  },
-                  container: {
-                    backgroundColor: 'white',
-                    borderRadius: 12,
-                    marginBottom: 16,
-                    overflow: 'hidden',
-                    elevation: 3,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    flexDirection: 'column',
-                    paddingHorizontal: 0,
-                    paddingVertical: 0,
-                  },
-                  image: {
-                    width: '106%',
-                    height: 200,
-                    paddingBottom: 30,
-                    left: 3,
-                  },
-                  content: {
-                    padding: 16,
-                    paddingTop: 8,
-                    gap: 8,
-                    paddingBottom: 8,
-                  },
-                  title: {
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    marginBottom: 8,
-                    color: '#000',
-                  },
-                  subtitle: {
-                    fontSize: 14,
-                    fontWeight: 'bold',
-                    color: '#006400',
-                  },
-                }}
-                tags={[
-                  {
-                    id: 'rating',
-                    icon: renderStars(item),
-                    label: `(${item.reviews.totalReviews} ${item.reviews.totalReviews === 1 ? i18n.t('entertainment.review') : i18n.t('entertainment.reviews')})`,
-                  },
-                ]}
-                onCardPress={() => handleEntertainmentPress(item)}
-                containerStyle={{ marginBottom: 16 }}
-              />
-              <SaveButton
-                onPress={() => handleSaveEntertainment(item)}
-                isSaved={item.saved}
-              />
-            </View>
+        <>
+          <FlatList
+            data={entertainments}
+            keyExtractor={(item) => item.id || item.productCode || item.code}
+            renderItem={({ item }) => {
+              const displayName = entertainmentHelpers.getDisplayName(item);
+              const price = entertainmentHelpers.getFormattedPrice(item);
+              const subtitle = price ? `From $${price}` : item.address || '';
+
+              return (
+                <View style={styles.CardEntertainmentContainer}>
+                  <CardItem
+                    imageUrl={entertainmentHelpers.getPrimaryImageUrl(item)}
+                    title={displayName}
+                    subtitle={subtitle}
+                    customStyles={{
+                      mainTag: {
+                        marginTop: 10,
+                        backgroundColor: '#F6FAFF',
+                        borderWidth: 0,
+                        borderColor: '#FFD700',
+                        paddingHorizontal: 6,
+                        paddingVertical: 3,
+                        borderRadius: 16,
+                      },
+                      mainTagText: {
+                        left: 2,
+                        color: 'black',
+                        fontWeight: '700',
+                        fontSize: 14.5,
+                      },
+                      container: {
+                        backgroundColor: 'white',
+                        borderRadius: 12,
+                        marginBottom: 16,
+                        overflow: 'hidden',
+                        elevation: 3,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        flexDirection: 'column',
+                        paddingHorizontal: 0,
+                        paddingVertical: 0,
+                      },
+                      image: {
+                        width: '106%',
+                        height: 200,
+                        paddingBottom: 30,
+                        left: 3,
+                      },
+                      content: {
+                        padding: 16,
+                        paddingTop: 8,
+                        gap: 8,
+                        paddingBottom: 8,
+                      },
+                      title: {
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        marginBottom: 8,
+                        color: '#000',
+                      },
+                      subtitle: {
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        color: '#006400',
+                      },
+                    }}
+                    tags={[
+                      {
+                        id: 'rating',
+                        icon: renderStars(item),
+                        label: '',
+                      },
+                    ]}
+                    onCardPress={() => handleEntertainmentPress(item)}
+                    containerStyle={{ marginBottom: 16 }}
+                  />
+                  <SaveButton
+                    onPress={() => handleSaveEntertainment(item)}
+                    isSaved={item.saved}
+                  />
+                </View>
+              );
+            }}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+          {totalPages > 1 && (
+            <Pagination
+              totalItems={totalElements}
+              itemsPerPage={entertainments.length || 10}
+              currentPage={currentPage + 1} // Convert from 0-based to 1-based
+              onPageChange={onPageChange}
+            />
           )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        </>
       ) : (
         <View style={styles.emptyContainer}>
           <FontAwesome name="search" size={48} color="#ccc" />

@@ -18,7 +18,7 @@ export interface Reviews {
   combinedAverageRating: number;
 }
 
-// Type pour le pricing
+// Type pour le pricing (legacy)
 export interface PricingSummary {
   fromPrice: number;
   fromPriceBeforeDiscount?: number;
@@ -26,6 +26,21 @@ export interface PricingSummary {
 
 export interface Pricing {
   summary: PricingSummary;
+}
+
+// New pricing structure
+export type PricingCategory = 'ADULT' | 'CHILD' | 'SENIOR' | 'STUDENT' | 'GROUP' | 'FAMILY';
+
+export interface EntertainmentPricing {
+  id: string;
+  createdAt: string; // ISO date string
+  createdBy: string;
+  updatedAt: string; // ISO date string
+  updatedBy: string;
+  category: PricingCategory;
+  price: number;
+  duration: number; // in minutes
+  unitLabel: string; // e.g., "per person"
 }
 
 // Nouveaux types pour le détail
@@ -67,20 +82,69 @@ export interface LanguageGuide {
   legacyGuide: string;
 }
 
-// Type principal Entertainment
-export interface Entertainment {
-  id?: string;
-  productCode: string;
-  title: string;
-  description: string;
-  location: string;
-  images: EntertainmentImage[];
-  reviews: Reviews;
-  pricing: Pricing;
-  city: string;
-  saved: boolean;
+// New types for the API response
+export type EntertainmentType = 
+  | 'THEME_PARK'
+  | 'WATER_PARK'
+  | 'ZOO'
+  | 'AQUARIUM'
+  | 'MUSEUM'
+  | 'THEATER'
+  | 'CINEMA'
+  | 'CONCERT_HALL'
+  | 'SPORTS_VENUE'
+  | 'NIGHTCLUB'
+  | 'CASINO'
+  | 'OTHER';
 
-  // Champs calculés pour l'UI
+export type SpotType = 'ACTIVITY';
+
+export type City = 
+  | 'MARRAKECH'
+  | 'CASABLANCA'
+  | 'RABAT'
+  | 'FES'
+  | 'TANGIER'
+  | 'AGADIR'
+  | 'MEKNES'
+  | 'OUJDA'
+  | 'KENITRA'
+  | 'TETOUAN'
+  | 'SAFI'
+  | 'ESSAOUIRA';
+
+export type BookingRequired = 'YES' | 'NO' | 'RECOMMENDED';
+
+// Type principal Entertainment (nouvelle structure API)
+export interface Entertainment {
+  id: string; // UUID
+  images: string[]; // Array of image URLs
+  saved: boolean;
+  code: string;
+  name: string;
+  description: string;
+  type: string;
+  spotType: SpotType;
+  address: string;
+  mapId: string;
+  coordinates: string;
+  startTime: string; // Format: "HH:mm"
+  endTime: string; // Format: "HH:mm"
+  city: City;
+  phoneNumber: string;
+  email: string;
+  website: string;
+  rating: number;
+  bookingRequired: BookingRequired;
+  ageRestriction?: number;
+  pricings: EntertainmentPricing[]; // New pricing structure as array
+
+  // Legacy fields for backwards compatibility
+  productCode?: string;
+  title?: string;
+  location?: string;
+  reviews?: Reviews;
+  pricing?: Pricing; // Legacy pricing format
   fullStars?: number;
   hasHalfStar?: boolean;
   mapUrl?: string;
@@ -92,44 +156,129 @@ export interface Entertainment {
   languageGuides?: LanguageGuide[];
 }
 
+// Pageable response structure
+export interface Pageable {
+  sort: {
+    sorted: boolean;
+    unsorted: boolean;
+    empty: boolean;
+  };
+  pageNumber: number;
+  pageSize: number;
+  offset: number;
+  paged: boolean;
+  unpaged: boolean;
+}
+
+// Paginated response
+export interface EntertainmentListResponse {
+  content: Entertainment[];
+  pageable: Pageable;
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  first: boolean;
+  size: number;
+  number: number;
+  numberOfElements: number;
+  empty: boolean;
+}
+
+// Filter parameters
+export interface EntertainmentFilters {
+  city?: City;
+  type?: EntertainmentType;
+  minRating?: number;
+  maxRating?: number;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
+
 // Fonctions utilitaires (helpers)
 export const entertainmentHelpers = {
   getPrimaryImageUrl: (entertainment: Entertainment): string => {
-    // Vérification que les images existent
+    // Check for new API format (array of strings)
+    if (Array.isArray(entertainment.images) && entertainment.images.length > 0) {
+      if (typeof entertainment.images[0] === 'string') {
+        return entertainment.images[0];
+      }
+    }
+
+    // Legacy format check
     if (!entertainment.images || entertainment.images.length === 0) {
       return 'https://via.placeholder.com/300';
     }
 
-    // Recherche l'image de couverture ou la première image disponible
-    const coverImage = entertainment.images.find(img => img.isCover);
-    const image = coverImage || entertainment.images[0];
+    // Check if it's the old format with image objects
+    const firstImage = entertainment.images[0] as any;
+    if (firstImage?.variants) {
+      const coverImage = (entertainment.images as any[]).find((img: any) => img.isCover);
+      const image = coverImage || entertainment.images[0];
 
-    if (!image?.variants?.length) {
-      return 'https://via.placeholder.com/300';
+      if (!image?.variants?.length) {
+        return 'https://via.placeholder.com/300';
+      }
+
+      const sortedVariants = [...image.variants].sort((a: any, b: any) =>
+        (b.width * b.height) - (a.width * a.height)
+      );
+
+      const idealVariant = sortedVariants.find((v: any) =>
+        v.width >= 720 && v.width <= 1080
+      ) || sortedVariants[0];
+
+      return idealVariant?.url || 'https://via.placeholder.com/300';
     }
 
-    // Trie des variantes par taille décroissante et prend celle avec une largeur idéale
-    const sortedVariants = [...image.variants].sort((a, b) =>
-      (b.width * b.height) - (a.width * a.height)
-    );
-
-    const idealVariant = sortedVariants.find(v =>
-      v.width >= 720 && v.width <= 1080
-    ) || sortedVariants[0];
-
-    return idealVariant?.url || 'https://via.placeholder.com/300';
+    return 'https://via.placeholder.com/300';
   },
 
   getFormattedPrice: (entertainment: Entertainment): string => {
-    // Vérification que le prix existe
-    if (!entertainment.pricing || !entertainment.pricing.summary || !entertainment.pricing.summary.fromPrice) {
-      return '0.00';
+    // Check new API format with pricings array
+    if (entertainment.pricings && entertainment.pricings.length > 0) {
+      // Get the lowest price from the pricings array
+      const lowestPrice = Math.min(...entertainment.pricings.map(p => p.price));
+      return lowestPrice.toFixed(2);
     }
-    return entertainment.pricing.summary.fromPrice.toFixed(2);
+
+    // Legacy API format
+    if (entertainment.pricing?.summary?.fromPrice) {
+      return entertainment.pricing.summary.fromPrice.toFixed(2);
+    }
+
+    return '';
+  },
+
+  // Get pricing by category
+  getPricingByCategory: (entertainment: Entertainment, category: PricingCategory): EntertainmentPricing | undefined => {
+    return entertainment.pricings?.find(p => p.category === category);
+  },
+
+  // Get lowest price
+  getLowestPrice: (entertainment: Entertainment): number | null => {
+    if (entertainment.pricings && entertainment.pricings.length > 0) {
+      return Math.min(...entertainment.pricings.map(p => p.price));
+    }
+    if (entertainment.pricing?.summary?.fromPrice) {
+      return entertainment.pricing.summary.fromPrice;
+    }
+    return null;
   },
 
   getRatingInfo: (entertainment: Entertainment) => {
-    // Vérification que les reviews existent
+    // New API format - use rating field directly
+    if (typeof entertainment.rating === 'number') {
+      const rating = entertainment.rating;
+      return {
+        rating,
+        ratingCount: 0, // Not available in new API
+        fullStars: Math.floor(rating),
+        hasHalfStar: (rating % 1) >= 0.5
+      };
+    }
+
+    // Legacy format
     if (!entertainment.reviews || typeof entertainment.reviews.combinedAverageRating !== 'number') {
       return {
         rating: 0,
@@ -147,13 +296,22 @@ export const entertainmentHelpers = {
       hasHalfStar: (rating % 1) >= 0.5
     };
   },
-  // Fonction pour nettoyer et formater la description
+
   cleanDescription: (description: string): string => {
     if (!description) return '';
     return description
-      .replace(/[\r\n]+/g, ' ') // Remplace retours chariot/nouvelle ligne par un espace
-      .replace(/\s+/g, ' ')     // Réduit les espaces multiples à un seul
-      .trim();                  // Supprime les espaces en début et fin de chaîne
-  }
+      .replace(/[\r\n]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
 
+  // Get display name (handles both old and new API)
+  getDisplayName: (entertainment: Entertainment): string => {
+    return entertainment.name || entertainment.title || 'Untitled';
+  },
+
+  // Get display code (handles both old and new API)
+  getDisplayCode: (entertainment: Entertainment): string => {
+    return entertainment.code || entertainment.productCode || entertainment.id;
+  }
 };

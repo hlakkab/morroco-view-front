@@ -11,11 +11,12 @@ import ScreenHeader from '../../components/ScreenHeader';
 import SearchBar from '../../components/SearchBar';
 import EntertainmentListContainerVo from '../containers/EntertainmentListContainerVo';
 import { cities, normalizeString } from '../../data/filterData';
-import { EntertainmentState, fetchEntertainments } from '../store/entertainmentSlice';
+import { EntertainmentState, fetchEntertainments, setFilters, setPage } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import i18n from '../../translations/i18n';
-import { Entertainment } from '../types/Entertainment';
+import { Entertainment, City } from '../types/Entertainment';
 import { RootStackParamList } from '../../types/navigation';
+import EntertainmentFilters, { EntertainmentFilterValues } from '../components/EntertainmentFilters';
 
 const TOUR_FLAG = '@entertainmentTourSeen';
 
@@ -33,12 +34,20 @@ const EntertainmentScreenContent: React.FC = () => {
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopupVisible, setFilterPopupVisible] = useState(false);
+  const [entertainmentFilterVisible, setEntertainmentFilterVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
-  const [selectedCityId, setSelectedCityId] = useState('all');
+  const [selectedCityId, setSelectedCityId] = useState<string>('all');
+  const [entertainmentFilters, setEntertainmentFilters] = useState<EntertainmentFilterValues>({});
 
-  const { entertainments, loading, error } = useAppSelector(
-    (state): EntertainmentState => state.entertainment
-  );
+  const { 
+    entertainments, 
+    loading, 
+    error, 
+    filters,
+    currentPage,
+    totalPages,
+    totalElements 
+  } = useAppSelector((state): EntertainmentState => state.entertainment);
 
   // Add icons to filter categories - only for location
   const categoriesWithIcons = {
@@ -69,7 +78,9 @@ const EntertainmentScreenContent: React.FC = () => {
     if (entertainments.length > 0) {
       // Create location filter options from the actual data
       const uniqueLocations = Array.from(new Set(entertainments
-        .filter(ent => ent.location && ent.location.trim() !== '')
+        .filter((ent): ent is Entertainment & { location: string } => 
+          ent.location !== undefined && ent.location.trim() !== ''
+        )
         .map(ent => ent.location)));
       
       const locationOptions = uniqueLocations.map(location => ({
@@ -143,15 +154,46 @@ const EntertainmentScreenContent: React.FC = () => {
 
   const handleCitySelect = (cityId: string) => {
     setSelectedCityId(cityId);
+    
+    // Update filters with city
+    const cityFilter = cityId !== 'all' ? cityId.toUpperCase() as City : undefined;
+    const newFilters = { 
+      ...filters, 
+      city: cityFilter,
+      page: 0 // Reset to first page when changing city
+    };
+    dispatch(setFilters(newFilters));
+    dispatch(fetchEntertainments(newFilters));
+  };
+
+  const handleEntertainmentFiltersApply = (newFilters: EntertainmentFilterValues) => {
+    setEntertainmentFilters(newFilters);
+    
+    // Merge with existing filters
+    const updatedFilters = {
+      ...filters,
+      ...newFilters,
+      page: 0 // Reset to first page when applying filters
+    };
+    dispatch(setFilters(updatedFilters));
+    dispatch(fetchEntertainments(updatedFilters));
+  };
+
+  const handlePageChange = (page: number) => {
+    // Convert from 1-based to 0-based page number
+    const pageIndex = page - 1;
+    dispatch(setPage(pageIndex));
+    dispatch(fetchEntertainments({ ...filters, page: pageIndex }));
   };
 
   useEffect(() => {
     // Initial data fetch
-    dispatch(fetchEntertainments('5408')); // Default to Marrakech for initial load
+    dispatch(fetchEntertainments(filters));
   }, [dispatch]);
 
   const handleFilterPress = () => {
-    setFilterPopupVisible(true);
+    // Open the new entertainment filters modal
+    setEntertainmentFilterVisible(true);
   };
 
   const handleCloseFilter = () => {
@@ -163,32 +205,24 @@ const EntertainmentScreenContent: React.FC = () => {
     setFilterPopupVisible(false);
   };
 
+  const handleCloseEntertainmentFilter = () => {
+    setEntertainmentFilterVisible(false);
+  };
+
   // Add a button to manually start the tour
   const handleStartTour = () => {
     setTourStarted(true);
     startTour();
   };
 
-  // Get active location filters
-  const activeLocationFilters = filterOptions
-    .filter(option => option.category === 'location' && option.selected)
-    .map(option => option.id);
-
-  // Filter entertainments based on search, city, and location
+  // Filter entertainments based on search only (other filters are handled by API)
   const filteredEntertainments = entertainments.filter((ent: Entertainment) => {
-    // Search match
+    // Search match - search by name or title
+    const displayName = ent.name || ent.title || '';
     const searchMatch = searchQuery.trim() === '' || 
-      normalizeString(ent.title).includes(normalizeString(searchQuery));
+      normalizeString(displayName).includes(normalizeString(searchQuery));
     
-    // City filter
-    const cityMatch = selectedCityId === 'all' || 
-      normalizeString(ent.city || '').includes(selectedCityId);
-    
-    // Location filter - if no location is selected, show all
-    const locationMatch = activeLocationFilters.length === 0 || 
-      (ent.location && activeLocationFilters.includes(normalizeString(ent.location)));
-    
-    return searchMatch && cityMatch && locationMatch;
+    return searchMatch;
   });
 
   if (loading) {
@@ -274,7 +308,15 @@ const EntertainmentScreenContent: React.FC = () => {
           name="entertainmentList"
         >
           <WalkthroughableView style={styles.entertainmentListHighlight}>
-            <EntertainmentListContainerVo entertainments={filteredEntertainments} />
+            <EntertainmentListContainerVo 
+              entertainments={filteredEntertainments}
+              loading={loading}
+              error={error}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              onPageChange={handlePageChange}
+            />
           </WalkthroughableView>
         </CopilotStep>
 
@@ -285,6 +327,13 @@ const EntertainmentScreenContent: React.FC = () => {
           onApplyFilters={handleApplyFilters}
           title={i18n.t('entertainment.filterTitle')}
           categories={categoriesWithIcons}
+        />
+
+        <EntertainmentFilters
+          visible={entertainmentFilterVisible}
+          onClose={handleCloseEntertainmentFilter}
+          onApply={handleEntertainmentFiltersApply}
+          initialFilters={entertainmentFilters}
         />
       </View>
     </SafeAreaView>

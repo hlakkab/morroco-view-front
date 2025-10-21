@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Entertainment } from '../types/Entertainment';
+import { Entertainment, EntertainmentFilters, EntertainmentListResponse } from '../types/Entertainment';
 import ViatorService from '../../service/ViatorService';
 import { addBookmark, removeBookmark } from '../../Bookmarks/store/bookmarkSlice';
 
@@ -10,6 +10,13 @@ export interface EntertainmentState {
   loading: boolean;
   error: string | null;
   currentCityCode: string | null;
+  // Pagination fields
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+  pageSize: number;
+  // Filter fields
+  filters: EntertainmentFilters;
 }
 
 // État initial
@@ -18,21 +25,59 @@ const initialState: EntertainmentState = {
   selectedEntertainment: null,
   loading: false,
   error: null,
-  currentCityCode: null
+  currentCityCode: null,
+  currentPage: 0,
+  totalPages: 0,
+  totalElements: 0,
+  pageSize: 10,
+  filters: {
+    page: 0,
+    size: 10,
+    sort: 'rating,desc'
+  }
 };
 
 // Fonction pour adapter les données de l'API au format Entertainment
 const adaptApiData = (apiData: any): Entertainment => {
-  // S'assurer que tous les champs nécessaires existent
+  // Check if it's the new API format
+  if (apiData.code && apiData.spotType) {
+    return {
+      ...apiData,
+      // Ensure pricings is an array (default to empty array if not present)
+      pricings: apiData.pricings || [],
+      // Add legacy fields for backward compatibility
+      productCode: apiData.code,
+      title: apiData.name,
+      fullStars: Math.floor(apiData.rating || 0),
+      hasHalfStar: ((apiData.rating || 0) % 1) >= 0.5,
+    };
+  }
+
+  // Legacy format adapter
   return {
     saved: apiData.saved,
     id: apiData.productCode,
+    code: apiData.productCode,
+    name: apiData.title || 'Unknown Title',
     productCode: apiData.productCode,
     title: apiData.title || 'Unknown Title',
     description: apiData.description || '',
-    location: apiData.location?.name || 'Morocco', // Si non fourni, valeur par défaut
+    location: apiData.location?.name || 'Morocco',
     images: apiData.images || [],
     city: apiData.city,
+    type: 'OTHER',
+    spotType: 'ACTIVITY',
+    address: '',
+    mapId: '',
+    coordinates: '',
+    startTime: '09:00',
+    endTime: '18:00',
+    phoneNumber: '',
+    email: '',
+    website: '',
+    rating: apiData.reviews?.combinedAverageRating || 0,
+    bookingRequired: 'RECOMMENDED',
+    pricings: [], // New API format - empty array for legacy
     pricing: apiData.pricing || { 
       summary: { 
         fromPrice: 0, 
@@ -45,16 +90,16 @@ const adaptApiData = (apiData: any): Entertainment => {
     },
     fullStars: Math.floor(apiData.reviews?.combinedAverageRating || 0),
     hasHalfStar: ((apiData.reviews?.combinedAverageRating || 0) % 1) >= 0.5,
-    mapUrl: apiData.productUrl || '', // ou tout autre champ pertinent
+    mapUrl: apiData.productUrl || '',
   };
 };
 
 export const fetchEntertainments = createAsyncThunk(
   'entertainment/fetchEntertainments',
-  async (cityCode: string, { rejectWithValue }) => {
+  async (filters: EntertainmentFilters, { rejectWithValue }) => {
     try {
-      const response = await ViatorService.listEntertainments();
-      return response.map(adaptApiData);
+      const response = await ViatorService.listEntertainments(filters);
+      return response;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch entertainments');
     }
@@ -118,11 +163,27 @@ const entertainmentSlice = createSlice({
     },
     removeEntertainment: (state, action: PayloadAction<string>) => {
       state.entertainments = state.entertainments.filter(
-        ent => ent.productCode !== action.payload
+        ent => ent.productCode !== action.payload && ent.code !== action.payload
       );
-      if (state.selectedEntertainment?.productCode === action.payload) {
+      const selectedCode = state.selectedEntertainment?.productCode || state.selectedEntertainment?.code;
+      if (selectedCode === action.payload) {
         state.selectedEntertainment = null;
       }
+    },
+    setFilters: (state, action: PayloadAction<EntertainmentFilters>) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    setPage: (state, action: PayloadAction<number>) => {
+      state.currentPage = action.payload;
+      state.filters.page = action.payload;
+    },
+    resetFilters: (state) => {
+      state.filters = {
+        page: 0,
+        size: 10,
+        sort: 'rating,desc'
+      };
+      state.currentPage = 0;
     },
   },
   extraReducers: (builder) => {
@@ -132,9 +193,13 @@ const entertainmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchEntertainments.fulfilled, (state, action) => {
+      .addCase(fetchEntertainments.fulfilled, (state, action: PayloadAction<EntertainmentListResponse>) => {
         state.loading = false;
-        state.entertainments = action.payload;
+        state.entertainments = action.payload.content.map(adaptApiData);
+        state.currentPage = action.payload.number;
+        state.totalPages = action.payload.totalPages;
+        state.totalElements = action.payload.totalElements;
+        state.pageSize = action.payload.size;
       })
       .addCase(fetchEntertainments.rejected, (state, action) => {
         state.loading = false;
@@ -159,15 +224,18 @@ const entertainmentSlice = createSlice({
       .addCase(toggleEntertainmentBookmark.pending, (state, action) => {
         state.error = null;
         // Optimistic update - toggle the saved flag immediately
-        const entertainmentId = action.meta.arg.productCode;
-        const entertainment = state.entertainments.find(e => e.productCode === entertainmentId);
+        const entertainmentCode = action.meta.arg.productCode || action.meta.arg.code;
+        const entertainment = state.entertainments.find(
+          e => e.productCode === entertainmentCode || e.code === entertainmentCode
+        );
         if (entertainment) {
           entertainment.saved = !entertainment.saved;
         }
         
         // Also update selected entertainment if it exists
-        if (state.selectedEntertainment?.productCode === entertainmentId) {
-          state.selectedEntertainment.saved = !state.selectedEntertainment.saved;
+        const selectedCode = state.selectedEntertainment?.productCode || state.selectedEntertainment?.code;
+        if (selectedCode === entertainmentCode) {
+          state.selectedEntertainment!.saved = !state.selectedEntertainment!.saved;
         }
       })
       .addCase(toggleEntertainmentBookmark.fulfilled, (state) => {
@@ -175,15 +243,18 @@ const entertainmentSlice = createSlice({
       })
       .addCase(toggleEntertainmentBookmark.rejected, (state, action) => {
         // Revert the optimistic update if the action fails
-        const entertainmentId = action.meta.arg.productCode;
-        const entertainment = state.entertainments.find(e => e.productCode === entertainmentId);
+        const entertainmentCode = action.meta.arg.productCode || action.meta.arg.code;
+        const entertainment = state.entertainments.find(
+          e => e.productCode === entertainmentCode || e.code === entertainmentCode
+        );
         if (entertainment) {
           entertainment.saved = !entertainment.saved;
         }
         
         // Also revert selected entertainment if it exists
-        if (state.selectedEntertainment?.productCode === entertainmentId) {
-          state.selectedEntertainment.saved = !state.selectedEntertainment.saved;
+        const selectedCode = state.selectedEntertainment?.productCode || state.selectedEntertainment?.code;
+        if (selectedCode === entertainmentCode) {
+          state.selectedEntertainment!.saved = !state.selectedEntertainment!.saved;
         }
         state.error = action.error.message || 'Failed to toggle bookmark';
       })
@@ -198,5 +269,12 @@ const entertainmentSlice = createSlice({
   },
 });
 
-export const { setSelectedEntertainment, clearError, removeEntertainment } = entertainmentSlice.actions;
+export const { 
+  setSelectedEntertainment, 
+  clearError, 
+  removeEntertainment,
+  setFilters,
+  setPage,
+  resetFilters
+} = entertainmentSlice.actions;
 export default entertainmentSlice.reducer;

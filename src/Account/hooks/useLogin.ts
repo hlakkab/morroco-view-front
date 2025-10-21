@@ -1,35 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Alert } from 'react-native';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import { login, loginWithGoogle } from '../../service';
+import { login } from '../../service';
 
 export const useLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    // Configure Google Sign-In
-    GoogleSignin.configure({
-      webClientId: '27468884706-ss2q9umun6jcmo2r7cv9c4duvouj5g94.apps.googleusercontent.com',
-      iosClientId: '27468884706-1vsc596h0d76qq1grrmstfhjig5cdnjc.apps.googleusercontent.com',
-      offlineAccess: true,
-      //forceCodeForRefreshToken: true,
-      scopes: ['openid', 'email', 'profile']
-    });
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (onSuccess: () => void) => {
+    setLoading(true);
     try {
       await login(email, password);
       onSuccess();
     } catch (error) {
       Alert.alert("Error", "Username or password is incorrect");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleAuth = async (onSuccess: () => void) => {
+    setLoading(true);
     try {
+      // Lazy load Google Sign-In dependencies
+      const [{ GoogleSignin, statusCodes }, { loginWithGoogle }] = await Promise.all([
+        import('@react-native-google-signin/google-signin'),
+        import('../../service')
+      ]);
+
+      // Configure on first use
+      GoogleSignin.configure({
+        webClientId: '27468884706-ss2q9umun6jcmo2r7cv9c4duvouj5g94.apps.googleusercontent.com',
+        iosClientId: '27468884706-1vsc596h0d76qq1grrmstfhjig5cdnjc.apps.googleusercontent.com',
+        offlineAccess: true,
+        scopes: ['openid', 'email', 'profile']
+      });
+
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const googleSignInResponse = await GoogleSignin.signIn();
       
@@ -52,16 +59,26 @@ export const useLogin = () => {
       
       onSuccess();
     } catch (error: any) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('User cancelled sign-in');
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        Alert.alert('In Progress', 'Sign-in already in progress');
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert('Error', 'Google Play Services not available');
-      } else {
-        console.error('Google Sign-In Error:', error);
-        Alert.alert('Error', error.message || 'Failed to sign in with Google');
+      try {
+        // Lazy load statusCodes for error handling
+        const { statusCodes } = await import('@react-native-google-signin/google-signin');
+        
+        if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+          console.log('User cancelled sign-in');
+        } else if (error.code === statusCodes.IN_PROGRESS) {
+          Alert.alert('In Progress', 'Sign-in already in progress');
+        } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          Alert.alert('Error', 'Google Play Services not available');
+        } else {
+          console.error('Google Sign-In Error:', error);
+          Alert.alert('Error', error.message || 'Failed to sign in with Google');
+        }
+      } catch (importError) {
+        console.error('Google Sign-In module not available:', importError);
+        Alert.alert('Error', 'Google Sign-In not available on this platform');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,6 +89,7 @@ export const useLogin = () => {
     setPassword,
     showPassword,
     setShowPassword,
+    loading,
     handleLogin,
     handleGoogleAuth,
   };

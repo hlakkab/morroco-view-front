@@ -79,26 +79,45 @@ const EntertainmentDetailScreenContent: React.FC = () => {
           throw new Error('No data returned from API');
         }
 
-        // Adapter les données au format Entertainment
+        // Adapter les données au format Entertainment - handle both old and new API
         const adaptedData: Entertainment = {
-          saved: detailData.saved,
-          city: "",
-          id: detailData.productCode,
-          productCode: detailData.productCode,
-          title: detailData.title || title,
+          // New API fields
+          id: detailData.id || detailData.productCode,
+          code: detailData.code || detailData.productCode,
+          name: detailData.name || detailData.title || title,
           description: detailData.description || '',
-          location: detailData.location?.name || 'Morocco',
+          type: detailData.type || 'OTHER',
+          spotType: detailData.spotType || 'ACTIVITY',
+          address: detailData.address || detailData.location?.name || '',
+          mapId: detailData.mapId || '',
+          coordinates: detailData.coordinates || '',
+          startTime: detailData.startTime || '09:00',
+          endTime: detailData.endTime || '18:00',
+          city: detailData.city || '',
+          phoneNumber: detailData.phoneNumber || '',
+          email: detailData.email || '',
+          website: detailData.website || '',
+          rating: detailData.rating || detailData.reviews?.combinedAverageRating || 0,
+          bookingRequired: detailData.bookingRequired || 'RECOMMENDED',
+          ageRestriction: detailData.ageRestriction,
+          pricings: detailData.pricings || [],
           images: detailData.images || [],
-          pricing: {
+          saved: detailData.saved || false,
+          
+          // Legacy fields for backward compatibility
+          productCode: detailData.productCode || detailData.code,
+          title: detailData.title || detailData.name || title,
+          location: detailData.location?.name || detailData.address || 'Morocco',
+          pricing: detailData.pricing || {
             summary: {
               fromPrice: detailData.pricing?.summary?.fromPrice || 0,
               fromPriceBeforeDiscount: detailData.pricing?.summary?.fromPriceBeforeDiscount || 0
             }
           },
           reviews: detailData.reviews || { totalReviews: 0, combinedAverageRating: 0 },
-          fullStars: Math.floor(detailData.reviews?.combinedAverageRating || 0),
-          hasHalfStar: ((detailData.reviews?.combinedAverageRating || 0) % 1) >= 0.5,
-          mapUrl: detailData.productUrl || '',
+          fullStars: Math.floor(detailData.rating || detailData.reviews?.combinedAverageRating || 0),
+          hasHalfStar: ((detailData.rating || detailData.reviews?.combinedAverageRating || 0) % 1) >= 0.5,
+          mapUrl: detailData.mapUrl || detailData.productUrl || '',
           itinerary: detailData.itinerary,
           logistics: detailData.logistics,
           ticketInfo: detailData.ticketInfo,
@@ -209,22 +228,34 @@ const EntertainmentDetailScreenContent: React.FC = () => {
     );
   }
 
-  // Calcul du rating à partir de reviews
-  const rating = entertainment.reviews.combinedAverageRating;
-  const ratingCount = entertainment.reviews.totalReviews;
+  // Calcul du rating - support both new and legacy formats
+  const { rating, ratingCount } = entertainmentHelpers.getRatingInfo(entertainment);
 
-  // Construction du tableau d'URLs d'images
-  const images: string[] =
-    entertainment.images && entertainment.images.length > 0
-      ? entertainment.images
-        .map(img => {
-          if (!img.variants || img.variants.length === 0) return '';
-          const sortedVariants = [...img.variants].sort((a, b) => (b.width * b.height) - (a.width * a.height));
-          const idealVariant = sortedVariants.find(v => v.width >= 720 && v.width <= 1080) || sortedVariants[0];
-          return idealVariant?.url || '';
-        })
-        .filter(url => url !== '')
-      : ['https://via.placeholder.com/300'];
+  // Construction du tableau d'URLs d'images - support both new and legacy formats
+  const images: string[] = (() => {
+    if (!entertainment.images || entertainment.images.length === 0) {
+      return ['https://via.placeholder.com/300'];
+    }
+
+    // Check if new API format (array of strings)
+    if (typeof entertainment.images[0] === 'string') {
+      return entertainment.images as string[];
+    }
+
+    // Legacy format (array of image objects with variants)
+    return entertainment.images
+      .map((img: any) => {
+        if (!img.variants || img.variants.length === 0) return '';
+        const sortedVariants = [...img.variants].sort((a: any, b: any) => 
+          (b.width * b.height) - (a.width * a.height)
+        );
+        const idealVariant = sortedVariants.find((v: any) => 
+          v.width >= 720 && v.width <= 1080
+        ) || sortedVariants[0];
+        return idealVariant?.url || '';
+      })
+      .filter((url: string) => url !== '');
+  })();
 
   // Calcul de la durée (si renseignée dans l'itinéraire)
   let durationText = '';
@@ -293,11 +324,14 @@ const EntertainmentDetailScreenContent: React.FC = () => {
     
   };
 
+  // Get display name
+  const displayName = entertainmentHelpers.getDisplayName(entertainment);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <ScreenHeader 
-          title={entertainment.title} 
+          title={displayName} 
           showTour={!visible}
           onTourPress={handleStartTour}
         />
@@ -354,12 +388,50 @@ const EntertainmentDetailScreenContent: React.FC = () => {
 
               <Text style={styles.sectionTitle}>{i18n.t('transport.specifications')}</Text>
               <View style={styles.specificationsContainer}>
-                {durationText !== '' && (
+                {/* Operating Hours - New API */}
+                {entertainment.startTime && entertainment.endTime && (
                   <View style={styles.specItem}>
                     <Ionicons name="time-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>{entertainment.startTime} - {entertainment.endTime}</Text>
+                  </View>
+                )}
+                
+                {/* Duration - Legacy API */}
+                {durationText !== '' && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="hourglass-outline" size={20} color="#666" />
                     <Text style={styles.specText}>{durationText}</Text>
                   </View>
                 )}
+
+                {/* Booking Required - New API */}
+                {entertainment.bookingRequired && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="calendar-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>
+                      {entertainment.bookingRequired === 'YES' ? 'Booking Required' : 
+                       entertainment.bookingRequired === 'RECOMMENDED' ? 'Booking Recommended' : 
+                       'No Booking Required'}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Age Restriction - New API */}
+                {entertainment.ageRestriction && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="person-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>Age {entertainment.ageRestriction}+</Text>
+                  </View>
+                )}
+
+                {/* Contact Info - New API */}
+                {entertainment.phoneNumber && (
+                  <View style={styles.specItem}>
+                    <Ionicons name="call-outline" size={20} color="#666" />
+                    <Text style={styles.specText}>{entertainment.phoneNumber}</Text>
+                  </View>
+                )}
+
                 {pickupOffered !== '' && (
                   <View style={styles.specItem}>
                     <Ionicons name="car-outline" size={20} color="#666" />
@@ -378,13 +450,29 @@ const EntertainmentDetailScreenContent: React.FC = () => {
                     <Text style={styles.specText}>{guideLabel}</Text>
                   </View>
                 )}
-                {/* <View style={styles.specItem}>
-                            <Ionicons name="cash-outline" size={20} color="#666" />
-                            <Text style={styles.specText}>
-                                From ${entertainmentHelpers.getFormattedPrice(entertainment)}
-                            </Text> 
-                        </View> */}
               </View>
+
+              {/* Pricing Section - New API with multiple pricing options */}
+              {entertainment.pricings && entertainment.pricings.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>{i18n.t('entertainment.pricing') || 'Pricing'}</Text>
+                  <View style={styles.pricingContainer}>
+                    {entertainment.pricings.map((pricing) => (
+                      <View key={pricing.id} style={styles.pricingItem}>
+                        <View style={styles.pricingInfo}>
+                          <Text style={styles.pricingCategory}>
+                            {pricing.category.charAt(0) + pricing.category.slice(1).toLowerCase()}
+                          </Text>
+                          <Text style={styles.pricingDuration}>
+                            {pricing.duration} min • {pricing.unitLabel}
+                          </Text>
+                        </View>
+                        <Text style={styles.pricingPrice}>${pricing.price.toFixed(2)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
             </WalkthroughableView>
           </CopilotStep>
 
@@ -408,7 +496,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
           >
             <WalkthroughableView style={styles.walkthroughContainer}>
               <LocationSection 
-                address={entertainment.location} 
+                address={entertainment.address || entertainment.location || ''} 
                 mapUrl={entertainment.mapUrl} 
                 title={i18n.t('entertainment.location')} 
               />
@@ -630,7 +718,37 @@ const styles = StyleSheet.create({
   },
   walkthroughContainer: {
     width: '100%',
-   
+  },
+  pricingContainer: {
+    marginBottom: 16,
+  },
+  pricingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F6FAFF',
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  pricingInfo: {
+    flex: 1,
+  },
+  pricingCategory: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  pricingDuration: {
+    fontSize: 13,
+    color: '#666',
+  },
+  pricingPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#006400',
   },
 });
 
