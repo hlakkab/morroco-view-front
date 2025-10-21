@@ -39,6 +39,7 @@ const GuideDetailScreenContent: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [pickerMode, setPickerMode] = useState<'start' | 'end'>('start');
+  const [selectedTourType, setSelectedTourType] = useState<'fullDay' | 'halfDay'>('halfDay');
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const flatListRef = useRef<FlatList>(null);
   const { isAuthenticated } = useAuth();
@@ -176,12 +177,25 @@ const GuideDetailScreenContent: React.FC = () => {
     }
   };
 
+  // Calculate prices - Total is fixed, per person decreases as more people join
+  const getTotalTourPrice = () => {
+    return selectedTourType === 'fullDay' ? guideDetails.priceFullDay : guideDetails.priceHalfDay;
+  };
+
+  const getPricePerPerson = () => {
+    const totalPrice = getTotalTourPrice();
+    return Math.round(totalPrice / numberOfPeople);
+  };
+
   const handleConfirmReservation = () => {
     // TODO: Implement reservation logic with backend API
     console.log('Reservation details:', {
       guideId: guideDetails.id,
       date: selectedDate,
-      numberOfPeople
+      tourType: selectedTourType,
+      numberOfPeople,
+      totalTourPrice: getTotalTourPrice(),
+      pricePerPerson: getPricePerPerson()
     });
     // Close modal and show success message
     setShowReservationModal(false);
@@ -283,16 +297,37 @@ const GuideDetailScreenContent: React.FC = () => {
                     {guideDetails.rating.toFixed(1)} ({guideDetails.reviewCount} {i18n.t('guide.reviews')})
                   </Text>
                 </View>
-                {guideDetails.isFeatured && (
-                  <View style={styles.featuredBadge}>
-                    <Text style={styles.featuredText}>{i18n.t('guide.featured')}</Text>
-                  </View>
-                )}
               </View>
 
               <View style={styles.priceSection}>
-                <Text style={styles.priceLabel}>{i18n.t('guide.pricePerTour')}</Text>
-                <Text style={styles.price}>{guideDetails.pricePerTour} {guideDetails.currency}</Text>
+                <Text style={styles.priceSectionTitle}>{i18n.t('guide.tourPricing')}</Text>
+                
+                <View style={styles.priceOptions}>
+                  <View style={styles.priceOption}>
+                    <View style={styles.priceOptionHeader}>
+                      <Ionicons name="sunny-outline" size={20} color="#CE1126" />
+                      <Text style={styles.priceOptionTitle}>{i18n.t('guide.halfDayTour')}</Text>
+                    </View>
+                    <Text style={styles.priceOptionValue}>{guideDetails.priceHalfDay} {guideDetails.currency}</Text>
+                    <Text style={styles.priceOptionSubtext}>{i18n.t('guide.perTour')}</Text>
+                  </View>
+
+                  <View style={styles.priceOption}>
+                    <View style={styles.priceOptionHeader}>
+                      <Ionicons name="sunny" size={20} color="#CE1126" />
+                      <Text style={styles.priceOptionTitle}>{i18n.t('guide.fullDayTour')}</Text>
+                    </View>
+                    <Text style={styles.priceOptionValue}>{guideDetails.priceFullDay} {guideDetails.currency}</Text>
+                    <Text style={styles.priceOptionSubtext}>{i18n.t('guide.perTour')}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.maxTouristsInfo}>
+                  <Ionicons name="people-outline" size={16} color="#666" />
+                  <Text style={styles.maxTouristsText}>
+                    {i18n.t('guide.maxTourists')}: {guideDetails.maxTouristsPerTour} {i18n.t('guide.people')}
+                  </Text>
+                </View>
               </View>
 
               <View style={styles.metaInfo}>
@@ -458,6 +493,61 @@ const GuideDetailScreenContent: React.FC = () => {
             </View>
             
             <ScrollView style={styles.modalScroll}>
+              <Text style={styles.fieldLabel}>{i18n.t('guide.tourType')}</Text>
+              <View style={styles.tourTypeSelector}>
+                <TouchableOpacity 
+                  style={[
+                    styles.tourTypeOption,
+                    selectedTourType === 'halfDay' && styles.tourTypeOptionActive
+                  ]}
+                  onPress={() => setSelectedTourType('halfDay')}
+                >
+                  <Ionicons 
+                    name="sunny-outline" 
+                    size={24} 
+                    color={selectedTourType === 'halfDay' ? '#fff' : '#CE1126'} 
+                  />
+                  <Text style={[
+                    styles.tourTypeText,
+                    selectedTourType === 'halfDay' && styles.tourTypeTextActive
+                  ]}>
+                    {i18n.t('guide.halfDayTour')}
+                  </Text>
+                  <Text style={[
+                    styles.tourTypePrice,
+                    selectedTourType === 'halfDay' && styles.tourTypePriceActive
+                  ]}>
+                    {guideDetails.priceHalfDay} {guideDetails.currency}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[
+                    styles.tourTypeOption,
+                    selectedTourType === 'fullDay' && styles.tourTypeOptionActive
+                  ]}
+                  onPress={() => setSelectedTourType('fullDay')}
+                >
+                  <Ionicons 
+                    name="sunny" 
+                    size={24} 
+                    color={selectedTourType === 'fullDay' ? '#fff' : '#CE1126'} 
+                  />
+                  <Text style={[
+                    styles.tourTypeText,
+                    selectedTourType === 'fullDay' && styles.tourTypeTextActive
+                  ]}>
+                    {i18n.t('guide.fullDayTour')}
+                  </Text>
+                  <Text style={[
+                    styles.tourTypePrice,
+                    selectedTourType === 'fullDay' && styles.tourTypePriceActive
+                  ]}>
+                    {guideDetails.priceFullDay} {guideDetails.currency}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
               <Text style={styles.fieldLabel}>{i18n.t('guide.selectDate')}</Text>
               <TouchableOpacity 
                 style={styles.dateInput}
@@ -475,21 +565,49 @@ const GuideDetailScreenContent: React.FC = () => {
                 <TouchableOpacity 
                   style={styles.peopleButton}
                   onPress={() => setNumberOfPeople(Math.max(1, numberOfPeople - 1))}
+                  disabled={numberOfPeople <= 1}
                 >
-                  <Ionicons name="remove" size={20} color="#CE1126" />
+                  <Ionicons name="remove" size={20} color={numberOfPeople <= 1 ? '#ccc' : '#CE1126'} />
                 </TouchableOpacity>
-                <Text style={styles.peopleCount}>{numberOfPeople}</Text>
+                <View style={styles.peopleCountContainer}>
+                  <Text style={styles.peopleCount}>{numberOfPeople}</Text>
+                  <Text style={styles.peopleMax}>/ {guideDetails.maxTouristsPerTour}</Text>
+                </View>
                 <TouchableOpacity 
                   style={styles.peopleButton}
-                  onPress={() => setNumberOfPeople(numberOfPeople + 1)}
+                  onPress={() => setNumberOfPeople(Math.min(guideDetails.maxTouristsPerTour, numberOfPeople + 1))}
+                  disabled={numberOfPeople >= guideDetails.maxTouristsPerTour}
                 >
-                  <Ionicons name="add" size={20} color="#CE1126" />
+                  <Ionicons name="add" size={20} color={numberOfPeople >= guideDetails.maxTouristsPerTour ? '#ccc' : '#CE1126'} />
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.totalPrice}>
-                {i18n.t('guide.totalPrice')}: {guideDetails.pricePerTour * numberOfPeople} {guideDetails.currency}
-              </Text>
+              <View style={styles.priceSummary}>
+                <View style={styles.priceSummaryRow}>
+                  <Text style={styles.priceSummaryLabel}>{i18n.t('guide.tourType')}:</Text>
+                  <Text style={styles.priceSummaryValue}>
+                    {selectedTourType === 'fullDay' ? i18n.t('guide.fullDayTour') : i18n.t('guide.halfDayTour')}
+                  </Text>
+                </View>
+                <View style={styles.priceSummaryRow}>
+                  <Text style={styles.priceSummaryLabel}>{i18n.t('guide.totalTourPrice')}:</Text>
+                  <Text style={styles.priceSummaryValue}>{getTotalTourPrice()} {guideDetails.currency}</Text>
+                </View>
+                <View style={styles.priceSummaryRow}>
+                  <Text style={styles.priceSummaryLabel}>{i18n.t('guide.numberOfPeople')}:</Text>
+                  <Text style={styles.priceSummaryValue}>{numberOfPeople}</Text>
+                </View>
+                <View style={styles.priceSummaryDivider} />
+                <View style={styles.priceSummaryRow}>
+                  <Text style={styles.totalPriceLabel}>{i18n.t('guide.pricePerPerson')}:</Text>
+                  <Text style={styles.totalPriceValue}>{getPricePerPerson()} {guideDetails.currency}</Text>
+                </View>
+                {numberOfPeople > 1 && (
+                  <Text style={styles.savingsText}>
+                    {i18n.t('guide.shareTheCost')}
+                  </Text>
+                )}
+              </View>
             </ScrollView>
             
             <Button 
@@ -692,16 +810,62 @@ const styles = StyleSheet.create({
   },
   priceSection: {
     marginBottom: 16,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
+    padding: 16,
   },
-  priceLabel: {
+  priceSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 12,
+  },
+  priceOptions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  priceOption: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  priceOptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  priceOptionTitle: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 8,
   },
-  price: {
-    fontSize: 28,
+  priceOptionValue: {
+    fontSize: 22,
     fontWeight: '700',
     color: '#CE1126',
+    marginBottom: 4,
+  },
+  priceOptionSubtext: {
+    fontSize: 12,
+    color: '#666',
+  },
+  maxTouristsInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    padding: 8,
+    borderRadius: 6,
+  },
+  maxTouristsText: {
+    marginLeft: 6,
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
   },
   metaInfo: {
     flexDirection: 'row',
@@ -864,6 +1028,42 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
+  tourTypeSelector: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  tourTypeOption: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  tourTypeOptionActive: {
+    backgroundColor: '#CE1126',
+    borderColor: '#CE1126',
+  },
+  tourTypeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 8,
+  },
+  tourTypeTextActive: {
+    color: '#fff',
+  },
+  tourTypePrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#CE1126',
+    marginTop: 4,
+  },
+  tourTypePriceActive: {
+    color: '#fff',
+  },
   peopleSelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -878,18 +1078,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  peopleCount: {
-    fontSize: 24,
-    fontWeight: '600',
+  peopleCountContainer: {
+    alignItems: 'center',
     marginHorizontal: 24,
+  },
+  peopleCount: {
+    fontSize: 28,
+    fontWeight: '700',
     color: '#333',
   },
-  totalPrice: {
-    fontSize: 20,
+  peopleMax: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: -4,
+  },
+  priceSummary: {
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+  },
+  priceSummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  priceSummaryLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  priceSummaryValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+  },
+  priceSummaryDivider: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 12,
+  },
+  totalPriceLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333',
+  },
+  totalPriceValue: {
+    fontSize: 24,
     fontWeight: '700',
     color: '#CE1126',
+  },
+  savingsText: {
+    fontSize: 12,
+    color: '#008060',
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   confirmButton: {
     backgroundColor: '#CE1126',

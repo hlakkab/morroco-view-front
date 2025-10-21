@@ -7,7 +7,9 @@ export interface Guide {
   coordinates?: string; // Format: "x,y" from backend
   rating: number;
   reviewCount: number;
-  pricePerTour: number;
+  priceFullDay: number; // Total price for full day tour (fixed, regardless of group size)
+  priceHalfDay: number; // Total price for half day tour (fixed, regardless of group size)
+  maxTouristsPerTour: number; // Maximum number of tourists per tour
   currency: string;
   isFeatured?: boolean;
   saved?: boolean;

@@ -22,7 +22,7 @@ const GuideCard = ({ item, handleSaveGuide, handleGuidePress }: GuideCardProps) 
       title={item.name}
       subtitle={subtitle}
       price={{
-        value: item.pricePerTour,
+        value: item.priceHalfDay,
         prefix: i18n.t('guide.from'),
         currency: item.currency
       }}
@@ -34,12 +34,6 @@ const GuideCard = ({ item, handleSaveGuide, handleGuidePress }: GuideCardProps) 
           style: { backgroundColor: '#FCE4E4', borderWidth: 1, borderColor: '#CE1126' },
           textStyle: { color: '#CE1126', fontWeight: '600' }
         },
-        ...(item.isFeatured ? [{
-          id: 'featured',
-          label: 'FEATURED',
-          style: { backgroundColor: '#E53935' },
-          textStyle: { color: '#fff' }
-        }] : []),
         {
           id: 'rating',
           label: `★ ${item.rating.toFixed(1)} (${item.reviewCount})`,
