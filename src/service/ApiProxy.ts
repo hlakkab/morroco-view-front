@@ -12,6 +12,12 @@ import { getImagesWithDefaults } from '../utils/imageUtils';
 const baseURL = 'https://agence.mview.ma/api';
 //const baseURL = 'http://192.168.1.2:9090';
 
+// Global auth state handler - will be set by App.tsx
+let globalAuthStateHandler: (() => void) | null = null;
+
+export const setGlobalAuthStateHandler = (handler: () => void) => {
+  globalAuthStateHandler = handler;
+};
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -19,6 +25,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
 });
 
 // Request interceptor
@@ -38,8 +45,6 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   async (response: AxiosResponse) => {
-
-    console.log("NQJSFBSJKDFBJKSBDFKJBSKJDF")
     // Handle empty images array in successful responses
     if (response.status === 200 && response.data) {
 
@@ -89,18 +94,41 @@ api.interceptors.response.use(
     // If the error is 401 and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      
       try {
-        // Get new token
+        console.log('🔄 Token expired, attempting refresh...');
+        // Try to get new token
         const newAccessToken = await refreshToken();
-        // Update header
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        // Retry the request
-        return api(originalRequest);
+        
+        if (newAccessToken) {
+          console.log('✅ Token refreshed successfully');
+          // Update header
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          // Retry the request
+          return api(originalRequest);
+        } else {
+          throw new Error('Token refresh returned null');
+        }
       } catch (refreshError) {
+        console.error('❌ Token refresh failed:', refreshError);
+        // Clear tokens
         await clearTokens();
-        return Promise.reject(refreshError);
+        
+        // Notify global auth state handler to update UI
+        if (globalAuthStateHandler) {
+          console.log('📢 Notifying auth state handler');
+          globalAuthStateHandler();
+        }
+        
+        // Return a more descriptive error
+        return Promise.reject({
+          ...error,
+          message: 'Session expired. Please log in again.',
+          isAuthError: true
+        });
       }
     }
+    
     return Promise.reject(error);
   }
 );

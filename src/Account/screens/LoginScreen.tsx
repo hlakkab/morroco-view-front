@@ -6,6 +6,7 @@ import GoogleIcon from '../../assets/img/icons8-google.svg';
 import LogoSvg from '../../assets/img/morroco-view-logo.svg';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import AppleSignInButton from '../../components/AppleSignInButton';
 import i18n from '../../translations/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import { useLogin } from '../hooks/useLogin';
@@ -68,6 +69,21 @@ const LoginScreen = () => {
                     </>
                   )}
                 </TouchableOpacity>
+                
+                <View style={styles.dividerContainer}>
+                  <View style={styles.divider} />
+                  <Text style={styles.orText}>{i18n.t('login.or')}</Text>
+                  <View style={styles.divider} />
+                </View>
+              </>
+            )}
+
+            {Platform.OS === 'ios' && (
+              <>
+                <AppleSignInButton 
+                  onSuccess={onLoginSuccess}
+                  disabled={loading}
+                />
                 
                 <View style={styles.dividerContainer}>
                   <View style={styles.divider} />

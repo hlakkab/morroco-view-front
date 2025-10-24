@@ -30,6 +30,7 @@ const ToursScreenContent: React.FC = () => {
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
   
+  
   // Store onboarding steps in state so they update when language changes
   const [onboardingSteps, setOnboardingSteps] = useState([
     {

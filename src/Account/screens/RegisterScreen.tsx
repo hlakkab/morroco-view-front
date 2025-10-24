@@ -1,11 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState, useMemo } from 'react';
-import { Alert, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import GoogleIcon from '../../assets/img/icons8-google.svg';
 import LogoSvg from '../../assets/img/morroco-view-logo.svg';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import AppleSignInButton from '../../components/AppleSignInButton';
 import i18n from '../../translations/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import { register } from '../../service';
@@ -138,18 +139,38 @@ const RegisterScreen = () => {
           <LogoSvg width={80} height={80} />
           <Text style={styles.accessText}>{i18n.t('register.createAccount')}</Text>
         </View>
-        {/* <Text style={styles.connectText}>{i18n.t('register.connectWith')}</Text>
-        <Button
-          title="Google"
-          onPress={handleGoogleAuth}
-          style={styles.googleButton}
-          icon={<GoogleIcon width={24} height={24} />}
-        />
-        <View style={styles.dividerContainer}>
-          <View style={styles.divider} />
-          <Text style={styles.orText}>{i18n.t('register.or')}</Text>
-          <View style={styles.divider} />
-        </View> */}
+        <Text style={styles.connectText}>{i18n.t('register.connectWith')}</Text>
+        
+        {Platform.OS !== 'ios' && (
+          <>
+            <Button
+              title="Google"
+              onPress={handleGoogleAuth}
+              style={styles.googleButton}
+              icon={<GoogleIcon width={24} height={24} />}
+            />
+            
+            <View style={styles.dividerContainer}>
+              <View style={styles.divider} />
+              <Text style={styles.orText}>{i18n.t('register.or')}</Text>
+              <View style={styles.divider} />
+            </View>
+          </>
+        )}
+
+        {Platform.OS === 'ios' && (
+          <>
+            <AppleSignInButton 
+              onSuccess={() => navigation.navigate('Home' as never)}
+            />
+            
+            <View style={styles.dividerContainer}>
+              <View style={styles.divider} />
+              <Text style={styles.orText}>{i18n.t('register.or')}</Text>
+              <View style={styles.divider} />
+            </View>
+          </>
+        )}
         <Text style={styles.title}>{i18n.t('register.enterDetails')}</Text>
         <Input 
           placeholder={i18n.t('register.firstName')} 

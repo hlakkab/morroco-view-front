@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getUserInfo, login as keycloakLogin, getAccessToken, clearTokens } from '../service/KeycloakService';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { getUserInfo, login as keycloakLogin, getAccessToken, clearTokens, signOutFromGoogle } from '../service/KeycloakService';
 import { User } from '../types/user';
+import { AppState, AppStateStatus } from 'react-native';
 
 interface AuthContextType {
   isAuthenticated: () => boolean;
@@ -9,6 +10,7 @@ interface AuthContextType {
   checkAuth: () => Promise<void>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  forceLogout: () => void; // For global error handling
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   checkAuth: async () => {},
   login: async () => {},
   logout: async () => {},
+  forceLogout: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -26,8 +29,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
+      // First check if token exists and is valid
+      const token = await getAccessToken();
+      
+      if (!token) {
+        setUser(null);
+        return;
+      }
+      
+      // If token exists, get user info
       const userInfo = await getUserInfo();
       if (userInfo && userInfo.id) {
         setUser(userInfo as User);
@@ -35,15 +47,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       }
     } catch (error) {
+      console.error('Auth check error:', error);
       setUser(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const isAuthenticated = () => {
+  const isAuthenticated = useCallback(() => {
     return user !== null;
-  };
+  }, [user]);
 
   const login = async (username: string, password: string) => {
     try {
@@ -61,7 +74,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       setLoading(true);
-      await clearTokens(); // Clear stored tokens
+      
+      // Sign out from Google first
+      await signOutFromGoogle();
+      
+      // Clear stored tokens
+      await clearTokens();
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
@@ -70,9 +88,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Force logout without async operations (for global error handling)
+  const forceLogout = useCallback(() => {
+    setUser(null);
+    clearTokens().catch(err => console.error('Error clearing tokens:', err));
+  }, []);
+
+  // Check auth on mount
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
+
+  // Re-check auth when app comes to foreground
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        checkAuth();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    return () => {
+      subscription?.remove();
+    };
+  }, [checkAuth]);
 
   return (
     <AuthContext.Provider
@@ -83,9 +123,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         checkAuth,
         login,
         logout,
+        forceLogout,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-}; 
+};

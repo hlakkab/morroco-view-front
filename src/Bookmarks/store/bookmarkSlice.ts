@@ -2,6 +2,29 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Bookmark, BookmarkState } from '../types/bookmark';
 import { api } from '../../service';
 import { PaginatedResponse } from '../../types/pagination';
+import { getBookmarkFirstImageWithCheck } from '../../utils/imageUtils';
+
+/**
+ * Helper function to extract code from bookmark object
+ * Tries multiple possible properties in order of preference
+ */
+const getBookmarkCode = (bookmark: Bookmark): string | null => {
+  // Try different possible code properties
+  const possibleCodes = [
+    bookmark.object?.code,
+    bookmark.object?.productCode,
+    bookmark.object?.id,
+    bookmark.elementId
+  ];
+  
+  for (const code of possibleCodes) {
+    if (code && typeof code === 'string' && code.trim() !== '') {
+      return code;
+    }
+  }
+  
+  return null;
+};
 
 
 
@@ -22,7 +45,31 @@ export const fetchBookmarks = createAsyncThunk(
     const page = params?.page ?? 0;
     const size = params?.size ?? 10;
     const response = await api.get<PaginatedResponse<Bookmark>>(`/bookmarks?page=${page}&size=${size}`);
-    return response.data;
+    
+    // Process bookmarks to check image formats
+    const processedBookmarks = await Promise.all(
+      response.data.content.map(async (bookmark: Bookmark) => {
+        // If images are empty, check for webp or jpg
+        if (!bookmark.images || bookmark.images.length === 0) {
+          const code = getBookmarkCode(bookmark);
+          
+          if (code) {
+            // Use HEAD request to check which format exists
+            const imageUrl = await getBookmarkFirstImageWithCheck(code);
+            return {
+              ...bookmark,
+              images: imageUrl ? [imageUrl] : []
+            };
+          }
+        }
+        return bookmark;
+      })
+    );
+    
+    return {
+      ...response.data,
+      content: processedBookmarks
+    };
   }
 );
 
@@ -77,11 +124,21 @@ const bookmarkSlice = createSlice({
       })
       .addCase(fetchBookmarks.fulfilled, (state, action) => {
         state.loading = false;
+        
+        // Bookmarks are already processed with HEAD-checked images
         state.bookmarks = action.payload.content;
+        
         state.currentPage = action.payload.number;
         state.totalPages = action.payload.totalPages;
         state.totalElements = action.payload.totalElements;
         state.pageSize = action.payload.size;
+        
+        console.log(`✅ Fetched ${state.bookmarks.length} bookmarks (page ${state.currentPage + 1}/${state.totalPages})`);
+        
+        // Log summary of image status
+        const withImages = state.bookmarks.filter(b => b.images && b.images.length > 0).length;
+        const withoutImages = state.bookmarks.length - withImages;
+        console.log(`📸 Images: ${withImages} with images, ${withoutImages} without`);
       })
       .addCase(fetchBookmarks.rejected, (state, action) => {
         state.loading = false;

@@ -5,7 +5,30 @@ import { mapBookmarksToTourSavedItems } from '../../Bookmarks/utils/bookmarkMapp
 import { RootState } from '../../store/store';
 import axios from 'axios';
 import { getAccessToken } from '../../service/KeycloakService';
+import { getBookmarkFirstImageWithCheck } from '../../utils/imageUtils';
+import { Bookmark } from '../../Bookmarks/types/bookmark';
 
+/**
+ * Helper function to extract code from bookmark object
+ * Tries multiple possible properties in order of preference
+ */
+const getBookmarkCode = (bookmark: Bookmark): string | null => {
+  // Try different possible code properties
+  const possibleCodes = [
+    bookmark.object?.code,
+    bookmark.object?.productCode,
+    bookmark.object?.id,
+    bookmark.elementId
+  ];
+  
+  for (const code of possibleCodes) {
+    if (code && typeof code === 'string' && code.trim() !== '') {
+      return code;
+    }
+  }
+  
+  return null;
+};
 
 // Define interfaces for tour items
 export interface TourItem {
@@ -80,7 +103,7 @@ export const fetchBookmarksAsItems = createAsyncThunk(
       
 
       // Check if dates exist before formatting
-      let queryParams = '';
+      let queryParams = 'page=0&size=10&sort=createdAt,desc';
       if (datesFromParams.startDate && datesFromParams.endDate) {
         // Make sure dates are in the correct format before processing
         // First, standardize the format by replacing both / and - with /
@@ -101,7 +124,7 @@ export const fetchBookmarksAsItems = createAsyncThunk(
           
 
           if (formattedStartDate !== "Invalid Date" && formattedEndDate !== "Invalid Date") {
-            queryParams = `?startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+            queryParams += `&startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
           }
         } catch (e) {
           console.error("Error formatting dates:", e);
@@ -109,11 +132,36 @@ export const fetchBookmarksAsItems = createAsyncThunk(
       }
 
       
-      const response = await api.get(`/bookmarks${queryParams}`);
-      const bookmarks = response.data;
+      const response = await api.get(`/bookmarks?${queryParams}`);
+      const paginatedResponse = response.data;
+
+      // Extract bookmarks from paginated response
+      const bookmarks = Array.isArray(paginatedResponse) 
+        ? paginatedResponse 
+        : (paginatedResponse.content || []);
+
+      // Process bookmarks to check image formats (same logic as bookmark slice)
+      const processedBookmarks = await Promise.all(
+        bookmarks.map(async (bookmark: Bookmark) => {
+          // If images are empty, check for webp or jpg
+          if (!bookmark.images || bookmark.images.length === 0) {
+            const code = getBookmarkCode(bookmark);
+            
+            if (code) {
+              // Use HEAD request to check which format exists
+              const imageUrl = await getBookmarkFirstImageWithCheck(code);
+              return {
+                ...bookmark,
+                images: imageUrl ? [imageUrl] : []
+              };
+            }
+          }
+          return bookmark;
+        })
+      );
 
       // Map bookmarks to saved items format
-      const savedItems = mapBookmarksToTourSavedItems(bookmarks);
+      const savedItems = mapBookmarksToTourSavedItems(processedBookmarks);
 
       // Set these items as available items without type transformation
       dispatch(setAvailableItems(savedItems));

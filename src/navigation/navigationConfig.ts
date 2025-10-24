@@ -1,34 +1,29 @@
 /**
- * Navigation Configuration for Lazy Loading Optimization - Option B+ (Auth-Aware)
+ * Navigation Configuration for Lazy Loading Optimization
  * Morocco View v1.1.7 - React Native 0.81.3 + Hermes
  * 
  * This configuration defines load strategies for all screens to optimize
  * startup performance and reduce initial bundle size.
  * 
  * Enhanced with:
- * - Auth-aware prefetch tiers ('public' | 'auth')
  * - Analytics integration (screen names)
  * - Custom fallback animations (shimmer types)
  */
 
-export type LoadStrategy = 'eager' | 'lazy' | 'prefetch';
+export type LoadStrategy = 'eager' | 'lazy';
 export type ScreenWeight = 'light' | 'medium' | 'heavy' | 'very-heavy';
-export type PrefetchTier = 'public' | 'auth';
 export type ShimmerType = 'default' | 'map' | 'list';
 
 export interface ScreenConfig {
   name: string;
   path: string;
   loadStrategy: LoadStrategy;
-  prefetchDelay?: number; // milliseconds after Home renders
-  prefetchTrigger?: string; // parent screen name
-  prefetchTier?: PrefetchTier; // NEW: public or auth-protected
   weight: ScreenWeight;
   requiresAuth: boolean;
   hasCopilot: boolean;
   heavyDependencies: string[];
-  analyticsName?: string; // NEW: for analytics tracking
-  shimmerType?: ShimmerType; // NEW: loading animation type
+  analyticsName?: string; // for analytics tracking
+  shimmerType?: ShimmerType; // loading animation type
 }
 
 export const navigationConfig: Record<string, ScreenConfig> = {
@@ -89,13 +84,11 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     shimmerType: 'default',
   },
 
-  // ========== PREFETCH TIER 1: Bottom Nav - AUTH PROTECTED (2s delay) ==========
+  // ========== LAZY: Bottom Nav Screens ==========
   Bookmark: {
     name: 'Bookmark',
     path: '../Bookmarks/screens/BookmarkScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 2000,
-    prefetchTier: 'auth', // 🔐 Auth-protected
+    loadStrategy: 'lazy',
     weight: 'heavy',
     requiresAuth: true,
     hasCopilot: true,
@@ -106,9 +99,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   Tours: {
     name: 'Tours',
     path: '../Tours/screens/ToursScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 2000,
-    prefetchTier: 'auth', // 🔐 Auth-protected
+    loadStrategy: 'lazy',
     weight: 'heavy',
     requiresAuth: true,
     hasCopilot: true,
@@ -119,9 +110,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   Tickets: {
     name: 'Tickets',
     path: '../Tickets/screens/TicketsScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 2000,
-    prefetchTier: 'auth', // 🔐 Auth-protected
+    loadStrategy: 'lazy',
     weight: 'medium',
     requiresAuth: true,
     hasCopilot: true,
@@ -132,9 +121,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   Account: {
     name: 'Account',
     path: '../Account/screens/AccountScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 2000,
-    prefetchTier: 'auth', // 🔐 Auth-protected
+    loadStrategy: 'lazy',
     weight: 'medium',
     requiresAuth: true,
     hasCopilot: true,
@@ -143,13 +130,11 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     shimmerType: 'default',
   },
 
-  // ========== PREFETCH TIER 2: Explore Categories - PUBLIC (5s delay) ==========
+  // ========== LAZY: Explore Categories ==========
   Monuments: {
     name: 'Monuments',
     path: '../Monument/screens/MonumentsScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 5000,
-    prefetchTier: 'public', // 🔓 Public
+    loadStrategy: 'lazy',
     weight: 'heavy',
     requiresAuth: false,
     hasCopilot: true,
@@ -160,9 +145,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   Restaurant: {
     name: 'Restaurant',
     path: '../Restaurant/screens/RestaurantScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 5000,
-    prefetchTier: 'public', // 🔓 Public
+    loadStrategy: 'lazy',
     weight: 'heavy',
     requiresAuth: false,
     hasCopilot: true,
@@ -173,9 +156,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   Entertainment: {
     name: 'Entertainment',
     path: '../Entertainment/screens/EntertainmentScreenVo',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 5000,
-    prefetchTier: 'public', // 🔓 Public
+    loadStrategy: 'lazy',
     weight: 'heavy',
     requiresAuth: false,
     hasCopilot: true,
@@ -186,9 +167,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   Artisans: {
     name: 'Artisans',
     path: '../Artisan/screens/ArtisansScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 5000,
-    prefetchTier: 'public', // 🔓 Public
+    loadStrategy: 'lazy',
     weight: 'heavy',
     requiresAuth: false,
     hasCopilot: true,
@@ -197,13 +176,11 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     shimmerType: 'list',
   },
 
-  // ========== PREFETCH TIER 3: Services - MIXED (8s delay) ==========
+  // ========== LAZY: Services ==========
   HotelPickup: {
     name: 'HotelPickup',
     path: '../Pickup/screens/HotelPickupScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 8000,
-    prefetchTier: 'public', // 🔓 Public
+    loadStrategy: 'lazy',
     weight: 'heavy',
     requiresAuth: false,
     hasCopilot: true,
@@ -214,9 +191,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   MoneyExchange: {
     name: 'MoneyExchange',
     path: '../MoneyExchange/screens/MoneyExchangeScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 8000,
-    prefetchTier: 'public', // 🔓 Public
+    loadStrategy: 'lazy',
     weight: 'medium',
     requiresAuth: false,
     hasCopilot: true,
@@ -227,9 +202,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   ESIM: {
     name: 'ESIM',
     path: '../ESIM/screens/ESIMScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 8000,
-    prefetchTier: 'auth', // 🔐 Auth-protected
+    loadStrategy: 'lazy',
     weight: 'medium',
     requiresAuth: true,
     hasCopilot: true,
@@ -240,9 +213,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   QRCodes: {
     name: 'QRCodes',
     path: '../QRCode/screens/QRCodesScreen',
-    loadStrategy: 'prefetch',
-    prefetchDelay: 8000,
-    prefetchTier: 'auth', // 🔐 Auth-protected
+    loadStrategy: 'lazy',
     weight: 'medium',
     requiresAuth: true,
     hasCopilot: true,
@@ -256,7 +227,6 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     name: 'MonumentDetail',
     path: '../Monument/screens/MonumentDetailScreen',
     loadStrategy: 'lazy',
-    prefetchTrigger: 'Monuments',
     weight: 'medium',
     requiresAuth: false,
     hasCopilot: true,
@@ -268,7 +238,6 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     name: 'RestaurantDetail',
     path: '../Restaurant/screens/RestaurantDetailScreen',
     loadStrategy: 'lazy',
-    prefetchTrigger: 'Restaurant',
     weight: 'medium',
     requiresAuth: false,
     hasCopilot: true,
@@ -280,7 +249,6 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     name: 'EntertainmentDetail',
     path: '../Entertainment/screens/EntertainmentDetailScreenVo',
     loadStrategy: 'lazy',
-    prefetchTrigger: 'Entertainment',
     weight: 'medium',
     requiresAuth: false,
     hasCopilot: true,
@@ -292,7 +260,6 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     name: 'ArtisanDetail',
     path: '../Artisan/screens/ArtisanDetailScreen',
     loadStrategy: 'lazy',
-    prefetchTrigger: 'Artisans',
     weight: 'medium',
     requiresAuth: false,
     hasCopilot: true,
@@ -304,7 +271,6 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     name: 'TransportDetail',
     path: '../Pickup/screens/TransportDetailScreen',
     loadStrategy: 'lazy',
-    prefetchTrigger: 'HotelPickup',
     weight: 'medium',
     requiresAuth: false,
     hasCopilot: true,
@@ -316,7 +282,6 @@ export const navigationConfig: Record<string, ScreenConfig> = {
     name: 'BrokerDetail',
     path: '../MoneyExchange/screens/BrokerDetailScreen',
     loadStrategy: 'lazy',
-    prefetchTrigger: 'BrokerList',
     weight: 'medium',
     requiresAuth: false,
     hasCopilot: true,
@@ -489,40 +454,6 @@ export const getEagerScreens = (): Array<ScreenConfig & { name: string }> => {
 };
 
 /**
- * Get screens to prefetch, optionally filtered by tier
- * @param tier - 'tier1' (2s), 'tier2' (5s), 'tier3' (8s)
- */
-export const getPrefetchScreens = (
-  tier?: 'tier1' | 'tier2' | 'tier3'
-): Array<ScreenConfig & { name: string }> => {
-  const prefetch = Object.entries(navigationConfig)
-    .filter(([_, config]) => config.loadStrategy === 'prefetch')
-    .map(([_, config]) => config as ScreenConfig & { name: string });
-
-  if (!tier) return prefetch;
-
-  const delayMap = {
-    tier1: 2000,
-    tier2: 5000,
-    tier3: 8000,
-  };
-
-  return prefetch.filter((s) => s.prefetchDelay === delayMap[tier]);
-};
-
-/**
- * Get prefetch screens by authentication tier
- * @param prefetchTier - 'public' or 'auth'
- */
-export const getPrefetchScreensByTier = (
-  prefetchTier: PrefetchTier
-): Array<ScreenConfig & { name: string }> => {
-  return Object.entries(navigationConfig)
-    .filter(([_, config]) => config.loadStrategy === 'prefetch' && config.prefetchTier === prefetchTier)
-    .map(([_, config]) => config as ScreenConfig & { name: string });
-};
-
-/**
  * Get all screens that should be lazy loaded
  */
 export const getLazyScreens = (): Array<ScreenConfig & { name: string }> => {
@@ -558,25 +489,11 @@ export const getScreenConfig = (screenName: string): ScreenConfig | undefined =>
   return navigationConfig[screenName];
 };
 
-/**
- * Get screens that should be prefetched when a parent screen mounts
- */
-export const getChildScreensForPrefetch = (
-  parentScreenName: string
-): Array<ScreenConfig & { name: string }> => {
-  return Object.entries(navigationConfig)
-    .filter(([_, config]) => config.prefetchTrigger === parentScreenName)
-    .map(([_, config]) => config as ScreenConfig & { name: string });
-};
-
 // ========== STATISTICS ==========
 
 export const navigationStats = {
   total: Object.keys(navigationConfig).length,
   eager: getEagerScreens().length,
-  prefetch: getPrefetchScreens().length,
-  prefetchPublic: getPrefetchScreensByTier('public').length,
-  prefetchAuth: getPrefetchScreensByTier('auth').length,
   lazy: getLazyScreens().length,
   copilot: getCopilotScreens().length,
   veryHeavy: getScreensByWeight('very-heavy').length,
@@ -587,11 +504,7 @@ export const navigationStats = {
 
 // Log stats in development
 if (__DEV__) {
-  console.log('📊 Navigation Config Stats (Option B+):', navigationStats);
+  console.log('📊 Navigation Config Stats:', navigationStats);
   console.log('⚡ Eager screens:', getEagerScreens().map((s) => s.name));
-  console.log('📦 Prefetch Tier 1 (2s):', getPrefetchScreens('tier1').map((s) => s.name));
-  console.log('📦 Prefetch Tier 2 (5s):', getPrefetchScreens('tier2').map((s) => s.name));
-  console.log('📦 Prefetch Tier 3 (8s):', getPrefetchScreens('tier3').map((s) => s.name));
-  console.log('🔓 Public prefetch:', getPrefetchScreensByTier('public').map((s) => s.name));
-  console.log('🔐 Auth prefetch:', getPrefetchScreensByTier('auth').map((s) => s.name));
+  console.log('🔄 Lazy screens:', getLazyScreens().map((s) => s.name));
 }

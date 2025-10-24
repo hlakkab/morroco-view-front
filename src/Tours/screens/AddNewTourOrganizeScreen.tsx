@@ -70,7 +70,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
   // Get the rest from Redux store
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
-  const [hasSeenTour, setHasSeenTour] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
   const dispatch = useAppDispatch();
   // Read tour data from Redux store
@@ -443,9 +443,9 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
         }
       } catch (error) {
         console.error('Error checking tour status:', error);
-        // Default to not showing tour if there's an error
+        // Default to showing tour if there's an error (safer default)
         if (isMounted) {
-          setHasSeenTour(true);
+          setHasSeenTour(false);
         }
       }
     };
@@ -459,7 +459,8 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
 
   // Start the Copilot tour when the component mounts only if it's the first time
   useEffect(() => {
-    if (!tourStarted && !hasSeenTour && !viewMode) {
+    // Only start if we haven't seen the tour, not in view mode, and tour hasn't started
+    if (hasSeenTour === false && !viewMode && !tourStarted && !visible) {
       let isMounted = true;
       
       const timer = setTimeout(() => {
@@ -480,22 +481,28 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
         clearTimeout(timer);
       };
     }
-  }, [startTour, tourStarted, hasSeenTour, viewMode]);
+  }, [hasSeenTour, viewMode, tourStarted, visible, startTour]);
 
   // Handle Copilot events
   useEffect(() => {
-    const handleStop = () => {
+    const handleStop = async () => {
+      console.log('Copilot tour stopped');
       
       // Reset tour started state
       setTourStarted(false);
       
       // Mark tour as seen when completed or stopped
-      AsyncStorage.setItem('@tour_organize_seen', 'true')
-        .catch(error => console.error('Error saving tour status:', error));
+      try {
+        await AsyncStorage.setItem('@tour_organize_seen', 'true');
+        setHasSeenTour(true);
+        console.log('Tour marked as seen');
+      } catch (error) {
+        console.error('Error saving tour status:', error);
+      }
     };
     
     const handleStart = () => {
-      
+      console.log('Copilot tour started');
       setTourStarted(true);
     };
     
@@ -513,6 +520,7 @@ const AddNewTourOrganizeScreenContent: React.FC = () => {
     try {
       // Prevent multiple tour instances
       if (!visible && !tourStarted) {
+        console.log('Manually starting tour');
         setTourStarted(true);
         // Small delay to ensure state is updated before starting tour
         setTimeout(() => {

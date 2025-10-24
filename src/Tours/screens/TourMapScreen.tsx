@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
+import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View, SafeAreaView } from 'react-native';
@@ -202,11 +203,33 @@ const TourMapScreen: React.FC = () => {
   const [currentCity, setCurrentCity] = useState<string>('');
   const [mapKey, setMapKey] = useState(0);
   const [imageLoadErrors, setImageLoadErrors] = useState<{[key: string]: boolean}>({});
+  const [apiKeyStatus, setApiKeyStatus] = useState<string>('checking');
   
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
 
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek';
+  // Get Google Maps API key from environment configuration
+  const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.googlePlacesApiKey || 
+                              Constants.expoConfig?.ios?.config?.googleMapsApiKey ||
+                              Constants.expoConfig?.android?.config?.googleMaps?.apiKey ||
+                              'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek'; // Fallback key
+
+  // Log API key status for debugging
+  useEffect(() => {
+    console.log('🔑 Google Maps API Key Status:');
+    console.log('   Key length:', GOOGLE_MAPS_API_KEY?.length || 0);
+    console.log('   Key preview:', GOOGLE_MAPS_API_KEY?.substring(0, 10) + '...');
+    console.log('   Source:', Constants.expoConfig?.extra?.googlePlacesApiKey ? 'extra' : 
+                              Constants.expoConfig?.ios?.config?.googleMapsApiKey ? 'ios' :
+                              Constants.expoConfig?.android?.config?.googleMaps?.apiKey ? 'android' : 'fallback');
+    
+    if (GOOGLE_MAPS_API_KEY && GOOGLE_MAPS_API_KEY.length > 20) {
+      setApiKeyStatus('valid');
+    } else {
+      setApiKeyStatus('invalid');
+      console.warn('⚠️ Google Maps API key appears to be invalid or missing');
+    }
+  }, [GOOGLE_MAPS_API_KEY]);
 
   // Function to get date for a day
   const getDateForDay = (day: number): string => {
@@ -224,55 +247,87 @@ const TourMapScreen: React.FC = () => {
   // Function to fetch routes for a given day
   const fetchRoutesForDay = async (dayItems: Array<any>) => {
     if (dayItems.length < 1) {
+      console.log('No items to create routes for');
       setRoutes([]);
       return;
     }
 
+    console.log(`🗺️ Fetching routes for ${dayItems.length} items`);
     setIsLoadingRoutes(true);
     const newRoutes = [];
     
     // Create circular route: hotel -> destinations -> hotel
     const hotel = dayItems.find(item => item.type === 'hotel');
     if (!hotel) {
+      console.log('⚠️ No hotel found, cannot create routes');
       setIsLoadingRoutes(false);
       return;
     }
+
+    console.log(`🏨 Hotel found: ${hotel.title}`);
 
     // Generate routes from hotel to each destination and back
     for (let i = 0; i < dayItems.length; i++) {
       const currentItem = dayItems[i];
       const nextItem = dayItems[(i + 1) % dayItems.length];
       
-      const origin = `${getItemCoordinates(currentItem).latitude},${getItemCoordinates(currentItem).longitude}`;
-      const destination = `${getItemCoordinates(nextItem).latitude},${getItemCoordinates(nextItem).longitude}`;
+      const originCoords = getItemCoordinates(currentItem);
+      const destCoords = getItemCoordinates(nextItem);
+      
+      const origin = `${originCoords.latitude},${originCoords.longitude}`;
+      const destination = `${destCoords.latitude},${destCoords.longitude}`;
+      
+      console.log(`📍 Route ${i + 1}: ${currentItem.title} → ${nextItem.title}`);
+      console.log(`   Origin: ${origin}`);
+      console.log(`   Destination: ${destination}`);
+      
       const url = `https://maps.googleapis.com/maps/api/directions/json`
         + `?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_API_KEY}`;
 
       try {
+        console.log(`🌐 Making API request to Google Directions API...`);
         const response = await axios.get(url);
-        if (response.data.routes.length > 0) {
+        
+        console.log(`📊 API Response Status: ${response.status}`);
+        console.log(`📊 API Response Data:`, response.data);
+        
+        if (response.data.status === 'OK' && response.data.routes.length > 0) {
           const points = response.data.routes[0].overview_polyline.points;
+          const decodedPoints = decodePolyline(points);
+          console.log(`✅ Route ${i + 1} decoded with ${decodedPoints.length} points`);
+          
           newRoutes.push({
-            points: decodePolyline(points),
+            points: decodedPoints,
+            color: getRouteColor(i)
+          });
+        } else {
+          console.warn(`⚠️ API returned status: ${response.data.status}`, response.data.error_message || '');
+          // Add a direct line if route fetching fails
+          newRoutes.push({
+            points: [originCoords, destCoords],
             color: getRouteColor(i)
           });
         }
       } catch (error) {
-        console.error("Error fetching route", error);
+        console.error(`❌ Error fetching route ${i + 1}:`, error);
+        if (axios.isAxiosError(error)) {
+          console.error(`   Status: ${error.response?.status}`);
+          console.error(`   Data:`, error.response?.data);
+          console.error(`   Message:`, error.message);
+        }
+        
         // Add a direct line if route fetching fails
         newRoutes.push({
-          points: [
-            getItemCoordinates(currentItem),
-            getItemCoordinates(nextItem)
-          ],
+          points: [originCoords, destCoords],
           color: getRouteColor(i)
         });
       }
     }
+    
+    console.log(`🎯 Created ${newRoutes.length} routes`);
     setRoutes(newRoutes);
     setMapKey(prev => prev + 1); 
     setIsLoadingRoutes(false);
-    
   };
 
   // Initialize available days and selected day
@@ -458,6 +513,15 @@ const TourMapScreen: React.FC = () => {
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#1E90FF" />
               <Text style={styles.loadingText}>{i18n.t('tours.loadingRoutes')}</Text>
+            </View>
+          </View>
+        )}
+
+        {apiKeyStatus === 'invalid' && (
+          <View style={styles.noticeContainer}>
+            <View style={[styles.noticeBox, { backgroundColor: 'rgba(255, 0, 0, 0.8)' }]}>
+              <Ionicons name="warning-outline" size={24} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.noticeText}>Google Maps API key is invalid. Trajectories may not display.</Text>
             </View>
           </View>
         )}

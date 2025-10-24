@@ -13,7 +13,7 @@ import RegisterScreen from '../Account/screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 
 // ========== LAZY LOAD: All Other Screens (35 screens) ==========
-// These screens load on-demand or are prefetched based on user navigation patterns
+// These screens load on-demand based on user navigation patterns
 
 // Account Module
 const AccountScreen = lazyScreen(() => import('../Account/screens/AccountScreen'));

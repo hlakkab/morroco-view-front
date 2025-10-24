@@ -147,6 +147,7 @@ export const lazyScreen = <P extends LazyScreenProps>(
       LazyLoadPerformance.markStart(screenName);
 
       // Wait for interactions to complete (animations, gestures, etc.)
+      // @ts-ignore - InteractionManager is soft-deprecated but functional in RN 0.81, no removal timeline announced
       InteractionManager.runAfterInteractions(() => {
         if (!isMounted) return;
 
@@ -200,122 +201,6 @@ export const lazyScreen = <P extends LazyScreenProps>(
   };
 };
 
-/**
- * Prefetch a screen without rendering it - with performance tracking
- * Useful for preloading screens that will likely be navigated to soon
- * 
- * @param importFn - Function that returns a dynamic import promise
- * @param screenName - Optional screen name for better logging
- * @returns Promise that resolves when the screen is loaded
- * 
- * @example
- * // Prefetch after Home screen renders
- * useEffect(() => {
- *   const timer = setTimeout(() => {
- *     prefetchScreen(() => import('../Bookmarks/screens/BookmarkScreen'), 'Bookmark');
- *   }, 2000);
- *   return () => clearTimeout(timer);
- * }, []);
- */
-export const prefetchScreen = <P extends LazyScreenProps>(
-  importFn: () => Promise<{ default: ComponentType<P> }>,
-  screenName?: string
-): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const name = screenName || 'UnknownScreen';
-    const startTime = Date.now();
-    
-    if (__DEV__) {
-      console.log(`📦 [Prefetch] Starting: ${name}`);
-    }
-
-    InteractionManager.runAfterInteractions(() => {
-      importFn()
-        .then(() => {
-          const duration = Date.now() - startTime;
-          
-          if (__DEV__) {
-            console.log(`✅ [Prefetch] Loaded ${name} in ${duration}ms`);
-            
-            // Warn if prefetch is slow
-            if (duration > 2000) {
-              console.warn(`⚠️ [Prefetch] Slow prefetch: ${name} took ${duration}ms`);
-            }
-          }
-          
-          resolve();
-        })
-        .catch((error) => {
-          console.error(`❌ [Prefetch] Failed for ${name}:`, error);
-          reject(error);
-        });
-    });
-  });
-};
-
-/**
- * Prefetch multiple screens with a delay and performance tracking
- * 
- * @param screens - Array of tuples: [importFn, screenName]
- * @param delay - Delay in milliseconds before starting prefetch
- * @returns Promise that resolves when all screens are loaded (or failed)
- * 
- * @example Basic usage
- * prefetchScreens([
- *   [() => import('../Bookmarks/screens/BookmarkScreen'), 'Bookmark'],
- *   [() => import('../Tours/screens/ToursScreen'), 'Tours'],
- * ], 2000);
- * 
- * @example With fallback to old API
- * prefetchScreens([
- *   () => import('../Bookmarks/screens/BookmarkScreen'),
- *   () => import('../Tours/screens/ToursScreen'),
- * ], 2000);
- */
-export const prefetchScreens = <P extends LazyScreenProps>(
-  screens: Array<
-    | [() => Promise<{ default: ComponentType<P> }>, string]
-    | (() => Promise<{ default: ComponentType<P> }>)
-  >,
-  delay: number = 0
-): Promise<void[]> => {
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      const startTime = Date.now();
-      
-      const promises = screens.map((screenEntry) => {
-        // Support both tuple format and legacy function-only format
-        const [importFn, screenName] = Array.isArray(screenEntry)
-          ? screenEntry
-          : [screenEntry, undefined];
-        
-        return prefetchScreen(importFn, screenName);
-      });
-      
-      Promise.allSettled(promises).then((results) => {
-        const duration = Date.now() - startTime;
-        const successful = results.filter(r => r.status === 'fulfilled').length;
-        const failed = results.filter(r => r.status === 'rejected').length;
-        
-        if (__DEV__) {
-          console.log(
-            `📊 [Prefetch] Batch complete: ${successful}/${screens.length} successful, ` +
-            `${failed} failed, ${duration}ms total`
-          );
-        }
-        
-        // Resolve even if some failed (graceful degradation)
-        resolve(results.map(() => undefined));
-      });
-    }, delay);
-
-    // Cleanup timer on unmount
-    if (typeof window !== 'undefined') {
-      // @ts-ignore - Adding cleanup to global scope
-      window.__prefetchCleanup = () => clearTimeout(timer);
-    }
-  });
-};
 
 /**
  * Export performance utility for external use

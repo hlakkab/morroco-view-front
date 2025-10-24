@@ -142,4 +142,120 @@ export const getImagesWithDefaults = async (images: string[], id: string): Promi
     
   }
   return images;
+};
+
+/**
+ * Gets the first image for a bookmark item using the pattern {id}-0.{ext}
+ * @param id - The ID of the bookmark item
+ * @returns Promise<string> - URL of the first image
+ */
+export const getBookmarkFirstImage = async (id: string): Promise<string> => {
+  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
+  
+  // Try webp first
+  const webpUrl = `${baseUrl}${id}-0.webp`;
+  const webpExists = await checkImageExists(webpUrl);
+  
+  if (webpExists) {
+    return webpUrl;
+  }
+  
+  // Fall back to jpg
+  const jpgUrl = `${baseUrl}${id}-0.jpg`;
+  const jpgExists = await checkImageExists(jpgUrl);
+  
+  if (jpgExists) {
+    return jpgUrl;
+  }
+  
+  // If neither exists, return the webp URL anyway (will show fallback)
+  return webpUrl;
+};
+
+/**
+ * Synchronously gets the first image URL for a bookmark without checking existence
+ * Returns webp by default (for immediate rendering)
+ * @param id - The ID/code of the bookmark item
+ * @returns string - URL of the first image in webp format
+ */
+export const getBookmarkFirstImageSync = (id: string): string => {
+  if (!id || id.trim() === '') {
+    console.warn('⚠️ Empty ID provided to getBookmarkFirstImageSync');
+    return '';
+  }
+  
+  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
+  // Generate URL with pattern: {id}-0.webp (default)
+  const imageUrl = `${baseUrl}${id}-0.webp`;
+  
+  return imageUrl;
+};
+
+/**
+ * Checks which image format exists (.webp or .jpg) using HEAD requests
+ * @param id - The ID/code of the bookmark item
+ * @returns Promise<string> - URL of the existing image (prefers webp)
+ */
+export const getBookmarkFirstImageWithCheck = async (id: string): Promise<string> => {
+  if (!id || id.trim() === '') {
+    console.warn('⚠️ Empty ID provided to getBookmarkFirstImageWithCheck');
+    return '';
+  }
+  
+  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
+  
+  // Try webp first (preferred format)
+  const webpUrl = `${baseUrl}${id}-0.webp`;
+  const webpExists = await checkImageExists(webpUrl);
+  
+  if (webpExists) {
+    console.log(`✅ Found webp image: ${webpUrl}`);
+    return webpUrl;
+  }
+  
+  // Fall back to jpg
+  const jpgUrl = `${baseUrl}${id}-0.jpg`;
+  const jpgExists = await checkImageExists(jpgUrl);
+  
+  if (jpgExists) {
+    console.log(`✅ Found jpg image: ${jpgUrl}`);
+    return jpgUrl;
+  }
+  
+  // Neither exists, return webp URL as fallback
+  console.warn(`⚠️ No image found for ${id}, returning webp URL as fallback`);
+  return webpUrl;
+};
+
+/**
+ * Gets bookmark image with fallback to jpg if webp doesn't exist
+ * @param id - The ID/code of the bookmark item
+ * @returns Promise<string> - URL of the first available image
+ */
+export const getBookmarkImageWithFallback = async (id: string): Promise<string> => {
+  if (!id || id.trim() === '') {
+    console.warn('⚠️ Empty ID provided to getBookmarkImageWithFallback');
+    return '';
+  }
+  
+  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
+  
+  // Try webp first
+  const webpUrl = `${baseUrl}${id}-0.webp`;
+  const webpExists = await checkImageExists(webpUrl);
+  
+  if (webpExists) {
+    return webpUrl;
+  }
+  
+  // Fall back to jpg
+  const jpgUrl = `${baseUrl}${id}-0.jpg`;
+  const jpgExists = await checkImageExists(jpgUrl);
+  
+  if (jpgExists) {
+    return jpgUrl;
+  }
+  
+  // Return webp URL anyway as fallback
+  return webpUrl;
 }; 

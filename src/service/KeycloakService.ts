@@ -94,7 +94,7 @@ const saveTokens = async (accessToken: string, refreshToken: string, expiresIn: 
   const expiryTime = Date.now() + expiresIn * 1000;
   
   try {
-    Promise.all([
+    await Promise.all([
       SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken),
       SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
       SecureStore.setItemAsync(TOKEN_EXPIRY_KEY, expiryTime.toString()),
@@ -109,7 +109,7 @@ const saveTokens = async (accessToken: string, refreshToken: string, expiresIn: 
 
 const clearTokens = async () => {
   try {
-    Promise.all([
+    await Promise.all([
       SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
       SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
       SecureStore.deleteItemAsync(TOKEN_EXPIRY_KEY),
@@ -174,28 +174,24 @@ const getAccessToken = async () => {
     const [accessToken, expiryTime] = await Promise.all([
       SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
       SecureStore.getItemAsync(TOKEN_EXPIRY_KEY),
-
-      
     ]);
 
-    if(!(accessToken && expiryTime)) {
+    if (!(accessToken && expiryTime)) {
       return null;
     }
 
     const now = Date.now();
     const expiry = parseInt(expiryTime);
 
-    // Check if token is expired or will expire in the next 10 seconds
+    // Check if token is expired or will expire in the next 5 seconds
     if (now >= expiry - 5000) {
-      
-      await clearTokens();
-      return null;
+      console.log('⚠️ Token is expired or about to expire');
+      return null; // Don't clear tokens here, let the refresh logic handle it
     }
 
     return accessToken;
   } catch (error) {
-    //console.error('Error getting access token:', error);
-    await clearTokens();
+    console.error('Error getting access token:', error);
     return null;
   }
 };
@@ -312,14 +308,104 @@ const loginWithGoogle = async (googleAuthCode: string) => {
   }
 };
 
+/**
+ * Exchange Apple authorization code for Keycloak tokens
+ * This function sends the Apple auth code to your backend,
+ * which then exchanges it with Keycloak
+ */
+const loginWithApple = async (appleAuthCode: string, identityToken: string) => {
+  try {
+    console.log('🔄 Exchanging Apple auth code for Keycloak tokens...');
+    
+    // Send to your backend API
+    const response = await fetch(`${API_BASE_URL}/auth/apple`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        code: appleAuthCode,
+        token: identityToken,
+        provider: 'apple'
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Apple login failed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const { access_token, refresh_token, expires_in, first_name, last_name } = data;
+    
+    if (!access_token || !refresh_token) {
+      throw new Error('Invalid token response from server');
+    }
+
+    // Save tokens using existing function
+    await saveTokens(access_token, refresh_token, expires_in);
+
+    console.log('✅ Successfully authenticated with Keycloak via Apple');
+
+    // Extract user information from the response and token
+    const decodedToken = decodeJWT(access_token);
+    const userInfo = {
+      firstName: first_name || '',
+      lastName: last_name || '',
+      email: decodedToken?.email || '',
+    };
+    
+    console.log('📋 User Information:');
+    console.log('  First Name:', userInfo.firstName);
+    console.log('  Last Name:', userInfo.lastName);
+    console.log('  Email:', userInfo.email);
+    
+    // Return both the original data and extracted user info
+    return {
+      ...data,
+      userInfo
+    };
+  } catch (error) {
+    console.error('Error logging in with Apple:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sign out from Google Sign-In
+ * This function handles Google signout on the client side
+ */
+const signOutFromGoogle = async () => {
+  try {
+    // Lazy load Google Sign-In dependencies
+    const { GoogleSignin } = await import('@react-native-google-signin/google-signin');
+    
+    // Try to sign out from Google
+    try {
+      await GoogleSignin.signOut();
+      console.log('✅ Successfully signed out from Google');
+    } catch (signOutError) {
+      console.log('No Google user to sign out or sign out failed');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error signing out from Google:', error);
+    // Don't throw error - we want logout to continue even if Google signout fails
+    return false;
+  }
+};
+
 export { 
   refreshToken, 
   saveTokens, 
   clearTokens, 
   login, 
   loginWithGoogle,
+  loginWithApple,
   getAccessToken, 
   getRefreshToken, 
   getTokenExpiry,
-  getUserInfo 
+  getUserInfo,
+  signOutFromGoogle
 };

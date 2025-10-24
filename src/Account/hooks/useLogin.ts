@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
-import { login } from '../../service';
+import { Alert, Platform } from 'react-native';
+import { login, loginWithApple } from '../../service';
 
 export const useLogin = () => {
   const [email, setEmail] = useState('');
@@ -82,6 +82,73 @@ export const useLogin = () => {
     }
   };
 
+  const handleAppleAuth = async (onSuccess: () => void) => {
+    if (Platform.OS !== 'ios') {
+      console.log('Apple Sign-In is only available on iOS');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Lazy load Apple Authentication dependencies
+      const AppleAuthentication = await import('expo-apple-authentication');
+      
+      // Check if Apple Authentication is available
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        throw new Error('Apple Sign-In is not available on this device');
+      }
+
+      // Request Apple Sign-In
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      const { identityToken, authorizationCode } = credential;
+      
+      if (!identityToken) {
+        throw new Error('No identity token returned from Apple');
+      }
+
+      console.log('🍎 Apple Sign-In successful');
+      console.log('Identity Token:', identityToken ? 'Present' : 'Missing');
+      console.log('Authorization Code:', authorizationCode ? 'Present' : 'Missing');
+
+      // Use the service function to handle Apple authentication
+      await loginWithApple(authorizationCode || '', identityToken);
+
+      console.log('✅ Apple authentication completed successfully');
+      
+      onSuccess();
+    } catch (error: any) {
+      console.error('Apple Sign-In Error:', error);
+      
+      // Handle specific Apple Sign-In errors
+      if (error.code === 'ERR_CANCELED') {
+        console.log('User canceled Apple Sign-In');
+        return; // Don't show error for user cancellation
+      } else if (error.code === 'ERR_REQUEST_NOT_HANDLED') {
+        console.log('Apple Sign-In request not handled');
+        return;
+      } else if (error.code === 'ERR_REQUEST_NOT_INTERACTIVE') {
+        console.log('Apple Sign-In request not interactive');
+        return;
+      } else if (error.code === 'ERR_UNKNOWN') {
+        console.log('Unknown Apple Sign-In error');
+        return;
+      }
+
+      // Handle other errors
+      const errorMessage = error.message || 'An unexpected error occurred';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     email,
     setEmail,
@@ -92,6 +159,7 @@ export const useLogin = () => {
     loading,
     handleLogin,
     handleGoogleAuth,
+    handleAppleAuth,
   };
 };
 

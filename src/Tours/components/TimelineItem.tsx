@@ -9,13 +9,12 @@ import {
   View
 } from 'react-native';
 import {
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent
+  Gesture,
+  GestureDetector
 } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   SharedValue,
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -42,11 +41,6 @@ interface TimelineItemProps {
   draggedIndex: SharedValue<number>;
   currentPositionY: SharedValue<number>;
 }
-
-type AnimatedGHContext = {
-  startY: number;
-  currentIndex: number;
-};
 
 const TimelineItem = memo(({ 
   item, 
@@ -75,22 +69,19 @@ const TimelineItem = memo(({
     itemPosition.value = event.nativeEvent.layout.y;
   }, [itemHeight, itemPosition]);
   
-  // Pan gesture handler for dragging
-  const panGestureHandler = useAnimatedGestureHandler<
-    PanGestureHandlerGestureEvent,
-    AnimatedGHContext
-  >({
-    onStart: (_, context) => {
-      context.startY = y.value;
-      context.currentIndex = index;
+  // Pan gesture using new Gesture API (Reanimated v4 compatible)
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      'worklet';
       isActive.value = true;
       originalIndex.value = index;
       
       if (onDragStart) {
         runOnJS(onDragStart)();
       }
-    },
-    onActive: (event, context) => {
+    })
+    .onUpdate((event) => {
+      'worklet';
       // Keep the item directly under finger by just using the translation from gesture
       const translation = event.translationY;
       
@@ -117,8 +108,9 @@ const TimelineItem = memo(({
         draggedIndex.value = newIndex;
         runOnJS(onPositionChange)(newIndex);
       }
-    },
-    onEnd: () => {
+    })
+    .onEnd(() => {
+      'worklet';
       // Reset position with spring animation
       y.value = withSpring(0, { damping: 15, stiffness: 150 });
       isActive.value = false;
@@ -127,8 +119,7 @@ const TimelineItem = memo(({
       if (onDragEnd) {
         runOnJS(onDragEnd)();
       }
-    },
-  });
+    });
   
   // Animated styles for draggable item
   const animatedStyle = useAnimatedStyle(() => {
@@ -212,7 +203,7 @@ const TimelineItem = memo(({
   const iconBgColor = getIconBackgroundColor(item.type);
 
   return (
-    <PanGestureHandler onGestureEvent={panGestureHandler}>
+    <GestureDetector gesture={panGesture}>
       <Animated.View 
         style={[styles.container, animatedStyle]} 
         onLayout={handleLayout}
@@ -281,7 +272,7 @@ const TimelineItem = memo(({
 
         </View>
       </Animated.View>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 });
 

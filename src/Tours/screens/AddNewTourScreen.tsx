@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../../components/Button';
@@ -160,16 +160,21 @@ const AddNewTourScreenContent: React.FC = () => {
     setShowDatePicker(true);
   };
 
-  // Handle date selection
-  const handleDateSelect = (date: string) => {
+  // Handle date selection with debouncing to prevent multiple rapid updates
+  const handleDateSelect = useCallback((date: string) => {
+    console.log('Date selected:', date, 'Mode:', pickerMode);
+    
     if (pickerMode === 'start') {
       setFormData(prev => ({ ...prev, startDate: date }));
+      // Immediately switch to end date mode
+      console.log('Switching to end date mode');
       setPickerMode('end');
-    } else {
+    } else if (pickerMode === 'end') {
       setFormData(prev => ({ ...prev, endDate: date }));
-      setShowDatePicker(false);
+      // Don't automatically close - let user manually close when ready
+      console.log('End date selected, modal stays open');
     }
-  };
+  }, [pickerMode]);
 
 
   return (

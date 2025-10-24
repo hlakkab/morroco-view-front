@@ -6,7 +6,7 @@ import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../../components/Button';
 import BottomNavBar from '../../containers/BottomNavBar';
-import { clearTokens, getUserInfo } from '../../service/KeycloakService';
+import { clearTokens, getUserInfo, signOutFromGoogle } from '../../service/KeycloakService';
 import i18n from '../../translations/i18n';
 import { RootStackParamList } from '../../types/navigation';
 import { User } from '../../types/user';
@@ -162,6 +162,10 @@ const AccountScreenContent: React.FC = () => {
   const handleLogout = async () => {
     
     try {
+      // Sign out from Google first
+      await signOutFromGoogle();
+      
+      // Clear stored tokens
       await clearTokens();
       navigation.navigate('Home');
     } catch (error) {

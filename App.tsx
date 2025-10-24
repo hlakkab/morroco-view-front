@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { LanguageProvider } from './src/contexts/LanguageContext';
-import { AuthProvider } from './src/contexts/AuthContext';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import store from './src/store/store';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { useFonts } from 'expo-font';
 import { Asset } from 'expo-asset';
 import * as SplashScreen from 'expo-splash-screen';
 import { Ionicons, AntDesign, MaterialIcons, Feather, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { setGlobalAuthStateHandler } from './src/service';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -35,6 +36,26 @@ const SafeNavigationWrapper = ({ children }: { children: React.ReactNode }) => {
       {children}
     </View>
   );
+};
+
+// Component to connect global auth handler with AuthContext
+const AuthStateConnector: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { forceLogout } = useAuth();
+
+  React.useEffect(() => {
+    // Set up the global auth state handler
+    setGlobalAuthStateHandler(() => {
+      console.log('🔴 Global auth handler triggered - forcing logout');
+      forceLogout();
+    });
+
+    // Clean up on unmount
+    return () => {
+      setGlobalAuthStateHandler(() => {});
+    };
+  }, [forceLogout]);
+
+  return <>{children}</>;
 };
 
 export default function App() {
@@ -83,15 +104,17 @@ export default function App() {
       <Provider store={store}>
         <SafeAreaProvider>
           <LanguageProvider>
-          <AuthProvider>
-            <NavigationContainer>
-              <SafeNavigationWrapper>
-                <AppNavigator />
-              </SafeNavigationWrapper>
-              <StatusBar style="auto" />
-            </NavigationContainer>
-          </AuthProvider>
-        </LanguageProvider>
+            <AuthProvider>
+              <AuthStateConnector>
+                <NavigationContainer>
+                  <SafeNavigationWrapper>
+                    <AppNavigator />
+                  </SafeNavigationWrapper>
+                  <StatusBar style="auto" />
+                </NavigationContainer>
+              </AuthStateConnector>
+            </AuthProvider>
+          </LanguageProvider>
         </SafeAreaProvider>
       </Provider>
     </GestureHandlerRootView>

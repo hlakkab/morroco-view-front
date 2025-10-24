@@ -196,6 +196,24 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                     {i18n.t('tours.endDateHint')} {formatDisplayDate(startDate)}
                   </Text>
                 )}
+                
+                {pickerMode === 'start' && !startDate && (
+                  <Text style={styles.dateSelectionHint}>
+                    {i18n.t('tours.selectStartDateFirst')}
+                  </Text>
+                )}
+                
+                {pickerMode === 'end' && startDate && !endDate && (
+                  <Text style={[styles.dateSelectionHint, { color: '#E53935', fontWeight: '500' }]}>
+                    {i18n.t('tours.selectEndDateRequired')}
+                  </Text>
+                )}
+                
+                {startDate && endDate && (
+                  <Text style={[styles.dateSelectionHint, { color: '#4CAF50', fontWeight: '500' }]}>
+                    {i18n.t('tours.bothDatesSelected')}
+                  </Text>
+                )}
               </View>
             )}
 

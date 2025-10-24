@@ -16,7 +16,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from '../components/AuthModal';
 import { getAccessToken } from '../service/KeycloakService';
-import { usePrefetchScreens } from '../navigation/usePrefetchScreens';
 
 const TOUR_FLAG = '@homeTourSeen';
 
@@ -43,8 +42,6 @@ const HomeScreenContent: React.FC = () => {
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Prefetch screens for optimal navigation performance (auth-aware)
-  usePrefetchScreens(isAuthenticated());
 
   useEffect(() => {
     AsyncStorage.getItem(TOUR_FLAG)

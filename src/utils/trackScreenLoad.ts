@@ -10,15 +10,15 @@
  * import { trackScreenLoad } from '../utils/trackScreenLoad';
  * 
  * // After screen loads
- * trackScreenLoad('Monuments', 342, { source: 'prefetch', fromScreen: 'Home' });
+ * trackScreenLoad('Monuments', 342, { source: 'lazy', fromScreen: 'Home' });
  * ```
  */
 
 interface TrackScreenLoadOptions {
   /**
-   * How was the screen loaded? ('eager' | 'lazy' | 'prefetch')
+   * How was the screen loaded? ('eager' | 'lazy')
    */
-  source?: 'eager' | 'lazy' | 'prefetch';
+  source?: 'eager' | 'lazy';
   
   /**
    * Which screen triggered the navigation?
@@ -89,31 +89,6 @@ export const trackScreenLoad = (
   }
 };
 
-/**
- * Track prefetch performance
- * Used internally by usePrefetchScreens hook
- */
-export const trackPrefetch = (
-  screenName: string,
-  loadTimeMs: number,
-  tier: 'public' | 'auth',
-  success: boolean
-): void => {
-  if (__DEV__) {
-    const emoji = success ? '✅' : '❌';
-    console.log(
-      `${emoji} [Analytics] Prefetch: ${screenName} (${loadTimeMs}ms, tier: ${tier})`
-    );
-  }
-
-  // TODO: Integrate with analytics
-  // analytics().logEvent('screen_prefetch', {
-  //   screen_name: screenName,
-  //   load_time_ms: loadTimeMs,
-  //   tier,
-  //   success,
-  // });
-};
 
 /**
  * Track navigation events
@@ -138,7 +113,6 @@ export const trackNavigation = (
 
 export default {
   trackScreenLoad,
-  trackPrefetch,
   trackNavigation,
 };
 
