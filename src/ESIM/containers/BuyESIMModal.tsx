@@ -13,10 +13,7 @@ import {
   View
 } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
-import { useDispatch } from 'react-redux';
 import Button from '../../components/Button';
-import { AppDispatch } from '../../store';
-import { createEsim } from '../store/esimSlice';
 
 // SVG imports for different providers
 // import InwiSvg from '../../assets/serviceIcons/inwi-img.svg';
@@ -52,8 +49,7 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
   onClose,
   onBuy
 }) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const { start: startTour, copilotEvents, visible: tourVisible, stop: stopTour } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
@@ -112,6 +108,14 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
       copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
+
+  // ─── 4. Stop tour when modal closes (iOS fix) ────────
+  useEffect(() => {
+    if (!visible && tourVisible) {
+      // Modal is closing while tour is active - stop it to clean up gesture handlers
+      stopTour();
+    }
+  }, [visible, tourVisible, stopTour]);
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
@@ -189,6 +193,8 @@ const BuyESIMModalContent: React.FC<BuyESIMModalProps> = ({
   }, [visible, pan, operators, selectedOperator]);
 
   const handleClose = () => {
+    // Stop the tour before closing the modal to prevent gesture handler issues on iOS
+    stopTour();
     onClose();
   };
 

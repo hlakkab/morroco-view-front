@@ -4,7 +4,6 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
-import { useDispatch, useSelector } from 'react-redux';
 
 import AuthModal from '../../components/AuthModal';
 import Button from '../../components/Button';
@@ -12,12 +11,10 @@ import ScreenHeader from '../../components/ScreenHeader';
 import BuyESIMModal from '../containers/BuyESIMModal';
 import ESIMCardsContainer from '../containers/ESIMCardsContainer';
 import QRCodeModal from '../../QRCode/containers/QRCodeModal';
-import { useAuth } from '../../contexts/AuthContext';
 import { trackEvent } from '../../service/Mixpanel';
-import { AppDispatch, RootState } from '../../store';
-import { createEsim, fetchEsims } from '../store/esimSlice';
 import i18n from '../../translations/i18n';
 import { RootStackParamList } from '../../types/navigation';
+import { useEsim } from '../../hooks/useEsim';
 
 const TOUR_FLAG = '@esimScreenTourSeen';
 
@@ -27,24 +24,22 @@ const WalkthroughableView = walkthroughable(View);
 // Content component with Copilot functionality
 const ESIMScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const dispatch = useDispatch<AppDispatch>();
-  const { esims, loading, error } = useSelector((state: RootState) => state.esim);
+  const { esims, loading, error, isAuthenticated, loadEsims, purchaseEsim } = useEsim();
   const [buyModalVisible, setBuyModalVisible] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
   const { start, copilotEvents, visible, stop } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
-  const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Check authentication on mount and show modal if not authenticated
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       setShowAuthModal(true);
     } else {
-      dispatch(fetchEsims());
+      loadEsims();
     }
-  }, [dispatch, isAuthenticated]);
+  }, [isAuthenticated, loadEsims]);
 
   // ─── 1.  ─────────────────
   useEffect(() => {
@@ -108,7 +103,7 @@ const ESIMScreenContent: React.FC = () => {
   };
 
   const handleBuyOne = () => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
@@ -129,8 +124,8 @@ const ESIMScreenContent: React.FC = () => {
   const handleAuthModalClose = () => {
     setShowAuthModal(false);
     // If user is now authenticated, fetch ESIMs
-    if (isAuthenticated()) {
-      dispatch(fetchEsims());
+    if (isAuthenticated) {
+      loadEsims();
     } else {
       // If user closed modal without authenticating, go back
       navigation.goBack();
@@ -145,30 +140,14 @@ const ESIMScreenContent: React.FC = () => {
 
   const handlePurchaseESIM = async (operatorId: string, price: number, offer: string = 'Standard Plan') => {
     try {
-      const newEsim = {
-        operator: operatorId,
-        offer: offer,
-        price: price,
-        simNumber: `SIM-${Date.now()}`
-      };
-      
-      await dispatch(createEsim(newEsim)).unwrap();
-      
-      trackEvent('BuyEsimPurchased', {
-        operator: operatorId,
-        offer: newEsim.offer,
-        price: newEsim.price
-      });
+      // Use the purchaseEsim method from the hook (it handles tracking internally)
+      await purchaseEsim(operatorId, price, offer);
       
       setBuyModalVisible(false);
       setQrModalVisible(true);
     } catch (error) {
-      trackEvent('BuyEsimPurchase_Failed', {
-        operator: operatorId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-      
       console.error('Failed to purchase ESIM:', error);
+      // Error tracking is handled by the hook
     }
   };
 

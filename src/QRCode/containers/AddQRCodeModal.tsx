@@ -63,7 +63,7 @@ const AddQRCodeModalContent: React.FC<AddQRCodeModalProps> = ({
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   
-  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const { start: startTour, copilotEvents, visible: tourVisible, stop: stopTour } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
@@ -140,6 +140,14 @@ const AddQRCodeModalContent: React.FC<AddQRCodeModalProps> = ({
       copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
+
+  // ─── 4. Stop tour when modal closes (iOS fix) ────────
+  useEffect(() => {
+    if (!visible && tourVisible) {
+      // Modal is closing while tour is active - stop it to clean up gesture handlers
+      stopTour();
+    }
+  }, [visible, tourVisible, stopTour]);
 
   // Add a button to manually start the tour
   const handleStartTour = () => {
@@ -221,6 +229,9 @@ const AddQRCodeModalContent: React.FC<AddQRCodeModalProps> = ({
   }, [scannedData]);
 
   const handleClose = () => {
+    // Stop the tour before closing the modal to prevent gesture handler issues on iOS
+    stopTour();
+    
     // Dismiss keyboard if it's visible
     Keyboard.dismiss();
     

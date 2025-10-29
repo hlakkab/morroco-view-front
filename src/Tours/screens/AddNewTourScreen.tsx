@@ -1,14 +1,14 @@
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import Button from '../../components/Button';
 import DatePickerModal from '../../components/DatePickerModal';
 import StepProgress from '../../components/StepProgress';
 import TourFlowHeader from '../components/TourFlowHeader';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch } from '../../store/hooks';
 import { fetchBookmarksAsItems, setTourInfo } from '../store/tourSlice';
 import i18n from '../../translations/i18n';
 import { RootStackParamList } from '../../types/navigation';
@@ -31,29 +31,20 @@ const TOUR_FLAG = '@addNewTourSeen';
 const AddNewTourScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
-  const tourData = useAppSelector(state => state.tour.currentTour);
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   
+  // Local state - independent from Redux
   const [formData, setFormData] = useState<FormData>({
-    title: tourData.title,
-    startDate: tourData.startDate,
-    endDate: tourData.endDate,
+    title: '',
+    startDate: '',
+    endDate: '',
   });
   
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerMode, setPickerMode] = useState<DatePickerMode>('start');
-
-  // Update form data if Redux store changes
-  useEffect(() => {
-    setFormData({
-      title: tourData.title,
-      startDate: tourData.startDate,
-      endDate: tourData.endDate,
-    });
-  }, [tourData]);
 
   // Check if tour has been seen before
   useEffect(() => {
@@ -131,8 +122,6 @@ const AddNewTourScreenContent: React.FC = () => {
   };
 
   const handleNext = () => {
-    
-    
     // Save tour info to Redux store
     dispatch(setTourInfo({
       title: formData.title,
@@ -140,41 +129,48 @@ const AddNewTourScreenContent: React.FC = () => {
       endDate: formData.endDate,
     }));
     
-    // Preload bookmarks for the next screen with explicit dates
+    // Preload bookmarks for the next screen
     dispatch(fetchBookmarksAsItems({
       startDate: formData.startDate,
       endDate: formData.endDate
     }));
     
-    // Navigate to next screen
-    navigation.navigate('AddNewTourDestinations', {
-      title: formData.title,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-    });
+    // Navigate to next screen - data is in Redux
+    navigation.navigate('AddNewTourDestinations', {} as any);
   };
 
-  // Open date picker with specified mode
+  // Open date picker
   const openDatePicker = (mode: DatePickerMode) => {
     setPickerMode(mode);
     setShowDatePicker(true);
   };
 
-  // Handle date selection with debouncing to prevent multiple rapid updates
-  const handleDateSelect = useCallback((date: string) => {
-    console.log('Date selected:', date, 'Mode:', pickerMode);
+  // Handle date selection
+  const handleDateSelect = (date: string) => {
+    // Check if the date actually changed
+    const currentDate = pickerMode === 'start' ? formData.startDate : formData.endDate;
     
-    if (pickerMode === 'start') {
-      setFormData(prev => ({ ...prev, startDate: date }));
-      // Immediately switch to end date mode
-      console.log('Switching to end date mode');
-      setPickerMode('end');
-    } else if (pickerMode === 'end') {
-      setFormData(prev => ({ ...prev, endDate: date }));
-      // Don't automatically close - let user manually close when ready
-      console.log('End date selected, modal stays open');
+    // If it's the same date, ignore it (prevents infinite loop from selected prop trigger)
+    if (date === currentDate) {
+      return;
     }
-  }, [pickerMode]);
+    
+    // Update the date
+    if (pickerMode === 'start') {
+      // If selecting a start date that's after the current end date, clear the end date
+      if (formData.endDate && date > formData.endDate) {
+        setFormData(prev => ({ ...prev, startDate: date, endDate: '' }));
+      } else {
+        setFormData(prev => ({ ...prev, startDate: date }));
+      }
+      // Switch to end date mode instead of closing
+      setPickerMode('end');
+    } else {
+      // End date selected - update and close
+      setFormData(prev => ({ ...prev, endDate: date }));
+      setShowDatePicker(false);
+    }
+  };
 
 
   return (
@@ -235,7 +231,10 @@ const AddNewTourScreenContent: React.FC = () => {
                   <Text style={styles.dateLabel}>{i18n.t('tours.from')}</Text>
                   <TouchableOpacity 
                     style={[styles.inputWithIcon, formData.startDate ? styles.inputFilled : null]}
-                    onPress={() => openDatePicker('start')}
+                    onPress={() => {
+                      console.log('Start date TouchableOpacity pressed');
+                      openDatePicker('start');
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text style={formData.startDate ? styles.dateText : styles.placeholderText}>
@@ -254,7 +253,10 @@ const AddNewTourScreenContent: React.FC = () => {
                   <Text style={styles.dateLabel}>{i18n.t('tours.to')}</Text>
                   <TouchableOpacity 
                     style={[styles.inputWithIcon, formData.endDate ? styles.inputFilled : null]}
-                    onPress={() => openDatePicker('end')}
+                    onPress={() => {
+                      console.log('End date TouchableOpacity pressed');
+                      openDatePicker('end');
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text style={formData.endDate ? styles.dateText : styles.placeholderText}>
@@ -279,6 +281,7 @@ const AddNewTourScreenContent: React.FC = () => {
       </View>
 
       <DatePickerModal
+        key={`${pickerMode}-${showDatePicker}`}
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
         pickerMode={pickerMode}
@@ -369,6 +372,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     fontSize: 16,
     color: '#000',
+    padding: 0,
+    margin: 0,
   },
   inputWithIcon: {
     flexDirection: 'row',

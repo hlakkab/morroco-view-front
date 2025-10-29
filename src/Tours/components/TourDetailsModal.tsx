@@ -47,7 +47,7 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
   const [selectedDay, setSelectedDay] = useState(1);
   const [showDayPicker, setShowDayPicker] = useState(false);
   const { currentTour } = useSelector((state: RootState) => state.tour);
-  const { start: startTour, copilotEvents, visible: isCopilotVisible } = useCopilot();
+  const { start: startTour, copilotEvents, visible: isCopilotVisible, stop: stopTour } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,6 +95,14 @@ const TourDetailsModalContent: React.FC<TourDetailsModalProps> = ({
       copilotEvents.off('stop', handleStop);
     };
   }, [copilotEvents]);
+
+  // Stop tour when modal closes (iOS fix)
+  useEffect(() => {
+    if (!visible && isCopilotVisible) {
+      // Modal is closing while tour is active - stop it to clean up gesture handlers
+      stopTour();
+    }
+  }, [visible, isCopilotVisible, stopTour]);
 
   // Manual tour start handler
   const handleStartTour = () => {

@@ -136,6 +136,13 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
     return {}; // Configuration par défaut pour les autres langues
   };
 
+  // Get selected date for current mode
+  const getSelectedDate = () => {
+    const selected = pickerMode === 'start' ? startDate : endDate;
+    console.log('Selected date for picker:', selected, 'Mode:', pickerMode, 'Start:', startDate, 'End:', endDate);
+    return selected;
+  };
+
   return (
     <Modal
       transparent={true}
@@ -191,29 +198,6 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                   </View>
                 </View>
 
-                {pickerMode === 'end' && startDate && (
-                  <Text style={styles.dateSelectionHint}>
-                    {i18n.t('tours.endDateHint')} {formatDisplayDate(startDate)}
-                  </Text>
-                )}
-                
-                {pickerMode === 'start' && !startDate && (
-                  <Text style={styles.dateSelectionHint}>
-                    {i18n.t('tours.selectStartDateFirst')}
-                  </Text>
-                )}
-                
-                {pickerMode === 'end' && startDate && !endDate && (
-                  <Text style={[styles.dateSelectionHint, { color: '#E53935', fontWeight: '500' }]}>
-                    {i18n.t('tours.selectEndDateRequired')}
-                  </Text>
-                )}
-                
-                {startDate && endDate && (
-                  <Text style={[styles.dateSelectionHint, { color: '#4CAF50', fontWeight: '500' }]}>
-                    {i18n.t('tours.bothDatesSelected')}
-                  </Text>
-                )}
               </View>
             )}
 
@@ -223,8 +207,9 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
               locale={getSupportedLocale(i18n.locale ?? 'en')}
               configs={getConfigs()}
               onSelectedChange={onDateSelect}
-              onDateChange={onDateSelect}
+              onDateChange={() => {}} 
               current={getCurrentDate()}
+              selected={getSelectedDate()}
               minimumDate={getMinimumDate()}
               options={{
                 backgroundColor: '#FFF',
@@ -234,6 +219,11 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
                 mainColor: color,
                 textSecondaryColor: '#666',
                 borderColor: `${color}33`,
+                defaultFont: 'System',
+                headerFont: 'System',
+              }}
+              style={{
+                borderRadius: 8,
               }}
             />
 

@@ -38,7 +38,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { currentMatch, ticketPurchaseStatus, ticketPurchaseError } 
     = useSelector((state: RootState) => state.match);
-  const { start: startTour, copilotEvents, visible: tourVisible } = useCopilot();
+  const { start: startTour, copilotEvents, visible: tourVisible, stop: stopTour } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -149,6 +149,14 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
       copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
+
+  // Stop tour when component unmounts (iOS fix)
+  useEffect(() => {
+    return () => {
+      // Clean up tour on unmount to prevent gesture handler issues
+      stopTour();
+    };
+  }, [stopTour]);
 
   const handleSave = () => {
     // Check if user is authenticated first

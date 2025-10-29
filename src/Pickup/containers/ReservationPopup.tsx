@@ -36,7 +36,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
   const selectedCity = useAppSelector(
     (state) => state.hotelPickup.selectedCity
   );
-  const { start: startTour, copilotEvents, visible } = useCopilot();
+  const { start: startTour, copilotEvents, visible, stop: stopTour } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
@@ -149,6 +149,14 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
       copilotEvents.off('stepChange', handleStepChange);
     };
   }, [copilotEvents]);
+
+  // ─── 4. Clean up tour on close (iOS fix) ────────
+  useEffect(() => {
+    return () => {
+      // Stop tour when component unmounts to clean up gesture handlers
+      stopTour();
+    };
+  }, [stopTour]);
 
   // Track when reservation popup is opened
   useEffect(() => {
