@@ -15,7 +15,7 @@ import { styles } from '../styles/LoginScreen.styles';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  
+
   const {
     email,
     setEmail,
@@ -51,55 +51,44 @@ const LoginScreen = () => {
               <LogoSvg width={80} height={80} />
               <Text style={styles.accessText}>{i18n.t('login.accessAccount')}</Text>
             </View>
-            
-            
-            {Platform.OS !== 'ios' && (
-              <>
-                <TouchableOpacity 
-                  onPress={() => handleGoogleAuth(onLoginSuccess)}
-                  style={[styles.googleButton, loading && { opacity: 0.6 }]}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#666" />
-                  ) : (
-                    <>
-                      <GoogleIcon width={24} height={24} />
-                      <Text style={styles.googleButtonText}>Continue with Google</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-                
-                <View style={styles.dividerContainer}>
-                  <View style={styles.divider} />
-                  <Text style={styles.orText}>{i18n.t('login.or')}</Text>
-                  <View style={styles.divider} />
-                </View>
-              </>
-            )}
+
+
+            <TouchableOpacity
+              onPress={() => handleGoogleAuth(onLoginSuccess)}
+              style={[styles.googleButton, loading && { opacity: 0.6 }]}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#666" />
+              ) : (
+                <>
+                  <GoogleIcon width={24} height={24} />
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
 
             {Platform.OS === 'ios' && (
-              <>
-                <AppleSignInButton 
-                  onSuccess={onLoginSuccess}
-                  disabled={loading}
-                />
-                
-                <View style={styles.dividerContainer}>
-                  <View style={styles.divider} />
-                  <Text style={styles.orText}>{i18n.t('login.or')}</Text>
-                  <View style={styles.divider} />
-                </View>
-              </>
+              <AppleSignInButton
+                onSuccess={onLoginSuccess}
+                disabled={loading}
+                loading={loading}
+              />
             )}
-            
+
+            <View style={styles.dividerContainer}>
+              <View style={styles.divider} />
+              <Text style={styles.orText}>{i18n.t('login.or')}</Text>
+              <View style={styles.divider} />
+            </View>
+
             <Text style={styles.title}>{i18n.t('login.enterCredentials')}</Text>
             <Input placeholder={i18n.t('login.email')} style={styles.input} value={email} onChangeText={setEmail} />
-            <Input 
-              placeholder={i18n.t('login.password')} 
+            <Input
+              placeholder={i18n.t('login.password')}
               secureTextEntry={!showPassword}
-              style={styles.input} 
-              value={password} 
+              style={styles.input}
+              value={password}
               onChangeText={setPassword}
               icon={
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -111,9 +100,9 @@ const LoginScreen = () => {
                 </TouchableOpacity>
               }
             />
-            <Button 
-              title={i18n.t('login.loginButton')} 
-              onPress={() => handleLogin(onLoginSuccess)} 
+            <Button
+              title={i18n.t('login.loginButton')}
+              onPress={() => handleLogin(onLoginSuccess)}
               style={styles.button}
               loading={loading}
               disabled={loading}

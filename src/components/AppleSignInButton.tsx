@@ -8,15 +8,19 @@ interface AppleSignInButtonProps {
   onError?: (error: string) => void;
   style?: any;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 export default function AppleSignInButton({ 
   onSuccess, 
   onError, 
   style, 
-  disabled = false 
+  disabled = false,
+  loading: externalLoading = false
 }: AppleSignInButtonProps) {
-  const [loading, setLoading] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
+  
+  const loading = externalLoading || internalLoading;
 
   const handleSignIn = async () => {
     // Only show Apple Sign-In on iOS devices
@@ -26,7 +30,7 @@ export default function AppleSignInButton({
     }
 
     try {
-      setLoading(true);
+      setInternalLoading(true);
 
       // Check if Apple Authentication is available
       const isAvailable = await AppleAuthentication.isAvailableAsync();
@@ -106,7 +110,7 @@ export default function AppleSignInButton({
         onError?.(errorMessage);
       }
     } finally {
-      setLoading(false);
+      setInternalLoading(false);
     }
   };
 
