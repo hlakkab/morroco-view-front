@@ -43,6 +43,9 @@ export default function AppleSignInButton({
       });
 
       const { identityToken, authorizationCode } = credential;
+      const email = (credential as any)?.email as string | undefined;
+      const givenName = (credential as any)?.fullName?.givenName as string | undefined;
+      const familyName = (credential as any)?.fullName?.familyName as string | undefined;
       
       if (!identityToken) {
         throw new Error('No identity token returned from Apple');
@@ -53,7 +56,11 @@ export default function AppleSignInButton({
       console.log('Authorization Code:', authorizationCode ? 'Present' : 'Missing');
 
       // Use the service function to handle Apple authentication
-      await loginWithApple(authorizationCode || '', identityToken);
+      await loginWithApple(authorizationCode || '', identityToken, {
+        email,
+        givenName,
+        familyName,
+      });
 
       console.log('✅ Apple authentication completed successfully');
 

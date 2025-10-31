@@ -313,24 +313,86 @@ const loginWithGoogle = async (googleAuthCode: string) => {
  * This function sends the Apple auth code to your backend,
  * which then exchanges it with Keycloak
  */
-const loginWithApple = async (appleAuthCode: string, identityToken: string) => {
+type AppleOptionalProfile = {
+  email?: string;
+  givenName?: string;
+  familyName?: string;
+};
+
+const APPLE_PROFILE_BACKUP_KEY = 'apple_profile_backup';
+const APPLE_PROFILE_PENDING_KEY = 'apple_profile_pending';
+
+const persistAppleProfileIfNeeded = async (profile?: AppleOptionalProfile) => {
+  try {
+    if (!profile) return;
+    const hasAny = !!(profile.email || profile.givenName || profile.familyName);
+    if (!hasAny) return;
+    await SecureStore.setItemAsync(APPLE_PROFILE_BACKUP_KEY, JSON.stringify(profile));
+    await SecureStore.setItemAsync(APPLE_PROFILE_PENDING_KEY, 'true');
+  } catch (e) {
+    console.warn('Failed to persist Apple profile backup');
+  }
+};
+
+const loadAppleProfileBackup = async (): Promise<AppleOptionalProfile | null> => {
+  try {
+    const pending = await SecureStore.getItemAsync(APPLE_PROFILE_PENDING_KEY);
+    if (pending !== 'true') return null;
+    const raw = await SecureStore.getItemAsync(APPLE_PROFILE_BACKUP_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+};
+
+const clearAppleProfileBackup = async () => {
+  try {
+    await SecureStore.deleteItemAsync(APPLE_PROFILE_BACKUP_KEY);
+    await SecureStore.deleteItemAsync(APPLE_PROFILE_PENDING_KEY);
+  } catch (e) {
+    // ignore
+  }
+};
+
+const loginWithApple = async (
+  appleAuthCode: string,
+  identityToken: string,
+  optionalProfile?: AppleOptionalProfile
+) => {
   try {
     console.log('🔄 Exchanging Apple auth code for Keycloak tokens...');
     
     // Send to your backend API
+    const profileBackup = (!optionalProfile || (!optionalProfile.email && !optionalProfile.givenName && !optionalProfile.familyName))
+      ? await loadAppleProfileBackup()
+      : undefined;
+
     const response = await fetch(`${API_BASE_URL}/auth/apple`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        code: appleAuthCode,
-        token: identityToken,
-        provider: 'apple'
-      }),
+      body: JSON.stringify((() => {
+        const payload: any = {
+          code: appleAuthCode,
+          token: identityToken,
+          provider: 'apple',
+        };
+        // Include profile data only if provided by Apple (first login) or pending backup exists
+        const profileToSend = optionalProfile && (optionalProfile.email || optionalProfile.givenName || optionalProfile.familyName)
+          ? optionalProfile
+          : profileBackup || undefined;
+        if (profileToSend?.email) payload.email = profileToSend.email;
+        if (profileToSend?.givenName) payload.given_name = profileToSend.givenName;
+        if (profileToSend?.familyName) payload.family_name = profileToSend.familyName;
+        return payload;
+      })()),
     });
 
     if (!response.ok) {
+      // Persist profile data for retry if we have it from Apple now
+      await persistAppleProfileIfNeeded(optionalProfile);
       const errorText = await response.text();
       throw new Error(`Apple login failed: ${response.status} - ${errorText}`);
     }
@@ -344,6 +406,9 @@ const loginWithApple = async (appleAuthCode: string, identityToken: string) => {
 
     // Save tokens using existing function
     await saveTokens(access_token, refresh_token, expires_in);
+
+    // Clear any pending profile backup after a successful auth
+    await clearAppleProfileBackup();
 
     console.log('✅ Successfully authenticated with Keycloak via Apple');
 

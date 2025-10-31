@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { getGoogleMapsApiKey, getConfigSource } from '../../utils/expoConfig';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View, SafeAreaView } from 'react-native';
@@ -208,20 +209,15 @@ const TourMapScreen: React.FC = () => {
   // Reference to the map
   const mapRef = React.useRef<MapView>(null);
 
-  // Get Google Maps API key from environment configuration
-  const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.googlePlacesApiKey || 
-                              Constants.expoConfig?.ios?.config?.googleMapsApiKey ||
-                              Constants.expoConfig?.android?.config?.googleMaps?.apiKey ||
-                              'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek'; // Fallback key
+  // Get Google Maps API key from centralized Expo config helper
+  const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 
   // Log API key status for debugging
   useEffect(() => {
     console.log('🔑 Google Maps API Key Status:');
     console.log('   Key length:', GOOGLE_MAPS_API_KEY?.length || 0);
     console.log('   Key preview:', GOOGLE_MAPS_API_KEY?.substring(0, 10) + '...');
-    console.log('   Source:', Constants.expoConfig?.extra?.googlePlacesApiKey ? 'extra' : 
-                              Constants.expoConfig?.ios?.config?.googleMapsApiKey ? 'ios' :
-                              Constants.expoConfig?.android?.config?.googleMaps?.apiKey ? 'android' : 'fallback');
+    console.log('   Source:', getConfigSource());
     
     if (GOOGLE_MAPS_API_KEY && GOOGLE_MAPS_API_KEY.length > 20) {
       setApiKeyStatus('valid');
