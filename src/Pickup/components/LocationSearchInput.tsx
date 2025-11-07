@@ -21,7 +21,7 @@ export const LocationSearchInput: React.FC<LocationSearchInputProps> = ({
         placeholder={i18n.t('reservation.searchForLocation')}
         onPress={onLocationSelect}
         query={{
-          key: 'AIzaSyCPr-CMCoPoLZAklHjtnuqgoxXuVD8WEek',
+          key: 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY',
           language: 'en',
           components: 'country:ma',
         }}
