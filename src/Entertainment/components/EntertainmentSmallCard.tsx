@@ -1,14 +1,17 @@
 // create a small card for the entertainment list
 
 import React, { FC } from 'react';
-import { StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import CardItem from '../../components/cards/CardItem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFirstImage } from '../../utils/useImages';
+import { updateEntertainmentImage } from '../store/entertainmentSlice';
 
 interface Entertainment {
 	id: string;
 	name: string;
+	code?: string;
 	images?: string[];
 	address?: string;
 	saved?: boolean;
@@ -26,9 +29,26 @@ const EntertainmentSmallCard: FC<EntertainmentSmallCardProps> = ({
 	handleSaveEntertainment, 
 	handleEntertainmentPress 
 }) => {
+	// Get entertainment code/id for image fetching
+	const entertainmentId = entertainment.code || entertainment.id;
+	
+	// Use hook to track image loading state
+	const { imageUrl, loading } = useFirstImage(entertainmentId, entertainment.id, entertainment.images, updateEntertainmentImage);
+	
+	// Use fetched image or existing image
+	const displayImage = imageUrl || (entertainment.images && entertainment.images.length > 0 ? entertainment.images[0] : undefined);
+	const hasImage = !!displayImage;
+	
+	// Show loading indicator if image is being fetched
+	const loadingPlaceholder = loading && !hasImage ? (
+		<View style={styles.loadingContainer}>
+			<ActivityIndicator size="small" color="#008060" />
+		</View>
+	) : undefined;
+
 	return (
 		<CardItem
-			imageUrl={entertainment.images?.[0]}
+			imageUrl={displayImage}
 			title={entertainment.name}
 			//subtitle={entertainment.address}
 			tags={[
@@ -55,7 +75,7 @@ const EntertainmentSmallCard: FC<EntertainmentSmallCardProps> = ({
 			onActionPress={() => handleSaveEntertainment(entertainment)}
 			onCardPress={() => handleEntertainmentPress(entertainment)}
 			containerStyle={styles.cardContainer}
-			svgImage={<Ionicons name="game-controller" size={32} color="#fff" />}
+			svgImage={!hasImage && !loading ? <Ionicons name="game-controller" size={32} color="#fff" /> : loadingPlaceholder}
 			isSaved={entertainment.saved}
 		/>
 	);
@@ -64,7 +84,16 @@ const EntertainmentSmallCard: FC<EntertainmentSmallCardProps> = ({
 const styles = StyleSheet.create({
 	cardContainer: {
 		marginBottom: 10,
-	}
+	},
+	loadingContainer: {
+		width: 120,
+		height: 100,
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: '#F5F5F5',
+		borderTopLeftRadius: 8,
+		borderBottomLeftRadius: 8,
+	},
 });
 
 export default EntertainmentSmallCard;

@@ -37,12 +37,12 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
   const dispatch = useAppDispatch();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleSaveBookmark = (id: string | {id: string}) => {
-    if (typeof id === 'string') {
-      dispatch(removeBookmark(id));
-    } else {
-      dispatch(removeBookmark(id.id));
-    }
+  const handleSaveBookmark = (objectId: string | {id: string}, bookmarkId: string) => {
+    console.log('🔖 Toggle bookmark - Object ID:', objectId);
+    console.log('🔖 Toggle bookmark - Bookmark ID:', bookmarkId);
+    
+    // Use the bookmarkId parameter to remove the bookmark
+    dispatch(removeBookmark(bookmarkId));
   };
 
   const handleCardPress = (item: object) => {
@@ -119,7 +119,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               return (
                 <PickupCard
                   item={pickup}
-                  handleSavePickup={handleSaveBookmark}
+                  handleSavePickup={(objectId) => handleSaveBookmark(objectId, item.id)}
                 />
               )
             }
@@ -129,7 +129,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               return (
                 <MatchCard
                   match={match}
-                  handleSaveMatch={handleSaveBookmark}
+                  handleSaveMatch={(objectId) => handleSaveBookmark(objectId, item.id)}
                   handleCardPress={() => handleMatchPress(match)}
                 />
               )
@@ -139,7 +139,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               return (
                 <BrokerCard 
                   item={{...item.object, images: item.images, saved: true}}
-                  handleSaveBroker={handleSaveBookmark}
+                  handleSaveBroker={(objectId) => handleSaveBookmark(objectId, item.id)}
                 />
               )
             }
@@ -148,7 +148,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               return (
                 <RestaurantCard
                   item={{...item.object, images: item.images, saved: true}}
-                  handleSaveRestaurant={handleSaveBookmark}
+                  handleSaveRestaurant={(objectId) => handleSaveBookmark(objectId, item.id)}
                   handleRestaurantPress={handleCardPress}
                 />
               )
@@ -158,7 +158,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               return (
                 <MonumentCard
                   item={{...item.object, images: item.images, saved: true}}
-                  handleSaveMonument={handleSaveBookmark}
+                  handleSaveMonument={(objectId) => handleSaveBookmark(objectId, item.id)}
                   handleMonumentPress={handleCardPress}
                 />
               )
@@ -168,7 +168,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               return (
                 <EntertainmentSmallCard
                   entertainment={{...item.object, saved: true}}
-                  handleSaveEntertainment={handleSaveBookmark}
+                  handleSaveEntertainment={(objectId) => handleSaveBookmark(objectId, item.id)}
                   handleEntertainmentPress={handleCardPress}
                 />
               )
@@ -178,7 +178,7 @@ const BookmarkListContainer: React.FC<BookmarkListContainerProps> = ({
               return (
                 <ArtisanCard
                   item={{...item.object, images: item.images, saved: true}}
-                  handleSaveArtisan={handleSaveBookmark}
+                  handleSaveArtisan={(objectId) => handleSaveBookmark(objectId, item.id)}
                   handleArtisanPress={handleArtisanPress}
                 />
               )

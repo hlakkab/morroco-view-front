@@ -37,7 +37,6 @@ const EmergencyScreen = lazyScreen(() => import('../Emergency/screens/EmergencyS
 // Entertainment Module
 const EntertainmentScreenVo = lazyScreen(() => import('../Entertainment/screens/EntertainmentScreenVo'));
 const EntertainmentDetailScreenVo = lazyScreen(() => import('../Entertainment/screens/EntertainmentDetailScreenVo'));
-const EntertainmentScreen = lazyScreen(() => import('../Entertainment/screens/EntertainmentScreen'));
 
 // ESIM Module
 const ESIMScreen = lazyScreen(() => import('../ESIM/screens/ESIMScreen'));
@@ -121,7 +120,11 @@ export function AppNavigator() {
       <Stack.Screen
         name="Home"
         component={HomeScreen}
-        options={{ headerShown: false }}
+        options={{ 
+          headerShown: false,
+          gestureEnabled: false,
+          headerLeft: () => null,
+        }}
       />
       <Stack.Screen
         name="ESIM"

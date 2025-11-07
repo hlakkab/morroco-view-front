@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AboutSection from '../../components/AboutSection';
@@ -13,6 +13,7 @@ import AuthModal from '../../components/AuthModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAppDispatch } from '../../store/hooks';
 import { toggleMonumentBookmark } from '../store/monumentSlice';
+import { useImages } from '../../utils/useImages';
 import i18n from '../../translations/i18n';
 import { Monument } from '../types/Monument';
 
@@ -96,6 +97,16 @@ const MonumentDetailScreenContent: React.FC = () => {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Get monument code directly for image fetching (prefer code over id)
+  const monumentCode = params.code;
+  
+  // Use hook to fetch all images (batch fetch) - pass large number to fetch all available
+  const { images, loading: loadingImages } = useImages(
+    monumentCode,
+    undefined, // Don't use params.images - fetch fresh
+    100 // Large number to fetch all available images
+  );
 
   // Get monument details from sample data or route params
   const monumentDetails = { ...params, saved };
@@ -203,11 +214,18 @@ const MonumentDetailScreenContent: React.FC = () => {
           name="imageGallery"
         >
           <WalkthroughableView style={styles.walkthroughContainer}>
-            <ImageGallery 
-              images={monumentDetails.images || MONUMENT_IMAGES}
-              isSaved={saved}
-              onSavePress={handleSave}
-            />
+            {loadingImages ? (
+              <View style={styles.imageLoadingContainer}>
+                <ActivityIndicator size="large" color="#008060" />
+                <Text style={styles.loadingText}>{i18n.t('monuments.loadingImages') || 'Loading images...'}</Text>
+              </View>
+            ) : (
+              <ImageGallery 
+                images={images.length > 0 ? images : MONUMENT_IMAGES}
+                isSaved={saved}
+                onSavePress={handleSave}
+              />
+            )}
           </WalkthroughableView>
         </CopilotStep>
 
@@ -525,7 +543,19 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#CE1126',
     width: '85%',
-  }
+  },
+  imageLoadingContainer: {
+    height: 250,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+  },
 });
 
 export default MonumentDetailScreen; 

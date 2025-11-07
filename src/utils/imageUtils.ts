@@ -1,4 +1,9 @@
 /**
+ * Base URL for all bookmark images
+ */
+const IMAGE_BASE_URL = 'https://d35483huletqir.cloudfront.net/';
+
+/**
  * Array of placeholder artisan souk images to use when real images are not available
  */
 export const artisanSoukImages = [
@@ -73,17 +78,30 @@ export const getImageWithFallback = (
   return imageUrl;
 };
 
+// In-memory cache for HEAD request results
+const imageCache = new Map<string, boolean>();
+
 /**
- * Checks if an image exists at the given URL
+ * Checks if an image exists at the given URL (with caching)
  * @param url - The image URL to check
  * @returns Promise<boolean> - True if the image exists and is accessible
  */
 export const checkImageExists = async (url: string): Promise<boolean> => {
+  // Check cache first
+  if (imageCache.has(url)) {
+    return imageCache.get(url)!;
+  }
+
   try {
     const response = await fetch(url, { method: 'HEAD' });
-    return response.ok && response.status !== 403 && response.status !== 404;
+    const exists = response.ok && response.status !== 403 && response.status !== 404;
+    // Cache the result
+    imageCache.set(url, exists);
+    return exists;
   } catch (error) {
     console.error('Error checking image existence:', error);
+    // Cache negative result
+    imageCache.set(url, false);
     return false;
   }
 };
@@ -91,20 +109,23 @@ export const checkImageExists = async (url: string): Promise<boolean> => {
 /**
  * Generates default images with the specified pattern when the images array is empty
  * @param id - The ID to use in the image URL pattern
+ * @param max - Maximum number of images to fetch (default: 5)
  * @returns Promise<string[]> - Array of available default image URLs
  */
-export const getDefaultImages = async (id: string): Promise<string[]> => {
-  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
+export const getDefaultImages = async (id: string, max: number = 5): Promise<string[]> => {
   const images: string[] = [];
   let i = 0;
   
-  while (true) {
-    // Try both webp and jpg extensions
-    const webpUrl = `${baseUrl}${id}-${i}.webp`;
-    const jpgUrl = `${baseUrl}${id}-${i}.jpg`;
+  while (i < max) {
+    // Try both webp and jpg extensions in parallel
+    const webpUrl = `${IMAGE_BASE_URL}${id}-${i}.webp`;
+    const jpgUrl = `${IMAGE_BASE_URL}${id}-${i}.jpg`;
     
-    const webpExists = await checkImageExists(webpUrl);
-    const jpgExists = await checkImageExists(jpgUrl);
+    // Parallel format checks
+    const [webpExists, jpgExists] = await Promise.all([
+      checkImageExists(webpUrl),
+      checkImageExists(jpgUrl)
+    ]);
     
     if (!webpExists && !jpgExists) {
       break;
@@ -118,10 +139,6 @@ export const getDefaultImages = async (id: string): Promise<string[]> => {
     }
     
     i++;
-  }
-
-  if(images.length > 0) {
-    
   }
   
   return images;
@@ -184,15 +201,14 @@ export const getBookmarkFirstImageSync = (id: string): string => {
     return '';
   }
   
-  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
   // Generate URL with pattern: {id}-0.webp (default)
-  const imageUrl = `${baseUrl}${id}-0.webp`;
+  const imageUrl = `${IMAGE_BASE_URL}${id}-0.webp`;
   
   return imageUrl;
 };
 
 /**
- * Checks which image format exists (.webp or .jpg) using HEAD requests
+ * Checks which image format exists (.webp or .jpg) using HEAD requests with parallel checks
  * @param id - The ID/code of the bookmark item
  * @returns Promise<string> - URL of the existing image (prefers webp)
  */
@@ -202,28 +218,24 @@ export const getBookmarkFirstImageWithCheck = async (id: string): Promise<string
     return '';
   }
   
-  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
+  // Parallel format checks for better performance
+  const webpUrl = `${IMAGE_BASE_URL}${id}-0.webp`;
+  const jpgUrl = `${IMAGE_BASE_URL}${id}-0.jpg`;
   
-  // Try webp first (preferred format)
-  const webpUrl = `${baseUrl}${id}-0.webp`;
-  const webpExists = await checkImageExists(webpUrl);
+  const [webpExists, jpgExists] = await Promise.all([
+    checkImageExists(webpUrl),
+    checkImageExists(jpgUrl)
+  ]);
   
   if (webpExists) {
-    console.log(`✅ Found webp image: ${webpUrl}`);
     return webpUrl;
   }
   
-  // Fall back to jpg
-  const jpgUrl = `${baseUrl}${id}-0.jpg`;
-  const jpgExists = await checkImageExists(jpgUrl);
-  
   if (jpgExists) {
-    console.log(`✅ Found jpg image: ${jpgUrl}`);
     return jpgUrl;
   }
   
   // Neither exists, return webp URL as fallback
-  console.warn(`⚠️ No image found for ${id}, returning webp URL as fallback`);
   return webpUrl;
 };
 
@@ -238,10 +250,8 @@ export const getBookmarkImageWithFallback = async (id: string): Promise<string> 
     return '';
   }
   
-  const baseUrl = 'https://fsn1.your-objectstorage.com/videosmarrakerch/mview-images/';
-  
   // Try webp first
-  const webpUrl = `${baseUrl}${id}-0.webp`;
+  const webpUrl = `${IMAGE_BASE_URL}${id}-0.webp`;
   const webpExists = await checkImageExists(webpUrl);
   
   if (webpExists) {
@@ -249,7 +259,7 @@ export const getBookmarkImageWithFallback = async (id: string): Promise<string> 
   }
   
   // Fall back to jpg
-  const jpgUrl = `${baseUrl}${id}-0.jpg`;
+  const jpgUrl = `${IMAGE_BASE_URL}${id}-0.jpg`;
   const jpgExists = await checkImageExists(jpgUrl);
   
   if (jpgExists) {

@@ -21,6 +21,12 @@ export const useLogin = () => {
   };
 
   const handleGoogleAuth = async (onSuccess: () => void) => {
+    // Skip Google Sign-In in dev mode to avoid native module errors
+    if (__DEV__) {
+      Alert.alert('Dev Mode', 'Google Sign-In is disabled in development mode');
+      return;
+    }
+
     setLoading(true);
     try {
       // Lazy load Google Sign-In dependencies

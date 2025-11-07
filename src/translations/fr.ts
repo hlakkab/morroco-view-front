@@ -200,6 +200,7 @@ export default {
     broker: 'Bureau de Change',
     featuredBroker: 'Bureau Recommandé',
     noInformation: 'Aucune information disponible pour ce bureau.',
+    loadingImages: 'Chargement des images...',
   },
   reservation: {
     reservePickup: 'Réserver Votre Transport',
@@ -306,6 +307,7 @@ export default {
     skipTheLine: 'Coupe-File',
     buy: 'Acheter',
     close: 'Fermer',
+    loadingImages: 'Chargement des images...',
   },
   restaurants: {
     title: 'Restaurants',
@@ -327,6 +329,7 @@ export default {
     location: 'Emplacement',
     bookReservation: 'Réserver une Table',
     noInformation: 'Aucune information disponible pour ce restaurant.',
+    loadingImages: 'Chargement des images...',
   },
 
   entertainment: {
@@ -376,6 +379,7 @@ export default {
       no: 'Non Requis',
       recommended: 'Recommandé',
     },
+    loadingImages: 'Chargement des images...',
   },
   
   artisans: {
@@ -403,6 +407,7 @@ export default {
     cashTip: 'Ayez de l\'argent liquide, de préférence en petites coupures.',
     photoTip: 'Demandez avant de prendre des photos des artisans ou de leur travail.',
     souk: 'Souk',
+    loadingImages: 'Chargement des images...',
   },
   
   emergency: {

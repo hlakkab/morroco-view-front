@@ -209,6 +209,7 @@ export default {
     broker: 'Broker',
     featuredBroker: 'Featured Broker',
     noInformation: 'No information available for this broker.',
+    loadingImages: 'Loading images...',
   },
   reservation: {
     reservePickup: 'Reserve Your Transport',
@@ -315,6 +316,7 @@ export default {
     skipTheLine: 'Skip the Line',
     buy: 'Buy',
     close: 'Close',
+    loadingImages: 'Loading images...',
   },
   restaurants: {
     title: 'Restaurants',
@@ -336,6 +338,7 @@ export default {
     location: 'Location',
     bookReservation: 'Book a Reservation',
     noInformation: 'No information available for this restaurant.',
+    loadingImages: 'Loading images...',
   },
   entertainment: {
     title: 'Entertainment',
@@ -384,6 +387,7 @@ export default {
       no: 'Not Required',
       recommended: 'Recommended',
     },
+    loadingImages: 'Loading images...',
   },
   artisans: {
     title: 'Artisans',
@@ -410,6 +414,7 @@ export default {
     cashTip: 'Have cash ready, preferably small bills.',
     photoTip: 'Ask before taking photos of artisans or their work.',
     souk: 'Souk',
+    loadingImages: 'Loading images...',
   },
   emergency: {
     title: 'Emergency Contacts',

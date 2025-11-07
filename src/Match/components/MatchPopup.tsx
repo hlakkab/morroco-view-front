@@ -371,7 +371,8 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
           </View>
         </ScrollView>
 
-        <CopilotStep
+        {/* TODO: match button - Re-enable Buy Ticket button when ready */}
+        {/* <CopilotStep
           text={i18n.t('copilot.purchaseTickets')}
           order={4}
           name="buy-tickets"
@@ -379,7 +380,7 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
           <WalkthroughableView style={styles.enhancedHighlight}>
             <ButtonFixe title={i18n.t('matches.buyTickets')} onPress={handleBuyTicket} />
           </WalkthroughableView>
-        </CopilotStep>
+        </CopilotStep> */}
       </View>
       
       {/* Auth Modal for login prompt */}

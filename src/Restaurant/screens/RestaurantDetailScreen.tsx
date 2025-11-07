@@ -3,6 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useRef, useState, useEffect } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -31,6 +32,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { toggleRestaurantBookmark } from '../store/restaurantSlice';
 import { RootStackParamList } from '../../types/navigation';
 import { Restaurant } from '../types/Restaurant';
+import { useImages } from '../../utils/useImages';
 
 const { width, height } = Dimensions.get('window');
 
@@ -54,6 +56,16 @@ const RestaurantDetailScreenContent: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const { selectedRestaurant } = useAppSelector((state) => state.restaurant);
+
+  // Get restaurant code directly for image fetching (same pattern as Monument, Entertainment, and Artisan)
+  const restaurantCode = selectedRestaurant?.code;
+  
+  // Use hook to fetch all images (batch fetch) - pass large number to fetch all available
+  const { images: fetchedImages, loading: loadingImages } = useImages(
+    restaurantCode,
+    undefined, // Don't use existing images - fetch fresh
+    100 // Large number to fetch all available images
+  );
 
   // ─── 1.  ─────────────────
   useEffect(() => {
@@ -169,36 +181,49 @@ const RestaurantDetailScreenContent: React.FC = () => {
           <WalkthroughableView style={styles.galleryHighlight}>
             <View style={styles.imageContainer}>
               <View style={styles.imageSection}>
-                <FlatList
-                  data={selectedRestaurant!.images}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  onScroll={handleScroll}
-                  keyExtractor={(_, index) => index.toString()}
-                  renderItem={({ item }) => (
-                    <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
-                  )}
-                />
-
-                <TouchableOpacity style={[styles.saveButton, selectedRestaurant!.saved && styles.savedButton]} onPress={handleSave}>
-                  <Ionicons
-                    name={selectedRestaurant!.saved ? 'bookmark' : 'bookmark-outline'}
-                    size={24}
-                    color={selectedRestaurant!.saved ? '#fff' : '#000'}
-                  />
-                </TouchableOpacity>
-
-                <View style={styles.paginationContainer}>
-                  <View style={styles.pagination}>
-                    {selectedRestaurant!.images?.map((_, index) => (
-                      <View
-                        key={index}
-                        style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
-                      />
-                    ))}
+                {loadingImages && (!fetchedImages || fetchedImages.length === 0) ? (
+                  <View style={styles.imageLoadingContainer}>
+                    <ActivityIndicator size="large" color="#008060" />
+                    <Text style={styles.loadingText}>{i18n.t('restaurants.loadingImages') || 'Loading images...'}</Text>
                   </View>
-                </View>
+                ) : (
+                  <>
+                    <FlatList
+                      data={
+                        fetchedImages && fetchedImages.length > 0
+                          ? fetchedImages
+                          : selectedRestaurant!.images || []
+                      }
+                      horizontal
+                      pagingEnabled
+                      showsHorizontalScrollIndicator={false}
+                      onScroll={handleScroll}
+                      keyExtractor={(_, index) => index.toString()}
+                      renderItem={({ item }) => (
+                        <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
+                      )}
+                    />
+
+                    <TouchableOpacity style={[styles.saveButton, selectedRestaurant!.saved && styles.savedButton]} onPress={handleSave}>
+                      <Ionicons
+                        name={selectedRestaurant!.saved ? 'bookmark' : 'bookmark-outline'}
+                        size={24}
+                        color={selectedRestaurant!.saved ? '#fff' : '#000'}
+                      />
+                    </TouchableOpacity>
+
+                    <View style={styles.paginationContainer}>
+                      <View style={styles.pagination}>
+                        {(fetchedImages && fetchedImages.length > 0 ? fetchedImages : selectedRestaurant!.images || []).map((_, index) => (
+                          <View
+                            key={index}
+                            style={[styles.paginationDot, index === currentImageIndex && styles.activePaginationDot]}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  </>
+                )}
               </View>
             </View>
           </WalkthroughableView>
@@ -453,6 +478,18 @@ const styles = StyleSheet.create({
   reservationHighlight: {
     width: '100%',
     overflow: 'hidden',
+  },
+  imageLoadingContainer: {
+    width: '100%',
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
   },
   tooltip: {
     backgroundColor: '#F7F7F7',

@@ -101,6 +101,31 @@ const artisanSlice = createSlice({
     setSelectedType: (state, action: PayloadAction<ArtisanType | 'All'>) => {
       state.selectedType = action.payload;
     },
+    updateArtisanImage: (state, action: PayloadAction<{ id: string; url: string }>) => {
+      const artisan = state.artisans.find(a => a.id === action.payload.id);
+      if (artisan) {
+        if (!artisan.images) {
+          artisan.images = [];
+        }
+        // Set first image if array is empty, otherwise update first image
+        if (artisan.images.length === 0) {
+          artisan.images.push(action.payload.url);
+        } else {
+          artisan.images[0] = action.payload.url;
+        }
+      }
+      // Also update selected artisan if it matches
+      if (state.selectedArtisan && state.selectedArtisan.id === action.payload.id) {
+        if (!state.selectedArtisan.images) {
+          state.selectedArtisan.images = [];
+        }
+        if (state.selectedArtisan.images.length === 0) {
+          state.selectedArtisan.images.push(action.payload.url);
+        } else {
+          state.selectedArtisan.images[0] = action.payload.url;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -157,5 +182,5 @@ const artisanSlice = createSlice({
 });
 
 // Export actions and reducer
-export const { setSelectedType, setSelectedArtisan } = artisanSlice.actions;
+export const { setSelectedType, setSelectedArtisan, updateArtisanImage } = artisanSlice.actions;
 export default artisanSlice.reducer; 

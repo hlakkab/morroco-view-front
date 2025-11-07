@@ -1,7 +1,9 @@
 import React, { FC } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { MaterialIcons } from '@expo/vector-icons';
-import { Entertainment, EntertainmentImage, ImageVariant } from "../types/Entertainment";
+import { Entertainment, entertainmentHelpers } from "../types/Entertainment";
+import { useFirstImage } from '../../utils/useImages';
+import { updateEntertainmentImage } from '../store/entertainmentSlice';
 
 type EntertainmentCardProps = {
   item: Entertainment;
@@ -9,13 +11,62 @@ type EntertainmentCardProps = {
 };
 
 const EntertainmentCard: FC<EntertainmentCardProps> = ({ item, onPress }) => {
-  const coverImage = item.images
-    ?.find((img: EntertainmentImage) => img.isCover)
-    ?.variants.find((variant: ImageVariant) => variant.width === 720)
-    ?.url
-    || (item.images && item.images.length > 0 ? item.images[0].variants[0]?.url : null);
-
-  const rating = Number(item.reviews.combinedAverageRating.toFixed(1))
+  // Get entertainment code/id for image fetching (same pattern as Monument)
+  const entertainmentId = item.code || item.id;
+  
+  // Convert images to string[] format (handle both new and legacy formats)
+  // For the hook, we need a simple string array, so extract from whatever format we have
+  const imagesArray: string[] = (() => {
+    if (!Array.isArray(item.images) || item.images.length === 0) {
+      return [];
+    }
+    
+    // New API format: array of strings
+    if (typeof item.images[0] === 'string') {
+      return item.images as string[];
+    }
+    
+    // Legacy format: array of image objects with variants
+    // Extract URLs from variants (same logic as helper but simplified)
+    const urls: string[] = [];
+    (item.images as any[]).forEach((img: any) => {
+      if (img?.variants?.length > 0) {
+        const sortedVariants = [...img.variants].sort((a: any, b: any) =>
+          (b.width * b.height) - (a.width * a.height)
+        );
+        const idealVariant = sortedVariants.find((v: any) =>
+          v.width >= 720 && v.width <= 1080
+        ) || sortedVariants[0];
+        if (idealVariant?.url) {
+          urls.push(idealVariant.url);
+        }
+      }
+    });
+    return urls;
+  })();
+  
+  // Use hook to track image loading state (same pattern as MonumentCard)
+  const { imageUrl, loading } = useFirstImage(
+    entertainmentId, 
+    item.id, 
+    imagesArray.length > 0 ? imagesArray : undefined,
+    updateEntertainmentImage
+  );
+  
+  // Use fetched image or existing image (same pattern as MonumentCard)
+  const displayImage = imageUrl || (imagesArray.length > 0 ? imagesArray[0] : undefined);
+  const hasImage = !!displayImage;
+  
+  // Get rating info (handles both new and legacy formats)
+  const { rating, ratingCount } = entertainmentHelpers.getRatingInfo(item);
+  const formattedRating = Number(rating.toFixed(1));
+  
+  // Get formatted price (handles both new and legacy formats)
+  const formattedPrice = entertainmentHelpers.getFormattedPrice(item);
+  
+  // Get display name (handles both new and legacy formats)
+  const displayName = entertainmentHelpers.getDisplayName(item);
+  
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -44,23 +95,44 @@ const EntertainmentCard: FC<EntertainmentCardProps> = ({ item, onPress }) => {
       style={styles.card}
       onPress={() => onPress(item)}
     >
-      {coverImage && (
-        <Image
-          source={{ uri: coverImage }}
-          style={styles.cardImage}
-          resizeMode="cover"
-        />
-      )}
+      <View style={styles.imageContainer}>
+        {hasImage ? (
+          <Image
+            source={{ uri: displayImage }}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+        ) : loading ? (
+          <View style={styles.imagePlaceholder}>
+            <ActivityIndicator size="large" color="#008060" />
+            <Text style={styles.loadingText}>Loading image...</Text>
+          </View>
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <MaterialIcons name="local-activity" size={48} color="#ccc" />
+          </View>
+        )}
+        {/* Show loading overlay if image exists but is still loading a new one */}
+        {hasImage && loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="small" color="#008060" />
+          </View>
+        )}
+      </View>
       <View style={styles.cardContent}>
         <View style={styles.starRating}>
-          {renderStars(rating)}
-          <Text style={styles.ratingText}>{`${rating} (${item.reviews.totalReviews})`}</Text>
+          {renderStars(formattedRating)}
+          <Text style={styles.ratingText}>
+            {`${formattedRating}${ratingCount > 0 ? ` (${ratingCount})` : ''}`}
+          </Text>
         </View>
-        <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+        <Text style={styles.cardTitle} numberOfLines={2}>{displayName}</Text>
         {/* from price element */}
-        <View style={styles.priceContainer}>
-          <Text style={styles.priceText}>{`From ${item.pricing.summary.fromPrice}$`}</Text>
-        </View>
+        {formattedPrice && (
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceText}>{`From ${formattedPrice}$`}</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -82,6 +154,34 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
   },
+  imageContainer: {
+    width: '100%',
+    height: 200,
+    position: 'relative',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#008060',
+    fontWeight: '500',
+  },
   cardContent: {
     padding: 16,
     flex: 1,
@@ -90,7 +190,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-
   },
   cardDescription: {
     fontSize: 14,

@@ -10,6 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchRestaurants, setSelectedRestaurantType } from '../../store/index';
+import { useBatchImages } from '../../utils/useImages';
+import { updateRestaurantImage } from '../store/restaurantSlice';
 
 // Import custom components
 import FilterPopup, { FilterOption } from '../../components/FilterPopup';
@@ -90,6 +92,9 @@ const RestaurantScreenContent: React.FC = () => {
       city: selectedCity === 'all' ? undefined : selectedCity
     }));
   }, [dispatch, selectedType, selectedCity, pageSize]);
+
+  // Background image fetching for restaurants after data is loaded
+  useBatchImages(restaurants, !loading, updateRestaurantImage);
 
   // Create city options for FilterSelector
   const cityOptions = [

@@ -420,7 +420,7 @@ export const navigationConfig: Record<string, ScreenConfig> = {
   },
   EntertainmentScreen: {
     name: 'EntertainmentScreen',
-    path: '../Entertainment/screens/EntertainmentScreen',
+    path: '../Entertainment/screens/EntertainmentScreenVo',
     loadStrategy: 'lazy',
     weight: 'medium',
     requiresAuth: false,

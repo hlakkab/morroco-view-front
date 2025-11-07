@@ -185,6 +185,32 @@ const entertainmentSlice = createSlice({
       };
       state.currentPage = 0;
     },
+    updateEntertainmentImage: (state, action: PayloadAction<{ id: string; url: string }>) => {
+      // Find by id (same pattern as Monument - uses id from Redux)
+      const entertainment = state.entertainments.find(e => e.id === action.payload.id);
+      if (entertainment) {
+        if (!entertainment.images) {
+          entertainment.images = [];
+        }
+        // Set first image if array is empty, otherwise update first image (same as Monument)
+        if (entertainment.images.length === 0) {
+          entertainment.images.push(action.payload.url);
+        } else {
+          entertainment.images[0] = action.payload.url;
+        }
+      }
+      // Also update selected entertainment if it matches (same pattern as Monument)
+      if (state.selectedEntertainment && state.selectedEntertainment.id === action.payload.id) {
+        if (!state.selectedEntertainment.images) {
+          state.selectedEntertainment.images = [];
+        }
+        if (state.selectedEntertainment.images.length === 0) {
+          state.selectedEntertainment.images.push(action.payload.url);
+        } else {
+          state.selectedEntertainment.images[0] = action.payload.url;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -275,6 +301,7 @@ export const {
   removeEntertainment,
   setFilters,
   setPage,
-  resetFilters
+  resetFilters,
+  updateEntertainmentImage
 } = entertainmentSlice.actions;
 export default entertainmentSlice.reducer;

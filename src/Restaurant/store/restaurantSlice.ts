@@ -114,7 +114,31 @@ const restaurantSlice = createSlice({
     setSelectedRestaurant: (state, action: PayloadAction<Restaurant | null>) => {
       state.selectedRestaurant = action.payload;
     },
-    
+    updateRestaurantImage: (state, action: PayloadAction<{ id: string; url: string }>) => {
+      const restaurant = state.restaurants.find(r => r.id === action.payload.id);
+      if (restaurant) {
+        if (!restaurant.images) {
+          restaurant.images = [];
+        }
+        // Set first image if array is empty, otherwise update first image
+        if (restaurant.images.length === 0) {
+          restaurant.images.push(action.payload.url);
+        } else {
+          restaurant.images[0] = action.payload.url;
+        }
+      }
+      // Also update selected restaurant if it matches
+      if (state.selectedRestaurant && state.selectedRestaurant.id === action.payload.id) {
+        if (!state.selectedRestaurant.images) {
+          state.selectedRestaurant.images = [];
+        }
+        if (state.selectedRestaurant.images.length === 0) {
+          state.selectedRestaurant.images.push(action.payload.url);
+        } else {
+          state.selectedRestaurant.images[0] = action.payload.url;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -176,5 +200,5 @@ const restaurantSlice = createSlice({
 });
 
 // Export actions and reducer
-export const { setSelectedRestaurant } = restaurantSlice.actions;
+export const { setSelectedRestaurant, updateRestaurantImage } = restaurantSlice.actions;
 export default restaurantSlice.reducer; 

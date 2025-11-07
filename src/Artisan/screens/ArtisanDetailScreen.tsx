@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AboutSection from '../../components/AboutSection';
@@ -15,6 +15,7 @@ import { useAppDispatch } from '../../store/hooks';
 import i18n from '../../translations/i18n';
 import { Artisan } from '../types/Artisan';
 import { getRandomArtisanImages } from '../../utils/imageUtils';
+import { useImages } from '../../utils/useImages';
 
 const TOUR_FLAG = '@artisanDetailTourSeen';
 
@@ -40,6 +41,16 @@ const ArtisanDetailScreenContent: React.FC = () => {
 
   // Get artisan details from route params
   const artisanDetails = { ...params, saved };
+
+  // Get artisan code directly for image fetching (same pattern as Monument and Entertainment)
+  const artisanCode = artisanDetails.code;
+  
+  // Use hook to fetch all images (batch fetch) - pass large number to fetch all available
+  const { images: fetchedImages, loading: loadingImages } = useImages(
+    artisanCode,
+    undefined, // Don't use existing images - fetch fresh
+    100 // Large number to fetch all available images
+  );
 
   const handleBack = () => {
     navigation.goBack();
@@ -135,13 +146,24 @@ const ArtisanDetailScreenContent: React.FC = () => {
           name="gallery"
         >
           <WalkthroughableView style={styles.walkthroughContainer}>
-            <ImageGallery 
-              images={artisanDetails.images && artisanDetails.images.length > 0 
-                ? artisanDetails.images 
-                : DEFAULT_SOUK_IMAGES}
-              isSaved={saved}
-              onSavePress={handleSave}
-            />
+            {loadingImages && (!fetchedImages || fetchedImages.length === 0) ? (
+              <View style={styles.imageLoadingContainer}>
+                <ActivityIndicator size="large" color="#008060" />
+                <Text style={styles.loadingText}>{i18n.t('artisans.loadingImages') || 'Loading images...'}</Text>
+              </View>
+            ) : (
+              <ImageGallery 
+                images={
+                  fetchedImages && fetchedImages.length > 0
+                    ? fetchedImages
+                    : artisanDetails.images && artisanDetails.images.length > 0 
+                      ? artisanDetails.images 
+                      : DEFAULT_SOUK_IMAGES
+                }
+                isSaved={saved}
+                onSavePress={handleSave}
+              />
+            )}
           </WalkthroughableView>
         </CopilotStep>
 
@@ -349,6 +371,18 @@ const styles = StyleSheet.create({
   },
   walkthroughContainer: {
     width: '100%',
+  },
+  imageLoadingContainer: {
+    width: '100%',
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
   },
   tooltip: {
     backgroundColor: '#F7F7F7',

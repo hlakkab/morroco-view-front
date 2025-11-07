@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, Linking, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Linking, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AboutSection from '../../components/AboutSection';
@@ -14,6 +14,7 @@ import { toggleBrokerBookmark } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import i18n from '../../translations/i18n';
 import { Broker } from '../types/exchange-broker';
+import { useImages } from '../../utils/useImages';
 
 const TOUR_FLAG = '@brokerDetailTourSeen';
 
@@ -65,6 +66,16 @@ const BrokerDetailScreenContent: React.FC = () => {
   const { brokers } = useAppSelector(state => state.exchangeBroker);
   const currentBroker = brokers.find(b => b.id === brokerDetails.id);
   const isSaved = currentBroker?.saved || brokerDetails.saved;
+
+  // Get broker id for image fetching (Broker type uses id instead of code)
+  const brokerId = brokerDetails.id;
+  
+  // Use hook to fetch all images (batch fetch) - pass large number to fetch all available
+  const { images: fetchedImages, loading: loadingImages } = useImages(
+    brokerId,
+    undefined, // Don't use existing images - fetch fresh
+    100 // Large number to fetch all available images
+  );
 
   // ─── 1.  ─────────────────
   React.useEffect(() => {
@@ -200,45 +211,58 @@ const BrokerDetailScreenContent: React.FC = () => {
           name="images"
         >
           <WalkthroughableView style={styles.imageSection}>
-            <FlatList
-              ref={flatListRef}
-              data={brokerDetails.images}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item }) => (
-                <Image 
-                  source={{ uri: item }} 
-                  style={styles.image} 
-                  resizeMode="cover"
+            {loadingImages && (!fetchedImages || fetchedImages.length === 0) ? (
+              <View style={styles.imageLoadingContainer}>
+                <ActivityIndicator size="large" color="#008060" />
+                <Text style={styles.loadingText}>{i18n.t('broker.loadingImages') || 'Loading images...'}</Text>
+              </View>
+            ) : (
+              <>
+                <FlatList
+                  ref={flatListRef}
+                  data={
+                    fetchedImages && fetchedImages.length > 0
+                      ? fetchedImages
+                      : brokerDetails.images || []
+                  }
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={handleScroll}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item }) => (
+                    <Image 
+                      source={{ uri: item }} 
+                      style={styles.image} 
+                      resizeMode="cover"
+                    />
+                  )}
                 />
-              )}
-            />
-            
-            <TouchableOpacity 
-              style={[styles.saveButton, isSaved && styles.savedButton, {borderColor: isSaved ? "white" : "#666"}]} 
-              onPress={handleSave}
-            >
-              <Ionicons 
-                name={isSaved ? "bookmark" : "bookmark-outline"} 
-                size={24} 
-                color={isSaved ? "white" : "#666" }
-              />
-            </TouchableOpacity>
-            
-            <View style={styles.pagination}>
-              {brokerDetails.images.map((_, index) => (
-                <View 
-                  key={index} 
-                  style={[
-                    styles.paginationDot, 
-                    index === currentImageIndex && styles.activePaginationDot
-                  ]} 
-                />
-              ))}
-            </View>
+                
+                <TouchableOpacity 
+                  style={[styles.saveButton, isSaved && styles.savedButton, {borderColor: isSaved ? "white" : "#666"}]} 
+                  onPress={handleSave}
+                >
+                  <Ionicons 
+                    name={isSaved ? "bookmark" : "bookmark-outline"} 
+                    size={24} 
+                    color={isSaved ? "white" : "#666" }
+                  />
+                </TouchableOpacity>
+                
+                <View style={styles.pagination}>
+                  {(fetchedImages && fetchedImages.length > 0 ? fetchedImages : brokerDetails.images || []).map((_, index) => (
+                    <View 
+                      key={index} 
+                      style={[
+                        styles.paginationDot, 
+                        index === currentImageIndex && styles.activePaginationDot
+                      ]} 
+                    />
+                  ))}
+                </View>
+              </>
+            )}
           </WalkthroughableView>
         </CopilotStep>
 
@@ -628,6 +652,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     marginLeft: 5,
+  },
+  imageLoadingContainer: {
+    width: '100%',
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
   },
 });
 

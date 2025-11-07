@@ -3,6 +3,7 @@ import api from '../../service/ApiProxy';
 import { Monument, MonumentType } from '../types/Monument';
 import { addBookmark, removeBookmark } from '../../Bookmarks/store/bookmarkSlice';
 import { PaginatedResponse, PaginationParams } from '../../types/pagination';
+import { getBookmarkFirstImageWithCheck } from '../../utils/imageUtils';
 
 // Define the state interface
 interface MonumentState {
@@ -100,6 +101,31 @@ const monumentSlice = createSlice({
     setSelectedType: (state, action: PayloadAction<MonumentType | 'All'>) => {
       state.selectedType = action.payload;
     },
+    updateMonumentImage: (state, action: PayloadAction<{ id: string; url: string }>) => {
+      const monument = state.monuments.find(m => m.id === action.payload.id);
+      if (monument) {
+        if (!monument.images) {
+          monument.images = [];
+        }
+        // Set first image if array is empty, otherwise update first image
+        if (monument.images.length === 0) {
+          monument.images.push(action.payload.url);
+        } else {
+          monument.images[0] = action.payload.url;
+        }
+      }
+      // Also update selected monument if it matches
+      if (state.selectedMonument && state.selectedMonument.id === action.payload.id) {
+        if (!state.selectedMonument.images) {
+          state.selectedMonument.images = [];
+        }
+        if (state.selectedMonument.images.length === 0) {
+          state.selectedMonument.images.push(action.payload.url);
+        } else {
+          state.selectedMonument.images[0] = action.payload.url;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -156,5 +182,5 @@ const monumentSlice = createSlice({
 });
 
 // Export actions and reducer
-export const { setSelectedType, setSelectedMonument } = monumentSlice.actions;
+export const { setSelectedType, setSelectedMonument, updateMonumentImage } = monumentSlice.actions;
 export default monumentSlice.reducer; 

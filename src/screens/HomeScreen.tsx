@@ -1,6 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Image } from 'react-native';
+import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Image, BackHandler } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 // Import Container Components
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -95,6 +95,16 @@ const HomeScreenContent: React.FC = () => {
 
   useEffect(() => {
     checkFirstTime();
+  }, []);
+
+  // Prevent back navigation on Home screen
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Return true to prevent default back button behavior
+      return true;
+    });
+
+    return () => backHandler.remove();
   }, []);
 
   const checkFirstTime = async () => {

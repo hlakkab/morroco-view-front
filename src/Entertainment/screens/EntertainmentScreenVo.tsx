@@ -11,12 +11,13 @@ import ScreenHeader from '../../components/ScreenHeader';
 import SearchBar from '../../components/SearchBar';
 import EntertainmentListContainerVo from '../containers/EntertainmentListContainerVo';
 import { cities, normalizeString } from '../../data/filterData';
-import { EntertainmentState, fetchEntertainments, setFilters, setPage } from '../store/entertainmentSlice';
+import { EntertainmentState, fetchEntertainments, setFilters, setPage, updateEntertainmentImage } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import i18n from '../../translations/i18n';
 import { Entertainment, City } from '../types/Entertainment';
 import { RootStackParamList } from '../../types/navigation';
 import EntertainmentFilters, { EntertainmentFilterValues } from '../components/EntertainmentFilters';
+import { useBatchImages } from '../../utils/useImages';
 
 const TOUR_FLAG = '@entertainmentTourSeen';
 
@@ -190,6 +191,9 @@ const EntertainmentScreenContent: React.FC = () => {
     // Initial data fetch
     dispatch(fetchEntertainments(filters));
   }, [dispatch]);
+
+  // Background image fetching for entertainments after data is loaded (same pattern as Monument)
+  useBatchImages(entertainments, !loading, updateEntertainmentImage);
 
   const handleFilterPress = () => {
     // Open the new entertainment filters modal

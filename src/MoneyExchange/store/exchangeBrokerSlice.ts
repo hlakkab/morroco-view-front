@@ -78,6 +78,19 @@ const exchangeBrokerSlice = createSlice({
         broker.saved = !broker.saved;
       }
     },
+    updateBrokerImage: (state, action: PayloadAction<{ id: string; url: string }>) => {
+      const broker = state.brokers.find(b => b.id === action.payload.id);
+      if (broker) {
+        if (!broker.images) {
+          broker.images = [];
+        }
+        if (broker.images.length === 0) {
+          broker.images.push(action.payload.url);
+        } else {
+          broker.images[0] = action.payload.url;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -118,5 +131,5 @@ const exchangeBrokerSlice = createSlice({
 });
 
 // Export actions and reducer
-export const { setSelectedLocation, toggleSaveBroker } = exchangeBrokerSlice.actions;
+export const { setSelectedLocation, toggleSaveBroker, updateBrokerImage } = exchangeBrokerSlice.actions;
 export default exchangeBrokerSlice.reducer; 

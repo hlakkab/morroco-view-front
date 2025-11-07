@@ -20,6 +20,7 @@ import { toggleEntertainmentBookmark } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 import { RootStackParamList } from '../../types/navigation';
+import { useImages } from '../../utils/useImages';
 
 const { width } = Dimensions.get('window');
 
@@ -53,6 +54,16 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   const [isSaved, setIsSaved] = useState(false);
   const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Get entertainment code directly for image fetching (same pattern as Monument)
+  const entertainmentCode = entertainment?.code || productCode;
+  
+  // Use hook to fetch all images (batch fetch) - pass large number to fetch all available
+  const { images: fetchedImages, loading: loadingImages } = useImages(
+    entertainmentCode,
+    undefined, // Don't use existing images - fetch fresh
+    100 // Large number to fetch all available images
+  );
 
   // Appel à l'API pour récupérer les données détaillées du produit seulement si nécessaire
   useEffect(() => {
@@ -231,30 +242,41 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   // Calcul du rating - support both new and legacy formats
   const { rating, ratingCount } = entertainmentHelpers.getRatingInfo(entertainment);
 
-  // Construction du tableau d'URLs d'images - support both new and legacy formats
+  // Use fetched images from hook, or fallback to existing images, or placeholder
   const images: string[] = (() => {
-    if (!entertainment.images || entertainment.images.length === 0) {
-      return ['https://via.placeholder.com/300'];
+    // Use fetched images from hook if available
+    if (fetchedImages && fetchedImages.length > 0) {
+      return fetchedImages;
     }
 
-    // Check if new API format (array of strings)
-    if (typeof entertainment.images[0] === 'string') {
-      return entertainment.images as string[];
+    // Fallback to existing images from entertainment object
+    if (entertainment.images && entertainment.images.length > 0) {
+      // Check if new API format (array of strings)
+      if (typeof entertainment.images[0] === 'string') {
+        return entertainment.images as string[];
+      }
+
+      // Legacy format (array of image objects with variants)
+      const legacyUrls = entertainment.images
+        .map((img: any) => {
+          if (!img.variants || img.variants.length === 0) return '';
+          const sortedVariants = [...img.variants].sort((a: any, b: any) => 
+            (b.width * b.height) - (a.width * a.height)
+          );
+          const idealVariant = sortedVariants.find((v: any) => 
+            v.width >= 720 && v.width <= 1080
+          ) || sortedVariants[0];
+          return idealVariant?.url || '';
+        })
+        .filter((url: string) => url !== '');
+      
+      if (legacyUrls.length > 0) {
+        return legacyUrls;
+      }
     }
 
-    // Legacy format (array of image objects with variants)
-    return entertainment.images
-      .map((img: any) => {
-        if (!img.variants || img.variants.length === 0) return '';
-        const sortedVariants = [...img.variants].sort((a: any, b: any) => 
-          (b.width * b.height) - (a.width * a.height)
-        );
-        const idealVariant = sortedVariants.find((v: any) => 
-          v.width >= 720 && v.width <= 1080
-        ) || sortedVariants[0];
-        return idealVariant?.url || '';
-      })
-      .filter((url: string) => url !== '');
+    // Fallback to placeholder if no images
+    return ['https://via.placeholder.com/300'];
   })();
 
   // Calcul de la durée (si renseignée dans l'itinéraire)
@@ -343,33 +365,42 @@ const EntertainmentDetailScreenContent: React.FC = () => {
           name="images"
         >
           <WalkthroughableView style={styles.imageSection}>
-            <FlatList
-              ref={flatListRef}
-              data={images}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item }) => (
-                <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
-              )}
-            />
-            <SaveButton onPress={handleSave} isSaved={entertainment.saved} />
-            {images.length > 1 && (
-              <View style={styles.paginationContainer}>
-                <View style={styles.pagination}>
-                  {images.map((_, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.paginationDot,
-                        currentImageIndex === index && styles.activePaginationDot
-                      ]}
-                    />
-                  ))}
-                </View>
+            {loadingImages && images.length === 0 ? (
+              <View style={styles.imageLoadingContainer}>
+                <ActivityIndicator size="large" color="#008060" />
+                <Text style={styles.loadingText}>{i18n.t('entertainment.loadingImages') || 'Loading images...'}</Text>
               </View>
+            ) : (
+              <>
+                <FlatList
+                  ref={flatListRef}
+                  data={images}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={handleScroll}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item }) => (
+                    <Image source={{ uri: item }} style={styles.image} resizeMode="cover" />
+                  )}
+                />
+                <SaveButton onPress={handleSave} isSaved={entertainment.saved} />
+                {images.length > 1 && (
+                  <View style={styles.paginationContainer}>
+                    <View style={styles.pagination}>
+                      {images.map((_, index) => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.paginationDot,
+                            currentImageIndex === index && styles.activePaginationDot
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </>
             )}
           </WalkthroughableView>
         </CopilotStep>
@@ -561,6 +592,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#333',
+  },
+  imageLoadingContainer: {
+    width: '100%',
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
   },
   errorContainer: {
     flex: 1,

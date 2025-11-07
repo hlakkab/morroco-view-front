@@ -24,6 +24,8 @@ if (__DEV__) {
 // Import Redux hooks and actions
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchMonuments, setSelectedMonumentType } from '../../store/index';
+import { useBatchImages } from '../../utils/useImages';
+import { updateMonumentImage } from '../store/monumentSlice';
 
 // Import custom components
 import FilterPopup, { FilterOption } from '../../components/FilterPopup';
@@ -165,6 +167,9 @@ const MonumentsScreenContent: React.FC = () => {
       city: selectedCity === 'all' ? undefined : selectedCity
     }));
   }, [dispatch, selectedType, selectedCity, pageSize]);
+
+  // Background image fetching for monuments after data is loaded
+  useBatchImages(monuments, !loading, updateMonumentImage);
 
   // Create city options for FilterSelector
   const cityOptions = [

@@ -53,20 +53,22 @@ const LoginScreen = () => {
             </View>
 
 
-            <TouchableOpacity
-              onPress={() => handleGoogleAuth(onLoginSuccess)}
-              style={[styles.googleButton, loading && { opacity: 0.6 }]}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#666" />
-              ) : (
-                <>
-                  <GoogleIcon width={24} height={24} />
-                  <Text style={styles.googleButtonText}>Continue with Google</Text>
-                </>
-              )}
-            </TouchableOpacity>
+            {!__DEV__ && (
+              <TouchableOpacity
+                onPress={() => handleGoogleAuth(onLoginSuccess)}
+                style={[styles.googleButton, loading && { opacity: 0.6 }]}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#666" />
+                ) : (
+                  <>
+                    <GoogleIcon width={24} height={24} />
+                    <Text style={styles.googleButtonText}>Continue with Google</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
 
             {Platform.OS === 'ios' && (
               <AppleSignInButton

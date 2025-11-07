@@ -10,6 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Import Redux hooks and actions
 import { fetchArtisans, setSelectedType } from '../store/artisanSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useBatchImages } from '../../utils/useImages';
+import { updateArtisanImage } from '../store/artisanSlice';
 
 // Import custom components
 import FilterPopup, { FilterOption } from '../../components/FilterPopup';
@@ -89,6 +91,9 @@ const ArtisansScreenContent: React.FC = () => {
       city: selectedCity === 'all' ? undefined : selectedCity
     }));
   }, [dispatch, selectedType, selectedCity, pageSize]);
+
+  // Background image fetching for artisans after data is loaded
+  useBatchImages(artisans, !loading, updateArtisanImage);
 
   // Create city options for FilterSelector
   const cityOptions = [

@@ -25,7 +25,10 @@ const LaunchScreen = () => {
 
     const firstTime = await AsyncStorage.getItem('FIRST_TIME');
     if (firstTime === 'false') {
-      navigation.navigate('Home' as never);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' as never }],
+      });
       return;
     }
 

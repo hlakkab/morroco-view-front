@@ -6,10 +6,9 @@ import axios, {
 } from 'axios';
 import { getAccessToken, refreshToken, clearTokens } from './KeycloakService';
 import { trackEvent } from './Mixpanel';
-import { getImagesWithDefaults } from '../utils/imageUtils';
 
 //const API_URL = "http://192.168.0.205:9090";
-const baseURL = 'https://agence.mview.ma/api';
+const baseURL = 'https://moroccoviewaws.com/api';
 //const baseURL = 'http://192.168.1.2:9090';
 
 // Global auth state handler - will be set by App.tsx
@@ -45,37 +44,8 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   async (response: AxiosResponse) => {
-    // Handle empty images array in successful responses
-    if (response.status === 200 && response.data) {
-
-      // Handle paginated response (Spring Boot pagination format)
-      if (response.data.content && Array.isArray(response.data.content)) {
-        const processedContent = await Promise.all(response.data.content.map(async (item: any) => {
-          if (!item.images || (Array.isArray(item.images) && item.images.length === 0)) {
-            const id = item.code || item.id || 'default';
-            item.images = await getImagesWithDefaults(item.images || [], id);
-          }
-          return item;
-        }));
-        response.data.content = processedContent;
-      }
-      // Handle direct array response
-      else if (Array.isArray(response.data)) {
-        const processedData = await Promise.all(response.data.map(async (item: any) => {
-          if (!item.images || (Array.isArray(item.images) && item.images.length === 0)) {
-            const id = item.code || item.id || 'default';
-            item.images = await getImagesWithDefaults(item.images || [], id);
-          }
-          return item;
-        }));
-        response.data = processedData;
-      }
-      // Handle single object response
-      else if (!response.data.images || (Array.isArray(response.data.images) && response.data.images.length === 0)) {
-        const id = response.data.code || response.data.id || 'default';
-        response.data.images = await getImagesWithDefaults(response.data.images || [], id);
-      }
-    }
+    // Image discovery is now handled asynchronously in components/slices
+    // No blocking image discovery logic here
     return response;
   },
   async (error: AxiosError) => {

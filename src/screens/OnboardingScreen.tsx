@@ -13,7 +13,10 @@ const OnboardingScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleGetStarted = () => {
-    navigation.navigate('Home');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
   };
 
   return (

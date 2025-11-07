@@ -16,10 +16,11 @@ import {
   getBrokerFilterCategories,
   normalizeString
 } from '../../data/filterData';
-import { fetchBrokers } from '../store/exchangeBrokerSlice';
+import { fetchBrokers, updateBrokerImage } from '../store/exchangeBrokerSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import i18n from '../../translations/i18n';
 import { Broker } from '../types/exchange-broker';
+import { useBatchImages } from '../../utils/useImages';
 
 const TOUR_FLAG = '@brokerListTourSeen';
 
@@ -251,6 +252,9 @@ const BrokerListScreenContent: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentBrokers = filteredBrokers.slice(startIndex, startIndex + itemsPerPage);
   // === FIN PAGINATION ===
+
+  // Batch fetch first images for all brokers asynchronously
+  useBatchImages(currentBrokers, !loading, updateBrokerImage);
 
   // Render loading state
   if (loading) {
