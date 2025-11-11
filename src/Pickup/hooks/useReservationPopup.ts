@@ -235,6 +235,8 @@ export const useReservationPopup = ({
       }
     });
 
+    onClose();
+
     navigation.navigate('PaymentCheckout', {
       amount: price,
       clientId: user.id,
