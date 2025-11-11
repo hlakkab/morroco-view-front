@@ -122,8 +122,8 @@ const TransportDetailScreenContent: React.FC = () => {
     setCurrentImageIndex(slideIndex);
   };
 
-  const handleReservePress = () => {
-    if (!isAuthenticated()) {
+  const handleReservePress = async () => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

@@ -37,6 +37,8 @@ const QRCodesScreenContent: React.FC = () => {
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
   const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Redux state and dispatch
   const dispatch = useAppDispatch();
@@ -44,11 +46,39 @@ const QRCodesScreenContent: React.FC = () => {
   
   // Check authentication on mount and show modal if not authenticated
   useEffect(() => {
-    if (!isAuthenticated()) {
-      setShowAuthModal(true);
-    } else {
-      dispatch(fetchQRCodes());
-    }
+    let isMounted = true;
+
+    const initialize = async () => {
+      try {
+        const authenticated = await isAuthenticated();
+        if (!isMounted) {
+          return;
+        }
+
+        setIsAuth(authenticated);
+        setAuthChecked(true);
+
+        if (!authenticated) {
+          setShowAuthModal(true);
+        } else {
+          dispatch(fetchQRCodes());
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+        console.error('Failed to determine authentication status', error);
+        setIsAuth(false);
+        setAuthChecked(true);
+        setShowAuthModal(true);
+      }
+    };
+
+    initialize();
+
+    return () => {
+      isMounted = false;
+    };
   }, [dispatch, isAuthenticated]);
 
     // ─── 1.  ─────────────────
@@ -119,25 +149,41 @@ const QRCodesScreenContent: React.FC = () => {
     navigation.goBack();
   };
 
-  const handleAddQrCode = () => {
-    if (!isAuthenticated()) {
+  const handleAddQrCode = async () => {
+    try {
+      const authenticated = await isAuthenticated();
+      setIsAuth(authenticated);
+      if (!authenticated) {
+        setShowAuthModal(true);
+        return;
+      }
+      setAddModalVisible(true);
+    } catch (error) {
+      console.error('Failed to verify authentication before adding QR code', error);
+      setIsAuth(false);
       setShowAuthModal(true);
-      return;
     }
-    setAddModalVisible(true);
   };
 
   const handleCloseAddModal = () => {
     setAddModalVisible(false);
   };
 
-  const handleAuthModalClose = () => {
+  const handleAuthModalClose = async () => {
     setShowAuthModal(false);
     // If user is now authenticated, fetch QR codes
-    if (isAuthenticated()) {
-      dispatch(fetchQRCodes());
-    } else {
-      // If user closed modal without authenticating, go back
+    try {
+      const authenticated = await isAuthenticated();
+      setIsAuth(authenticated);
+      if (authenticated) {
+        dispatch(fetchQRCodes());
+      } else {
+        // If user closed modal without authenticating, go back
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('Failed to verify authentication after auth modal close', error);
+      setIsAuth(false);
       navigation.goBack();
     }
   };
@@ -187,14 +233,14 @@ const QRCodesScreenContent: React.FC = () => {
       </View>
 
       {/* Loading indicator */}
-      {loading && isAuthenticated() && (
+      {authChecked && loading && isAuth && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
       
       {/* Error message - only show if authenticated and there's an actual error */}
-      {error && isAuthenticated() && (
+      {authChecked && error && isAuth && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Error: {error}</Text>
         </View>

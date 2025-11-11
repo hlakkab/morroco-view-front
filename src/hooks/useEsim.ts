@@ -18,7 +18,7 @@ export const useEsim = () => {
    * Fetch all ESIMs for the authenticated user
    */
   const loadEsims = useCallback(async () => {
-    if (!isAuthenticated()) {
+    if (!(await isAuthenticated())) {
       console.warn('User must be authenticated to fetch ESIMs');
       return null;
     }
@@ -47,7 +47,7 @@ export const useEsim = () => {
     price: number,
     offer: string = 'Standard Plan'
   ) => {
-    if (!isAuthenticated()) {
+    if (!(await isAuthenticated())) {
       console.warn('User must be authenticated to purchase ESIM');
       throw new Error('Authentication required');
     }
@@ -157,7 +157,7 @@ export const useEsim = () => {
     esims,
     loading,
     error,
-    isAuthenticated: isAuthenticated(),
+    isAuthenticated,
 
     // Actions
     loadEsims,

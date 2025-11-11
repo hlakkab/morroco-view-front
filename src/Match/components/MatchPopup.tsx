@@ -158,9 +158,9 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
     };
   }, [stopTour]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Check if user is authenticated first
-    const isAuth = isAuthenticated();
+    const isAuth = await isAuthenticated();
     if (!isAuth) {
       setShowAuthModal(true);
       return;
@@ -171,9 +171,9 @@ const MatchPopupContent: React.FC<MatchPopupProps> = ({ onClose }) => {
     }
   };
 
-  const handleBuyTicket = () => {
+  const handleBuyTicket = async () => {
     // Check if user is authenticated first
-    if (!isAuthenticated()) {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

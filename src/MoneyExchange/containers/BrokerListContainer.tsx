@@ -37,8 +37,8 @@ const BrokerListContainer: React.FC<BrokerListContainerProps> = ({
     navigation.navigate("BrokerDetail", { ...broker, location: broker.city });
   };
 
-  const handleSaveBroker = (id: string) => {
-    if (!isAuthenticated()) {
+  const handleSaveBroker = async (id: string) => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

@@ -59,8 +59,8 @@ const HotelPickupListContainer: React.FC<
       (state) => state.hotelPickup.pickupDirection
   );
 
-  const handleSavePickup = (pickup: HotelPickup) => {
-    if (!isAuthenticated()) {
+  const handleSavePickup = async (pickup: HotelPickup) => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

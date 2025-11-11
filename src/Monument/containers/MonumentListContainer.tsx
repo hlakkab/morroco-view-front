@@ -61,8 +61,8 @@ const MonumentListContainer: React.FC<MonumentListContainerProps> = ({
     navigation.navigate('MonumentDetail', monument);
   };
 
-  const handleSaveMonument = (monument: Monument) => {
-    if (!isAuthenticated()) {
+  const handleSaveMonument = async (monument: Monument) => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

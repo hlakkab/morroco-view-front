@@ -279,8 +279,8 @@ const EntertainmentDetailScreenContent: React.FC = () => {
     );
   };
 
-  const handleSave = () => {
-    if (!isAuthenticated()) {
+  const handleSave = async () => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

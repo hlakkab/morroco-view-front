@@ -126,8 +126,8 @@ const HomeScreenContent: React.FC = () => {
     }
   };
 
-  const handleMatchesExplore = () => {
-    if (!isAuthenticated()) {
+  const handleMatchesExplore = async () => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

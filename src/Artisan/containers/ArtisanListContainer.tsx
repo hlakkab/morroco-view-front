@@ -61,8 +61,8 @@ const ArtisanListContainer: React.FC<ArtisanListContainerProps> = ({
     navigation.navigate('ArtisanDetail', artisan);
   };
 
-  const handleSaveArtisan = (artisan: Artisan) => {
-    if (!isAuthenticated()) {
+  const handleSaveArtisan = async (artisan: Artisan) => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

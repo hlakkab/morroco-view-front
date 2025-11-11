@@ -62,8 +62,8 @@ const RestaurantListContainer: React.FC<RestaurantListContainerProps> = ({
     navigation.navigate('RestaurantDetail', restaurant);
   };
 
-  const handleSaveRestaurant = (restaurant: Restaurant) => {
-    if (!isAuthenticated()) {
+  const handleSaveRestaurant = async (restaurant: Restaurant) => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

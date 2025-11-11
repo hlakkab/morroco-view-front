@@ -49,8 +49,8 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
     });
   };
 
-  const handleSaveEntertainment = (ent: Entertainment) => {
-    if (!isAuthenticated()) {
+  const handleSaveEntertainment = async (ent: Entertainment) => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }
