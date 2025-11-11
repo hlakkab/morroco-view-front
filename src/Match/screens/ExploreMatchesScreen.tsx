@@ -206,8 +206,8 @@ const ExploreMatchesScreenContent: React.FC = () => {
                         dispatch(setCurrentMatch(item));
                         setModalVisible(true);
                       }}
-                      handleSaveMatch={id => {
-                        if (!isAuthenticated()) {
+                      handleSaveMatch={async id => {
+                        if (!(await isAuthenticated())) {
                           setShowAuthModal(true);
                           return;
                         }

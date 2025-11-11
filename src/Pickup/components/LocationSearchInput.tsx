@@ -7,13 +7,33 @@ interface LocationSearchInputProps {
   googlePlacesRef: React.RefObject<any>;
   onLocationSelect: (data: any, details: any) => void;
   onClearLocation: () => void;
+  selectedCity?: string | null;
 }
+
+const CITY_COORDINATES: Record<string, { lat: number; lng: number; radius: number }> = {
+  marrakech: { lat: 31.6295, lng: -7.9811, radius: 20000 },
+  casablanca: { lat: 33.5731, lng: -7.5898, radius: 25000 },
+  rabat: { lat: 34.0209, lng: -6.8416, radius: 20000 },
+  tangier: { lat: 35.7595, lng: -5.8340, radius: 20000 },
+  fes: { lat: 34.0181, lng: -5.0078, radius: 20000 },
+  agadir: { lat: 30.4278, lng: -9.5981, radius: 20000 },
+  essaouira: { lat: 31.5085, lng: -9.7595, radius: 15000 },
+  ouarzazate: { lat: 30.9189, lng: -6.8930, radius: 15000 },
+  meknes: { lat: 33.8897, lng: -5.5473, radius: 15000 },
+  chefchaouen: { lat: 35.1710, lng: -5.2697, radius: 12000 },
+};
 
 export const LocationSearchInput: React.FC<LocationSearchInputProps> = ({
   googlePlacesRef,
   onLocationSelect,
   onClearLocation,
+  selectedCity,
 }) => {
+  const normalizedCity = selectedCity ? selectedCity.trim() : '';
+  const cityCoordinates = normalizedCity
+    ? CITY_COORDINATES[normalizedCity.toLowerCase()]
+    : undefined;
+
   return (
     <View style={styles.locationInputContainer}>
       <GooglePlacesAutocomplete
@@ -24,6 +44,13 @@ export const LocationSearchInput: React.FC<LocationSearchInputProps> = ({
           key: 'AIzaSyCFn8o4bWB3TQSwwf7f01fXTOzhZsuASy4',
           language: 'en',
           components: 'country:ma',
+          ...(cityCoordinates
+            ? {
+                location: `${cityCoordinates.lat},${cityCoordinates.lng}`,
+                radius: cityCoordinates.radius,
+                strictbounds: true,
+              }
+            : {}),
         }}
         fetchDetails={true}
         predefinedPlaces={[]}

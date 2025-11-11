@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { getUserInfo, login as keycloakLogin, getAccessToken, clearTokens, signOutFromGoogle } from '../service/KeycloakService';
 import { User } from '../types/user';
 import { AppState, AppStateStatus } from 'react-native';
 
 interface AuthContextType {
-  isAuthenticated: () => boolean;
+  isAuthenticated: () => Promise<boolean>;
   user: User | null;
   loading: boolean;
   checkAuth: () => Promise<void>;
@@ -14,7 +15,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: () => false,
+  isAuthenticated: async () => false,
   user: null,
   loading: true,
   checkAuth: async () => {},
@@ -28,6 +29,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const ACCESS_TOKEN_KEY = 'access_token';
 
   const checkAuth = useCallback(async () => {
     try {
@@ -54,9 +56,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const isAuthenticated = useCallback(() => {
-    return user !== null;
-  }, [user]);
+  const isAuthenticated = async () => {
+    const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    return Boolean(token);
+  };
 
   const login = async (username: string, password: string) => {
     try {

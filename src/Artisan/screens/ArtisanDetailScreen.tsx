@@ -57,8 +57,8 @@ const ArtisanDetailScreenContent: React.FC = () => {
     navigation.goBack();
   };
 
-  const handleSave = () => {
-    if (!isAuthenticated()) {
+  const handleSave = async () => {
+    if (!(await isAuthenticated())) {
       setShowAuthModal(true);
       return;
     }

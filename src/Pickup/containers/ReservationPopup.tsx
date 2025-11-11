@@ -147,6 +147,7 @@ const ReservationPopupContent = ({
                   googlePlacesRef={googlePlacesRef}
                   onLocationSelect={onLocationSelect}
                   onClearLocation={handleClearLocation}
+                  selectedCity={selectedCity}
                 />
 
                 <MapDisplay
