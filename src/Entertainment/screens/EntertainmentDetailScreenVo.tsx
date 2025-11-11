@@ -3,7 +3,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Platform, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../../translations/i18n';
@@ -15,7 +16,6 @@ import SaveButton from '../../components/SaveButtonPrf';
 import ScreenHeader from '../../components/ScreenHeader';
 import AuthModal from '../../components/AuthModal';
 import { useAuth } from '../../contexts/AuthContext';
-import ViatorService from '../../service/ViatorService';
 import { toggleEntertainmentBookmark } from '../store/entertainmentSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
@@ -83,59 +83,13 @@ const EntertainmentDetailScreenContent: React.FC = () => {
 
       try {
         
-        const detailData = await ViatorService.getProductDetail(productCode);
         
 
-        if (!detailData) {
-          throw new Error('No data returned from API');
-        }
 
-        // Adapter les données au format Entertainment - handle both old and new API
-        const adaptedData: Entertainment = {
-          // New API fields
-          id: detailData.id || detailData.productCode,
-          code: detailData.code || detailData.productCode,
-          name: detailData.name || detailData.title || title,
-          description: detailData.description || '',
-          type: detailData.type || 'OTHER',
-          spotType: detailData.spotType || 'ACTIVITY',
-          address: detailData.address || detailData.location?.name || '',
-          mapId: detailData.mapId || '',
-          coordinates: detailData.coordinates || '',
-          startTime: detailData.startTime || '09:00',
-          endTime: detailData.endTime || '18:00',
-          city: detailData.city || '',
-          phoneNumber: detailData.phoneNumber || '',
-          email: detailData.email || '',
-          website: detailData.website || '',
-          rating: detailData.rating || detailData.reviews?.combinedAverageRating || 0,
-          bookingRequired: detailData.bookingRequired || 'RECOMMENDED',
-          ageRestriction: detailData.ageRestriction,
-          pricings: detailData.pricings || [],
-          images: detailData.images || [],
-          saved: detailData.saved || false,
-          
-          // Legacy fields for backward compatibility
-          productCode: detailData.productCode || detailData.code,
-          title: detailData.title || detailData.name || title,
-          location: detailData.location?.name || detailData.address || 'Morocco',
-          pricing: detailData.pricing || {
-            summary: {
-              fromPrice: detailData.pricing?.summary?.fromPrice || 0,
-              fromPriceBeforeDiscount: detailData.pricing?.summary?.fromPriceBeforeDiscount || 0
-            }
-          },
-          reviews: detailData.reviews || { totalReviews: 0, combinedAverageRating: 0 },
-          fullStars: Math.floor(detailData.rating || detailData.reviews?.combinedAverageRating || 0),
-          hasHalfStar: ((detailData.rating || detailData.reviews?.combinedAverageRating || 0) % 1) >= 0.5,
-          mapUrl: detailData.mapUrl || detailData.productUrl || '',
-          itinerary: detailData.itinerary,
-          logistics: detailData.logistics,
-          ticketInfo: detailData.ticketInfo,
-          languageGuides: detailData.languageGuides
-        };
 
-        setEntertainment(adaptedData);
+        
+
+       
         setLoading(false);
       } catch (err: any) {
         console.error('Error fetching entertainment details:', err);

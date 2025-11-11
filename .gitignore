@@ -92,4 +92,4 @@ yarn-error.*
 
 # @end expo-cli
 
-keytool -genkeypair -v -keystore android/app/debug.keystore -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000
+package-lock.json

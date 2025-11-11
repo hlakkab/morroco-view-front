@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../../components/Button';
@@ -24,6 +25,7 @@ interface RouteParams {
   title: string;
   imageUrl: string;
   price: number;
+  currency?: string;
   isPrivate: boolean;
 }
 
@@ -32,7 +34,7 @@ const { width, height } = Dimensions.get('window');
 const TransportDetailScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { id, title, price } = route.params as RouteParams;
+  const { id, title, price, currency } = route.params as RouteParams;
   const dispatch = useAppDispatch();
   const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
   const { currentLanguage } = useLanguage();
@@ -337,6 +339,7 @@ const TransportDetailScreenContent: React.FC = () => {
           title={title}
           price={price}
           pickupId={id}
+          currency={currency ?? currentPickup?.currency ?? 'MAD'}
         />
       </Modal>
 

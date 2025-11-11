@@ -76,6 +76,9 @@ const TourMapScreen = lazyScreen(() => import('../Tours/screens/TourMapScreen'))
 // Utility Screens
 const PlaceholderScreen = lazyScreen(() => import('../screens/PlaceholderScreen'));
 
+// Payment Module
+const PaymentCheckoutScreen = lazyScreen(() => import('../payment/screens/CheckoutScreen'));
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
@@ -247,6 +250,11 @@ export function AppNavigator() {
           name="Emergency"
           component={EmergencyScreen}
           options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="PaymentCheckout"
+        component={PaymentCheckoutScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen 
         name="MarrakechMap" 

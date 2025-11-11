@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
-import AuthModal from '../../components/AuthModal';
 import Button from '../../components/Button';
 import ScreenHeader from '../../components/ScreenHeader';
 import BuyESIMModal from '../containers/BuyESIMModal';
@@ -15,6 +15,8 @@ import { trackEvent } from '../../service/Mixpanel';
 import i18n from '../../translations/i18n';
 import { RootStackParamList } from '../../types/navigation';
 import { useEsim } from '../../hooks/useEsim';
+import { useAuth } from '../../contexts/AuthContext';
+import { registerPaywallCallback } from '../../payment/utils/callbackRegistry';
 
 const TOUR_FLAG = '@esimScreenTourSeen';
 
@@ -24,22 +26,25 @@ const WalkthroughableView = walkthroughable(View);
 // Content component with Copilot functionality
 const ESIMScreenContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { esims, loading, error, isAuthenticated, loadEsims, purchaseEsim } = useEsim();
+  const route = useRoute<RouteProp<RootStackParamList, 'ESIM'>>();
+  const { esims, loading, error, loadEsims, purchaseEsim } = useEsim();
   const [buyModalVisible, setBuyModalVisible] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
   const { start, copilotEvents, visible, stop } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
-  // Check authentication on mount and show modal if not authenticated
+  const { user } = useAuth();
+  // Load ESIMs on mount
   useEffect(() => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-    } else {
-      loadEsims();
+    loadEsims();
+  }, [loadEsims]);
+
+  useEffect(() => {
+    if (route.params?.purchaseSuccess) {
+      setQrModalVisible(true);
+      navigation.setParams({ purchaseSuccess: undefined });
     }
-  }, [isAuthenticated, loadEsims]);
+  }, [navigation, route.params?.purchaseSuccess]);
 
   // ─── 1.  ─────────────────
   useEffect(() => {
@@ -103,10 +108,6 @@ const ESIMScreenContent: React.FC = () => {
   };
 
   const handleBuyOne = () => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
     trackEvent('BuyEsimModal_Opened');
     // Stop the tour before opening the modal
     stop();
@@ -121,34 +122,37 @@ const ESIMScreenContent: React.FC = () => {
     setQrModalVisible(false);
   };
 
-  const handleAuthModalClose = () => {
-    setShowAuthModal(false);
-    // If user is now authenticated, fetch ESIMs
-    if (isAuthenticated) {
-      loadEsims();
-    } else {
-      // If user closed modal without authenticating, go back
-      navigation.goBack();
-    }
-  };
-
   // Add a button to manually start the tour
   const handleStartTour = () => {
     setTourStarted(true);
     start();
   };
 
-  const handlePurchaseESIM = async (operatorId: string, price: number, offer: string = 'Standard Plan') => {
-    try {
-      // Use the purchaseEsim method from the hook (it handles tracking internally)
-      await purchaseEsim(operatorId, price, offer);
-      
-      setBuyModalVisible(false);
-      setQrModalVisible(true);
-    } catch (error) {
-      console.error('Failed to purchase ESIM:', error);
-      // Error tracking is handled by the hook
+  const handlePurchaseESIM = (operatorId: string, amount: number, offer: string = 'Standard Plan') => {
+    if (!user) {
+      navigation.navigate('Login');
+      return;
     }
+    setBuyModalVisible(false);
+    const onSuccessCallbackId = registerPaywallCallback(async (orderId, status) => {
+      await purchaseEsim(operatorId, amount, offer);
+      trackEvent('ESIM_Purchase_Completed', {
+        operator: operatorId,
+        offer,
+        amount,
+        orderId,
+        status
+      });
+    });
+    navigation.navigate('PaymentCheckout', {
+      amount,
+      currency: 'MAD',
+      clientId: user.id,
+      description: `${offer} - ${operatorId}`,
+      successRoute: 'ESIM',
+      successParams: { purchaseSuccess: true },
+      onSuccessCallbackId
+    });
   };
 
   return (
@@ -192,12 +196,6 @@ const ESIMScreenContent: React.FC = () => {
         visible={qrModalVisible}
         onClose={handleCloseQrModal}
         qrCodeUrl="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ESIM-123456789"
-      />
-
-      <AuthModal
-        visible={showAuthModal}
-        onClose={handleAuthModalClose}
-        type="auth"
       />
     </SafeAreaView>
   );

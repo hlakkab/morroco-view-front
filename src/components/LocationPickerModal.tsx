@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Modal, StyleSheet, View, Text, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import i18n from '../translations/i18n';
+import { getGoogleMapsApiKey } from '../utils/expoConfig';
 
 interface LocationPickerModalProps {
 
@@ -16,6 +17,14 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   onLocationSelect,
 }) => {
   const mapRef = useRef<MapView | null>(null);
+  const googleMapsApiKey = getGoogleMapsApiKey();
+
+  useEffect(() => {
+    console.log(googleMapsApiKey)
+    if (!googleMapsApiKey) {
+      console.warn('⚠️ Google Maps API key is missing. Set googlePlacesApiKey in app.config.ts extra.');
+    }
+  }, [googleMapsApiKey]);
   const [selectedLocation, setSelectedLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -112,14 +121,14 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               placeholder={i18n.t('reservation.searchForLocation')}
               onPress={handleLocationSelect}
               query={{
-                key: 'AIzaSyBjsTQBGvot-ZEot5FG3o7S1Onjm_4woYY', // Replace with your API key
+                key: googleMapsApiKey ?? '',
                 language: 'en',
                 components: 'country:ma', // Restrict to Morocco
               }}
               fetchDetails={true}
               onFail={(error) => console.error(error)}
-              onNotFound={() => 
-              onTimeout={() => 
+              onNotFound={() => console.warn('No locations found for the given query.')}
+              onTimeout={() => console.warn('Google Places Autocomplete request timed out.')}
               textInputProps={{
                 style: styles.searchInput,
                 placeholderTextColor: '#999',

@@ -151,6 +151,7 @@ const HomeScreenContent: React.FC = () => {
     navigation.navigate('Emergency');
   };
 
+
   const handleNavigation = async (routeName: string) => {
     
       try {
@@ -255,7 +256,10 @@ const HomeScreenContent: React.FC = () => {
           name="emergency"
         >
           <WalkthroughableView style={styles.emergencyHighlight}>
-            <EmergencyContactsButton onPress={handleEmergencyContacts} />
+            <View style={styles.emergencyActionsRow}>
+              <EmergencyContactsButton onPress={handleEmergencyContacts} />
+            
+            </View>
           </WalkthroughableView>
         </CopilotStep>
         {/* Add padding at the bottom to ensure content is not hidden behind the nav bar */}
@@ -387,6 +391,27 @@ const styles = StyleSheet.create({
   },
   emergencyHighlight: {
 
+  },
+  emergencyActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  paymentTestButton: {
+    marginLeft: 12,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  paymentTestText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
   },
   navbarHighlight: {
 

@@ -29,7 +29,7 @@ export type RootStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   Home: undefined;
-  ESIM: undefined;
+  ESIM: { purchaseSuccess?: boolean } | undefined;
   QRCodes: undefined;
   HotelPickup: undefined;
   TransportDetail: {
@@ -80,6 +80,16 @@ export type RootStackParamList = {
   BrokerList: undefined;
   ExploreMatches: undefined;
   Test: undefined;
+  PaymentCheckout: {
+    amount: number;
+    currency?: string;
+    clientId: string;
+    description?: string;
+  onSuccessCallbackId?: string;
+  onFailureCallbackId?: string;
+    successRoute?: keyof RootStackParamList;
+    successParams?: any;
+  } | undefined;
   AddNewTour: undefined;
   AddNewTourDestinations: {
     title: string;

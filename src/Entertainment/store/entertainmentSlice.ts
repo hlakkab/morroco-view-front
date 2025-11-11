@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Entertainment, EntertainmentFilters, EntertainmentListResponse } from '../types/Entertainment';
-import ViatorService from '../../service/ViatorService';
 import { addBookmark, removeBookmark } from '../../Bookmarks/store/bookmarkSlice';
 
 // Structure de l'état
@@ -98,7 +97,7 @@ export const fetchEntertainments = createAsyncThunk(
   'entertainment/fetchEntertainments',
   async (filters: EntertainmentFilters, { rejectWithValue }) => {
     try {
-      const response = await ViatorService.listEntertainments(filters);
+      const response = {}
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch entertainments');
@@ -111,7 +110,7 @@ export const fetchEntertainmentDetail = createAsyncThunk(
   'entertainment/fetchEntertainmentDetail',
   async (productCode: string, { rejectWithValue }) => {
     try {
-      const response = await ViatorService.getProductDetail(productCode);
+      const response = await {}
       return adaptApiData(response);
     } catch (error: any) {
       return rejectWithValue(error.message || `Failed to fetch entertainment detail for ${productCode}`);
@@ -219,14 +218,7 @@ const entertainmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchEntertainments.fulfilled, (state, action: PayloadAction<EntertainmentListResponse>) => {
-        state.loading = false;
-        state.entertainments = action.payload.content.map(adaptApiData);
-        state.currentPage = action.payload.number;
-        state.totalPages = action.payload.totalPages;
-        state.totalElements = action.payload.totalElements;
-        state.pageSize = action.payload.size;
-      })
+     
       .addCase(fetchEntertainments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string || 'Failed to fetch entertainments';

@@ -227,6 +227,8 @@ export default {
     confirmReservation: 'Confirmer la Réservation',
     success: 'Réservation Réussie',
     bookingConfirmed: 'Votre réservation a été confirmée. Vous recevrez un email de confirmation sous peu.',
+    errorTitle: 'Réservation échouée',
+    bookingFailed: 'Nous n\'avons pas pu finaliser votre réservation. Veuillez réessayer ou contacter le support.',
     whenAreYouArriving: 'Quand arrivez-vous ?',
     whereAreYouStaying: 'Où restez-vous ?',
     tapToSelectYourHotelLocationOnTheMap: 'Taper pour sélectionner votre emplacement d\'hôtel sur la carte',

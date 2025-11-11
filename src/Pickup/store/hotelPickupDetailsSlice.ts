@@ -23,6 +23,7 @@ interface BookPickupPayload {
   pickupDate: string;
   pickupTime: string;
   destination: number[];
+  orderId: string;
 }
 
 const bookPickup = async (payload: BookPickupPayload) => {
@@ -30,6 +31,7 @@ const bookPickup = async (payload: BookPickupPayload) => {
     const response = await api.post(`/pickups/${payload.pickupId}/reserve`, {
       date: payload.pickupDate + ' ' + payload.pickupTime,
       destination: payload.destination,
+      orderId: payload.orderId,
     });
     
     if (!response.data) {

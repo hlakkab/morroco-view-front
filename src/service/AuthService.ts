@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://agence.mview.ma/api';
+const API_URL = 'https://moroccoviewaws.com/auth';
 
 interface RegisterData {
   firstName: string;

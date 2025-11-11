@@ -3,6 +3,7 @@ export interface HotelPickup {
   images: string[];
   title: string;
   price: number;
+  currency?: string;
   private: boolean;
   city: string;
   saved: boolean;

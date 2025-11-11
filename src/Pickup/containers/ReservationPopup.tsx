@@ -1,25 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
-import React, { useEffect, useRef } from 'react';
-import { Alert, Dimensions, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, walkthroughable } from 'react-native-copilot';
 import "react-native-get-random-values";
 import Button from '../../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { DirectionSelector } from '../components/DirectionSelector';
 import { LocationSearchInput } from '../components/LocationSearchInput';
 import { MapDisplay } from '../components/MapDisplay';
 import { RouteDisplay } from '../components/RouteDisplay';
 import { TransportInfo } from '../components/TransportInfo';
-import { useLocationSearch } from '../hooks/useLocationSearch';
-import { useMapControls } from '../hooks/useMapControls';
-import { useReservationForm } from '../hooks/useReservationForm';
-import { useReservationTour } from '../hooks/useReservationTour';
-import { trackEvent } from '../../service/Mixpanel';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { bookPickupReservation, resetBookingStatus } from '../store/hotelPickupDetailsSlice';
-import { togglePickupDirection } from '../store/hotelPickupSlice';
 import i18n from '../../translations/i18n';
+import { useReservationPopup } from '../hooks/useReservationPopup';
 
 // Create walkthroughable components
 const WalkthroughableView = walkthroughable(View);
@@ -29,195 +23,46 @@ interface ReservationPopupProps {
   title: string;
   price: number;
   pickupId: string;
+  currency?: string;
 }
 
-const ReservationPopupContent = ({ onClose, title, price, pickupId }: ReservationPopupProps) => {
-  const dispatch = useAppDispatch();
-  const scrollViewRef = useRef<ScrollView>(null);
-  
-  const { bookingStatus, bookingError } = useAppSelector(
-    (state) => state.hotelPickupDetails
-  );
-  const selectedCity = useAppSelector(
-    (state) => state.hotelPickup.selectedCity
-  );
-  const pickupDirection = useAppSelector(
-    (state) => state.hotelPickup.pickupDirection
-  );
-
-  // Custom hooks
-  const { visible, handleStartTour } = useReservationTour();
+const ReservationPopupContent = ({
+  onClose,
+  title,
+  price,
+  pickupId,
+  currency
+}: ReservationPopupProps) => {
   const {
+    bookingStatus,
+    bookingError,
+    selectedCity,
+    pickupDirection,
+    visible,
+    handleStartTour,
     selectedDate,
-    setSelectedDate,
     selectedTime,
     hotelLocation,
-    setHotelLocation,
     destination,
-    setDestination,
+    showTimePicker,
     showModernDatePicker,
     setShowModernDatePicker,
-  } = useReservationForm();
-
-  const {
+    setShowTimePicker,
     mapRef,
     mapVisible,
-    setMapVisible,
     mapRegion,
-    setMapRegion,
     zoomIn,
     zoomOut,
-    animateToRegion,
-  } = useMapControls();
-
-  const {
     googlePlacesRef,
-    handleLocationSelect: onLocationSelect,
-    handleClearLocation: clearLocation,
-  } = useLocationSearch({
-    onLocationSelect: (location) => {
-      setDestination([location.longitude, location.latitude]);
-      setHotelLocation(location.address);
-
-      // Set the initial map region with appropriate deltas for zoom
-      const newRegion = {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
-
-      setMapRegion(newRegion);
-      setMapVisible(true);
-
-      // Dismiss keyboard and scroll to map
-      Keyboard.dismiss();
-      setTimeout(() => {
-        animateToRegion(newRegion);
-        if (scrollViewRef.current) {
-          scrollViewRef.current.scrollTo({ y: 400, animated: true });
-        }
-      }, 300);
-    },
-  });
-
-  const handleClearLocation = () => {
-    setHotelLocation('');
-    setDestination(null);
-    setMapVisible(false);
-    clearLocation();
-  };
-
-  // Effects
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {});
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {});
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    dispatch(resetBookingStatus());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (bookingStatus === 'succeeded') {
-      onClose();
-    }
-  }, [bookingStatus, onClose]);
-
-  // Track when reservation popup is opened
-  useEffect(() => {
-    trackEvent('Pickup_Reservation_Opened', {
-      pickupId,
-      title,
-      price,
-      direction: pickupDirection
-    });
-  }, []);
-
-  const handleToggleDirection = () => {
-    dispatch(togglePickupDirection());
-    trackEvent('Pickup_Direction_Toggled', {
-      pickupId,
-      newDirection: pickupDirection === 'a2h' ? 'h2a' : 'a2h'
-    });
-  };
-
-  // Format date for display
-  const formatDisplayDate = (dateInput: string | Date) => {
-    if (!dateInput) return '';
-
-    try {
-      let date: Date;
-
-      if (typeof dateInput === 'string') {
-        const [year, month, day] = dateInput.split('/');
-        date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      } else {
-        date = dateInput;
-      }
-
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-      const dayName = days[date.getDay()];
-      const dayNum = date.getDate().toString().padStart(2, '0');
-      const monthName = months[date.getMonth()];
-
-      return `${dayName} ${dayNum} ${monthName}`;
-    } catch (e) {
-      return typeof dateInput === 'string' ? dateInput : format(dateInput, 'MMM dd, yyyy');
-    }
-  };
-
-  // Handle date selection from modern date picker
-  const handleDateSelect = (date: string) => {
-    const [year, month, day] = date.split('/');
-    const newDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    setSelectedDate(newDate);
-    setShowModernDatePicker(false);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedDate || !selectedTime || !destination) {
-      return;
-    }
-
-    try {
-      await dispatch(bookPickupReservation({
-        pickupId,
-        pickupDate: format(selectedDate, 'yyyy-MM-dd'),
-        pickupTime: format(selectedTime, 'HH:mm'),
-        destination,
-      })).unwrap();
-
-      // Track successful reservation
-      trackEvent('Pickup_Reservation_Success', {
-        pickupId,
-        pickupDate: format(selectedDate, 'yyyy-MM-dd'),
-        pickupTime: format(selectedTime, 'HH:mm'),
-        direction: pickupDirection,
-        location: hotelLocation
-      });
-
-      Alert.alert(
-        i18n.t('reservation.success'),
-        i18n.t('reservation.bookingConfirmed'),
-        [{ text: i18n.t('common.close'), onPress: onClose }]
-      );
-    } catch (error) {
-      // Track failed reservation
-      trackEvent('Pickup_Reservation_Failed', {
-        pickupId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-      console.error('Failed to book pickup:', error);
-    }
-  };
+    onLocationSelect,
+    handleClearLocation,
+    formatDisplayDate,
+    handleDateSelect,
+    handleSubmit,
+    handleTimeConfirm,
+    handleTimeCancel,
+    scrollViewRef,
+  } = useReservationPopup({ onClose, title, price, pickupId, currency });
 
   return (
     <KeyboardAvoidingView
@@ -234,7 +79,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
           <View style={styles.headerRightContainer}>
             {!visible && (
               <TouchableOpacity style={styles.tourButton} onPress={handleStartTour}>
-                <Ionicons name="information-circle-outline" size={20} color="#FFF" />
+                <Ionicons name="information-circle-outline" size={22} color="#FFF" />
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -286,7 +131,7 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
                     <Text style={styles.inputLabel}>{i18n.t('reservation.time')}</Text>
                     <TouchableOpacity
                       style={styles.timeInput}
-                      onPress={() => setShowModernDatePicker(true)}
+                      onPress={() => setShowTimePicker(true)}
                     >
                       <Ionicons name="time" size={20} color="#666" style={styles.inputIcon} />
                       <Text style={styles.dateTimeText}>
@@ -351,6 +196,14 @@ const ReservationPopupContent = ({ onClose, title, price, pickupId }: Reservatio
         onDateSelect={handleDateSelect}
         formatDisplayDate={formatDisplayDate}
         color="#008060"
+      />
+      <DateTimePickerModal
+        isVisible={showTimePicker}
+        mode="time"
+        onConfirm={handleTimeConfirm}
+        onCancel={handleTimeCancel}
+        date={selectedTime || new Date()}
+        is24Hour
       />
     </KeyboardAvoidingView>
   );
@@ -433,10 +286,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   tourButton: {
-    backgroundColor: '#FF6B6B',
-    borderRadius: 25,
-    paddingVertical: 5,
-    paddingHorizontal: 5,
+    backgroundColor: '#008060',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -522,6 +375,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 40,
     backgroundColor: '#f9f9f9',
+    width: '100%',
   },
   timeInput: {
     flexDirection: 'row',
@@ -532,6 +386,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 40,
     backgroundColor: '#f9f9f9',
+    width: '100%',
   },
   inputIcon: {
     marginRight: 8,
@@ -547,6 +402,7 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
     marginLeft: 8,
+    textAlignVertical: 'center',
   },
   fixedFooter: {
     position: 'absolute',
