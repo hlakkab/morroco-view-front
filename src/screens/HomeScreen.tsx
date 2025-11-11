@@ -1,6 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Image, BackHandler } from 'react-native';
+import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Image, BackHandler, Linking } from 'react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 // Import Container Components
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -153,7 +153,11 @@ const HomeScreenContent: React.FC = () => {
 
 
   const handleNavigation = async (routeName: string) => {
-    
+    if (routeName === 'ESIM') {
+      Linking.openURL('https://www.orange.ma/Offres-services/Offres-Mobile/eSIM');
+      return;
+    }
+
       try {
         const accessToken = await getAccessToken();
         if (!accessToken) {

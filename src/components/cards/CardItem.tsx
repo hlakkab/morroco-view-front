@@ -119,7 +119,7 @@ const CardItem: React.FC<CardItemProps> = ({
               >
                 {(price.prefix || i18n.t('pickup.startFrom')) + ' '}
                 <Text style={[styles.priceValue, customStyles.priceValue]}>
-                  {price.value} {price.currency || '€'}
+                  {price.value} {price.currency || 'DH'}
                 </Text>
                 {price.suffix ? ` ${price.suffix}` : ''}
               </Text>
