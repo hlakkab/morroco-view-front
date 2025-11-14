@@ -3,27 +3,40 @@ import { format } from "date-fns";
 import { Ticket } from "../../Tickets/types/ticket";
 import { HotelPickup } from "../types/transport";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import QRCodeModal from "../../QRCode/components/QRCodeModal";
+import TicketDetailsModal from "../../Tickets/components/TicketDetailsModal";
 
 type PickupTicketCardProps = {
     ticket: Ticket 
 }
 
 const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
-    const [qrModalVisible, setQrModalVisible] = useState(false);
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const pickup = ticket.object as HotelPickup & {date: string};
     // For demonstration purposes, using a placeholder date
 
-    const date = new Date(pickup.date);
-    const month = format(date, 'MMM').toUpperCase();
-    const day = format(date, 'dd');
-
-    const handleShowQRCode = () => {
-        setQrModalVisible(true);
+    // Safe date parsing with fallback
+    const safeFormatDate = (dateString: string | undefined | null, formatString: string, fallback: string = ''): string => {
+        if (!dateString) return fallback;
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return fallback;
+            }
+            return format(date, formatString);
+        } catch (error) {
+            return fallback;
+        }
     };
 
-    const handleCloseQRModal = () => {
-        setQrModalVisible(false);
+    const month = safeFormatDate(pickup.date, 'MMM', '---').toUpperCase();
+    const day = safeFormatDate(pickup.date, 'dd', '--');
+
+    const handleShowDetails = () => {
+        setDetailsModalVisible(true);
+    };
+
+    const handleCloseDetailsModal = () => {
+        setDetailsModalVisible(false);
     };
 
     return (
@@ -47,18 +60,17 @@ const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.qrButton} onPress={handleShowQRCode}>
+            <TouchableOpacity style={styles.qrButton} onPress={handleShowDetails}>
               <Text style={styles.qrButtonText}>Show QR Code</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* QR Code Modal */}
-        <QRCodeModal
-          visible={qrModalVisible}
-          title={pickup.title}
-          onClose={handleCloseQRModal}
-          data={ticket.id}
+        {/* Ticket Details Modal */}
+        <TicketDetailsModal
+          visible={detailsModalVisible}
+          ticket={ticket}
+          onClose={handleCloseDetailsModal}
         />
       </>
     );

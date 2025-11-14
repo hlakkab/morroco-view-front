@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import api from '../../service/ApiProxy';
 import { Entertainment, EntertainmentFilters, EntertainmentListResponse } from '../types/Entertainment';
 import { addBookmark, removeBookmark } from '../../Bookmarks/store/bookmarkSlice';
+import { PaginatedResponse } from '../../types/pagination';
 
 // Structure de l'état
 export interface EntertainmentState {
@@ -33,6 +35,45 @@ const initialState: EntertainmentState = {
     page: 0,
     size: 10,
     sort: 'rating,desc'
+  }
+};
+
+// API function to fetch entertainments
+const getEntertainments = async (filters: EntertainmentFilters) => {
+  const { page = 0, size = 10, city, type, minRating, maxRating, sort } = filters;
+  let url = `/entertainments?page=${page}&size=${size}`;
+  
+  if (city) {
+    url += `&city=${city}`;
+  }
+  
+  if (type) {
+    url += `&type=${type}`;
+  }
+  
+  if (minRating !== undefined) {
+    url += `&minRating=${minRating}`;
+  }
+  
+  if (maxRating !== undefined) {
+    url += `&maxRating=${maxRating}`;
+  }
+  
+  if (sort) {
+    url += `&sort=${sort}`;
+  }
+  
+  try {
+    const response = await api.get<PaginatedResponse<Entertainment>>(url);
+    
+    if (!response.data) {
+      throw new Error('No data received from server');
+    }
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('API Error:', error);
+    throw new Error(error.message || 'Failed to fetch entertainments');
   }
 };
 
@@ -97,9 +138,10 @@ export const fetchEntertainments = createAsyncThunk(
   'entertainment/fetchEntertainments',
   async (filters: EntertainmentFilters, { rejectWithValue }) => {
     try {
-      const response = {}
-      return response;
+      const data = await getEntertainments(filters);
+      return data;
     } catch (error: any) {
+      console.error('Thunk Error:', error);
       return rejectWithValue(error.message || 'Failed to fetch entertainments');
     }
   }
@@ -110,9 +152,15 @@ export const fetchEntertainmentDetail = createAsyncThunk(
   'entertainment/fetchEntertainmentDetail',
   async (productCode: string, { rejectWithValue }) => {
     try {
-      const response = await {}
-      return adaptApiData(response);
+      const response = await api.get<Entertainment>(`/products/${productCode}`);
+      
+      if (!response.data) {
+        throw new Error('No data received from server');
+      }
+      
+      return adaptApiData(response.data);
     } catch (error: any) {
+      console.error('API Error:', error);
       return rejectWithValue(error.message || `Failed to fetch entertainment detail for ${productCode}`);
     }
   }
@@ -218,10 +266,20 @@ const entertainmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-     
+      .addCase(fetchEntertainments.fulfilled, (state, action: PayloadAction<PaginatedResponse<Entertainment>>) => {
+        state.loading = false;
+        state.error = null;
+        // Adapt each entertainment item
+        state.entertainments = action.payload.content.map(item => adaptApiData(item));
+        state.currentPage = action.payload.number;
+        state.totalPages = action.payload.totalPages;
+        state.totalElements = action.payload.totalElements;
+        state.pageSize = action.payload.size;
+      })
       .addCase(fetchEntertainments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string || 'Failed to fetch entertainments';
+        console.error('Reducer Error:', action.payload);
       })
       
       // Cas pour fetchEntertainmentDetail

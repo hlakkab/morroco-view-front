@@ -1,6 +1,7 @@
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+
 import { Provider } from 'react-redux';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
