@@ -19,6 +19,7 @@ import MatchTicketCard from '../components/MatchTicketCard';
 import PickupTicketCard from '../../Pickup/components/PickupTicketCard';
 import ScreenHeader from '../../components/ScreenHeader';
 import BottomNavBar from '../../containers/BottomNavBar';
+import Pagination from '../../components/Pagination';
 import { AppDispatch, RootState } from '../../store/store';
 import { fetchTickets } from '../store/ticketSlice';
 import i18n from '../../translations/i18n';
@@ -35,15 +36,20 @@ const WalkthroughableView = walkthroughable(View);
 const TicketsScreenContent: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
-  const { tickets, loading, error } = useSelector((state: RootState) => state.ticket);
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const { tickets, loading, error, currentPage, totalPages, totalElements, pageSize } = useSelector((state: RootState) => state.ticket);
+  // const [searchQuery, setSearchQuery] = React.useState('');
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
 
   useEffect(() => {
-    dispatch(fetchTickets());
-  }, [dispatch]);
+    dispatch(fetchTickets({ page: 0, size: pageSize || 10 }));
+  }, [dispatch, pageSize]);
+
+  const handlePageChange = (page: number) => {
+    // Pagination component uses 1-indexed pages, API uses 0-indexed
+    dispatch(fetchTickets({ page: page - 1, size: pageSize }));
+  };
 
   // ─── 1.  ─────────────────
   useEffect(() => {
@@ -120,30 +126,34 @@ const TicketsScreenContent: React.FC = () => {
     startTour();
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    if (!searchQuery) return true;
-    
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    
-    if (ticket.type === 'MATCH') {
-      const match = ticket.object as Match;
-      return (
-        match.homeTeam.toLowerCase().includes(lowerCaseQuery) ||
-        match.awayTeam.toLowerCase().includes(lowerCaseQuery) ||
-        match.spot.name.toLowerCase().includes(lowerCaseQuery) ||
-        ticket.id.toLowerCase().includes(lowerCaseQuery)
-      );
-    } else if (ticket.type === 'PICKUP') {
-      const pickup = ticket.object as HotelPickup;
-      return (
-        pickup.title.toLowerCase().includes(lowerCaseQuery) ||
-        pickup.city.toLowerCase().includes(lowerCaseQuery) ||
-        ticket.id.toLowerCase().includes(lowerCaseQuery)
-      );
-    }
-    
-    return false;
-  });
+  // const filteredTickets = (tickets || []).filter(ticket => {
+  //   if (!searchQuery) return true;
+  //   
+  //   const lowerCaseQuery = searchQuery.toLowerCase();
+  //   
+  //   if (ticket.type === 'MATCH') {
+  //     const match = ticket.object as any; // MatchTicketObject
+  //     return (
+  //       match.homeTeam?.toLowerCase().includes(lowerCaseQuery) ||
+  //       match.awayTeam?.toLowerCase().includes(lowerCaseQuery) ||
+  //       match.spot?.name?.toLowerCase().includes(lowerCaseQuery) ||
+  //       ticket.id.toLowerCase().includes(lowerCaseQuery)
+  //     );
+  //   } else if (ticket.type === 'PICKUP') {
+  //     const pickupData = ticket.object as any; // PickupTicketObject
+  //     const pickup = pickupData.pickup;
+  //     return (
+  //       pickup?.title?.toLowerCase().includes(lowerCaseQuery) ||
+  //       pickup?.city?.toLowerCase().includes(lowerCaseQuery) ||
+  //       ticket.id.toLowerCase().includes(lowerCaseQuery)
+  //     );
+  //   }
+  //   
+  //   return false;
+  // });
+  
+  // Show all tickets when searchbar is commented out
+  const filteredTickets = tickets || [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -156,7 +166,7 @@ const TicketsScreenContent: React.FC = () => {
         />
       </View>
 
-      <CopilotStep
+      {/* <CopilotStep
         text={i18n.t('copilot.tickets.search')}
         order={1}
         name="search"
@@ -173,7 +183,7 @@ const TicketsScreenContent: React.FC = () => {
             />
           </View>
         </WalkthroughableView>
-      </CopilotStep>
+      </CopilotStep> */}
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -203,6 +213,14 @@ const TicketsScreenContent: React.FC = () => {
                 ))
               )}
             </ScrollView>
+            <View style={styles.paginationContainer}>
+              <Pagination
+                totalItems={totalElements}
+                itemsPerPage={pageSize}
+                currentPage={currentPage + 1} // Convert from 0-indexed to 1-indexed
+                onPageChange={handlePageChange}
+              />
+            </View>
           </WalkthroughableView>
         </CopilotStep>
       )}
@@ -271,6 +289,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 15,
     marginBottom: 80,
+  },
+  paginationContainer: {
+    paddingBottom: Platform.OS === 'ios' ? 50 : 55,
+    paddingHorizontal: 15,
   },
   loadingContainer: {
     flex: 1,

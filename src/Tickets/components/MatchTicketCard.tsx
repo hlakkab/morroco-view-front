@@ -1,7 +1,6 @@
 import React, { FC, useState } from "react";
 import { format } from "date-fns";
-import { Match } from "../../Match/types/match";
-import { Ticket } from "../types/ticket";
+import { Ticket, MatchTicketObject } from "../types/ticket";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import TicketDetailsModal from "./TicketDetailsModal";
 import { getFlagUrl } from "../../utils/flagResolver";
@@ -12,7 +11,14 @@ type MatchTicketCardProps = {
 
 const MatchTicketCard: FC<MatchTicketCardProps> = ({ ticket }) => {
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-  const match = ticket.object as Match;
+  
+  // Safety check: ensure ticket type is MATCH
+  if (ticket.type !== 'MATCH') {
+    return null;
+  }
+  
+  // Use empty object as fallback if object is missing
+  const match = (ticket.object || {}) as MatchTicketObject;
   
   // Safe date parsing with fallback
   const safeFormatDate = (dateString: string | undefined | null, formatString: string, fallback: string = ''): string => {
@@ -28,9 +34,9 @@ const MatchTicketCard: FC<MatchTicketCardProps> = ({ ticket }) => {
     }
   };
 
-  const month = safeFormatDate(match.date, 'MMM', '---').toUpperCase();
-  const day = safeFormatDate(match.date, 'dd', '--');
-  const time = safeFormatDate(match.date, 'h:mma', '--:--');
+  const month = safeFormatDate(match?.date, 'MMM', '---').toUpperCase();
+  const day = safeFormatDate(match?.date, 'dd', '--');
+  const time = safeFormatDate(match?.date, 'h:mma', '--:--');
 
   const handleShowDetails = () => {
     setDetailsModalVisible(true);
@@ -42,7 +48,12 @@ const MatchTicketCard: FC<MatchTicketCardProps> = ({ ticket }) => {
 
   return (
     <>
-      <View style={styles.ticketCard} key={ticket.id}>
+      <TouchableOpacity 
+        style={styles.ticketCard} 
+        key={ticket.id}
+        onPress={handleShowDetails}
+        activeOpacity={0.7}
+      >
         <View style={styles.dateContainer}>
           <Text style={styles.monthText}>{month}</Text>
           <Text style={styles.dayText}>{day}</Text>
@@ -52,34 +63,38 @@ const MatchTicketCard: FC<MatchTicketCardProps> = ({ ticket }) => {
         <View style={styles.matchContainer}>
           <View style={styles.matchInfo}>
             <View style={styles.teamsContainer}>
-              <View style={styles.flagContainer}>
-                <Image
-                  source={{ uri: getFlagUrl(match.homeTeam) }}
-                  style={styles.flag} />
-              </View>
+              {match?.homeTeam && (
+                <View style={styles.flagContainer}>
+                  <Image
+                    source={{ uri: getFlagUrl(match.homeTeam) }}
+                    style={styles.flag} />
+                </View>
+              )}
 
               <Text style={styles.vsText}>Vs.</Text>
 
-              <View style={styles.flagContainer}>
-                <Image
-                  source={{ uri: getFlagUrl(match.awayTeam) }}
-                  style={styles.flag} />
-              </View>
+              {match?.awayTeam && (
+                <View style={styles.flagContainer}>
+                  <Image
+                    source={{ uri: getFlagUrl(match.awayTeam) }}
+                    style={styles.flag} />
+                </View>
+              )}
             </View>
           </View>
 
-          <Text style={styles.matchText}>{match.homeTeam} Vs. {match.awayTeam}</Text>
+          <Text style={styles.matchText}>
+            {match?.homeTeam || 'Team 1'} Vs. {match?.awayTeam || 'Team 2'}
+          </Text>
 
-          <View style={styles.stadiumInfo}>
-            <Text style={styles.stadiumLabel}>Stadium</Text>
-            <Text style={styles.stadiumName}>{match.spot.name}</Text>
-          </View>
-
-          <TouchableOpacity style={styles.qrButton} onPress={handleShowDetails}>
-            <Text style={styles.qrButtonText}>Show QR Code</Text>
-          </TouchableOpacity>
+          {match?.spot && (
+            <View style={styles.stadiumInfo}>
+              <Text style={styles.stadiumLabel}>Stadium</Text>
+              <Text style={styles.stadiumName}>{match.spot.name || 'N/A'}</Text>
+            </View>
+          )}
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Ticket Details Modal */}
       <TicketDetailsModal
@@ -182,20 +197,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#006847',
     fontWeight: 'bold',
-  },
-  qrButton: {
-    backgroundColor: '#c1272d',
-    borderRadius: 5,
-    padding: 8,
-    alignItems: 'center',
-    marginTop: 10,
-    alignSelf: 'flex-end',
-    width: 120,
-  },
-  qrButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
 

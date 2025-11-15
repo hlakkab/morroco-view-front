@@ -64,7 +64,7 @@ const RestaurantScreen = lazyScreen(() => import('../Restaurant/screens/Restaura
 const RestaurantDetailScreen = lazyScreen(() => import('../Restaurant/screens/RestaurantDetailScreen'));
 
 // Tickets Module
-const TicketsScreen = lazyScreen(() => import('../Tickets/screens/TicketsScreen'));
+const TicketsScreen = lazyScreen(() => import('../Tickets/screens/TicketsScreen'), { screenName: 'Tickets' });
 
 // Tours Module
 const ToursScreen = lazyScreen(() => import('../Tours/screens/ToursScreen'));

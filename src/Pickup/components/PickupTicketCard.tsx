@@ -1,7 +1,6 @@
 import React, { FC, useState } from "react";
 import { format } from "date-fns";
-import { Ticket } from "../../Tickets/types/ticket";
-import { HotelPickup } from "../types/transport";
+import { Ticket, PickupTicketObject } from "../../Tickets/types/ticket";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import TicketDetailsModal from "../../Tickets/components/TicketDetailsModal";
 
@@ -11,8 +10,14 @@ type PickupTicketCardProps = {
 
 const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-    const pickup = ticket.object as HotelPickup & {date: string};
-    // For demonstration purposes, using a placeholder date
+    
+    // Safety check: ensure ticket type is PICKUP
+    if (ticket.type !== 'PICKUP') {
+        return null;
+    }
+    
+    // Use empty object as fallback if object is missing
+    const pickupData = (ticket.object || {}) as PickupTicketObject;
 
     // Safe date parsing with fallback
     const safeFormatDate = (dateString: string | undefined | null, formatString: string, fallback: string = ''): string => {
@@ -28,8 +33,9 @@ const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
         }
     };
 
-    const month = safeFormatDate(pickup.date, 'MMM', '---').toUpperCase();
-    const day = safeFormatDate(pickup.date, 'dd', '--');
+    const month = safeFormatDate(pickupData?.date, 'MMM', '---').toUpperCase();
+    const day = safeFormatDate(pickupData?.date, 'dd', '--');
+    const formattedTime = safeFormatDate(pickupData?.date, 'h:mm a', 'Time not available');
 
     const handleShowDetails = () => {
         setDetailsModalVisible(true);
@@ -41,30 +47,30 @@ const PickupTicketCard: FC<PickupTicketCardProps> = ({ticket}) => {
 
     return (
       <>
-        <View style={styles.ticketCard} key={ticket.id}>
+        <TouchableOpacity 
+          style={styles.ticketCard} 
+          key={ticket.id}
+          onPress={handleShowDetails}
+          activeOpacity={0.7}
+        >
           <View style={[styles.dateContainer, styles.pickupDateContainer]}>
             <Text style={styles.monthText}>{month}</Text>
             <Text style={styles.dayText}>{day}</Text>
-            <Text style={styles.timeText}>Hotel{'\n'}Pickup</Text>
+            <Text style={styles.timeText}>{formattedTime}</Text>
           </View>
 
           <View style={styles.matchContainer}>
-            
             <View style={styles.pickupInfo}>
-              <Text style={styles.pickupTitle}>{pickup.title}</Text>
-              <Text style={styles.pickupCity}>{pickup.city}</Text>
+              <Text style={styles.pickupTitle}>{pickupData?.title || ticket.id || 'Pickup Service'}</Text>
+              <Text style={styles.pickupCity}>{pickupData?.city || 'N/A'}</Text>
               
               <View style={styles.pickupDetails}>
-                <Text style={styles.pickupPrice}>${pickup.price}</Text>
-                <Text style={styles.pickupType}>{pickup.private ? 'Private' : 'Shared'}</Text>
+                <Text style={styles.pickupPrice}>{pickupData?.price ? pickupData.price.toFixed(2) : (ticket.price ? ticket.price.toFixed(2) : '0.00')} DH</Text>
+                <Text style={styles.pickupType}>Service</Text>
               </View>
             </View>
-
-            <TouchableOpacity style={styles.qrButton} onPress={handleShowDetails}>
-              <Text style={styles.qrButtonText}>Show QR Code</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Ticket Details Modal */}
         <TicketDetailsModal
@@ -142,7 +148,7 @@ const styles = StyleSheet.create({
   pickupDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: 20,
   },
   pickupPrice: {
     fontSize: 16,
@@ -156,20 +162,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
-  },
-  qrButton: {
-    backgroundColor: '#c1272d',
-    borderRadius: 5,
-    padding: 8,
-    alignItems: 'center',
-    marginTop: 10,
-    alignSelf: 'flex-end',
-    width: 120,
-  },
-  qrButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
 
