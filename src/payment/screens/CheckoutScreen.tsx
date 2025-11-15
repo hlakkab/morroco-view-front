@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PaywallWebView from '../components/PaywallWebView';
+import SalesAgreementModal from '../components/SalesAgreementModal';
 import { usePaywall } from '../hooks/usePaywall';
 import type { PaywallResult, PaywallOrderResult } from '../types';
 import { RootStackParamList } from '../../types/navigation';
 import { runPaywallCallback } from '../utils/callbackRegistry';
+
+const SALES_AGREEMENT_SEEN_KEY = '@salesAgreementSeen';
 
 const CheckoutScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -23,9 +27,34 @@ const CheckoutScreen: React.FC = () => {
   const { status, error, data, isReady, start, reset } = usePaywall({ defaultCurrency: 'MAD' });
   const [isProcessing, setIsProcessing] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
+  const [showSalesAgreement, setShowSalesAgreement] = useState(false);
+  const [hasCheckedAgreement, setHasCheckedAgreement] = useState(false);
+
+  // Check if sales agreement has been shown before
+  useEffect(() => {
+    const checkSalesAgreement = async () => {
+      try {
+        const hasSeen = await AsyncStorage.getItem(SALES_AGREEMENT_SEEN_KEY);
+        if (hasSeen !== 'true') {
+          setShowSalesAgreement(true);
+        }
+        setHasCheckedAgreement(true);
+      } catch (error) {
+        console.error('Error checking sales agreement status:', error);
+        setHasCheckedAgreement(true);
+      }
+    };
+
+    checkSalesAgreement();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
+
+    // Don't start payment until agreement is checked and handled
+    if (!hasCheckedAgreement || showSalesAgreement) {
+      return;
+    }
 
     if (!amount || !clientId) {
       Alert.alert('Payment unavailable', 'Missing payment information. Please try again.');
@@ -52,7 +81,7 @@ const CheckoutScreen: React.FC = () => {
       isMounted = false;
       reset();
     };
-  }, [amount, clientId, description, navigation, reset, start]);
+  }, [amount, clientId, description, navigation, reset, start, hasCheckedAgreement, showSalesAgreement]);
 
   useEffect(() => {
     if (isReady && data && !isProcessing) {
@@ -116,6 +145,16 @@ const CheckoutScreen: React.FC = () => {
     navigation.goBack();
   }, [navigation, reset]);
 
+  const handleSalesAgreementClose = useCallback(async () => {
+    try {
+      await AsyncStorage.setItem(SALES_AGREEMENT_SEEN_KEY, 'true');
+      setShowSalesAgreement(false);
+    } catch (error) {
+      console.error('Error saving sales agreement status:', error);
+      setShowSalesAgreement(false);
+    }
+  }, []);
+
   const showLoader = useMemo(
     () => status === 'loading' || isProcessing || !data || !isReady || !showWebView,
     [data, isProcessing, isReady, showWebView, status]
@@ -123,6 +162,11 @@ const CheckoutScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <SalesAgreementModal
+        visible={showSalesAgreement}
+        onClose={handleSalesAgreementClose}
+      />
+
       {showLoader && (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" />
