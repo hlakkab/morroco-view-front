@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotProvider, CopilotStep, walkthroughable } from 'react-native-copilot';
 import "react-native-get-random-values";
 import Button from '../../components/Button';
@@ -99,7 +99,7 @@ const ReservationPopupContent = ({
           <View style={styles.content}>
             <TransportInfo title={title} price={price} />
             <DirectionSelector pickupDirection={pickupDirection} />
-            <RouteDisplay pickupDirection={pickupDirection} selectedCity={selectedCity} />
+            {/* <RouteDisplay pickupDirection={pickupDirection} selectedCity={selectedCity} /> */}
           </View>
         </ScrollView>
 
@@ -166,10 +166,17 @@ const ReservationPopupContent = ({
           {bookingError && (
             <Text style={styles.errorText}>{bookingError}</Text>
           )}
+
+          <Image 
+            source={require('../assets/payment.png')} 
+            style={styles.paymentImage}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Fixed footer with confirm button */}
         <View style={styles.fixedFooter}>
+          
           <CopilotStep
             text={i18n.t('copilot.confirmReservation')}
             order={3}
@@ -417,6 +424,11 @@ const styles = StyleSheet.create({
     borderTopColor: '#eee',
     paddingBottom: Platform.OS === 'ios' ? 20 : 10,
     zIndex: 20,
+  },
+  paymentImage: {
+    width: '100%',
+    height: 50,
+    alignSelf: 'center',
   },
   confirmButton: {
     backgroundColor: '#008060',
