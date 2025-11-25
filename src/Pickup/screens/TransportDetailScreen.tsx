@@ -38,7 +38,7 @@ const TransportDetailScreenContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { currentPickup, loading, error } = useAppSelector((state) => state.hotelPickupDetails);
   const { currentLanguage } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
@@ -122,12 +122,12 @@ const TransportDetailScreenContent: React.FC = () => {
     setCurrentImageIndex(slideIndex);
   };
 
-  const handleReservePress = async () => {
-    if (!(await isAuthenticated())) {
+  const handleReservePress = () => {
+    if (user) {
+      setShowReservation(true);
+    } else {
       setShowAuthModal(true);
-      return;
     }
-    setShowReservation(true);
   };
 
   const handleCloseReservation = () => {

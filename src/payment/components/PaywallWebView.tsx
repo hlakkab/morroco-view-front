@@ -72,6 +72,22 @@ const PaywallWebView: React.FC<PaywallWebViewProps> = ({
 
     return `
       <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <style>
+            html, body {
+              margin: 0;
+              padding: 0;
+              background-color: #ffffff;
+              height: 100%;
+            }
+
+            form {
+              display: flex;
+              flex: 1;
+            }
+          </style>
+        </head>
         <body>
           <form id="payzone" action="${paywallUrl}" method="POST">
             <input type="hidden" name="payload" value='${escapedPayload}' />
@@ -136,25 +152,37 @@ const PaywallWebView: React.FC<PaywallWebViewProps> = ({
   const webViewRef = useRef<WebView>(null);
 
   return (
-    <WebView
-      ref={webViewRef}
-      originWhitelist={['*']}
-      source={{ html: autoSubmitHtml }}
-      javaScriptEnabled
-      sharedCookiesEnabled
-      startInLoadingState
-      renderLoading={() => (
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" />
-        </View>
-      )}
-      onNavigationStateChange={handleNavigationChange}
-    />
-
+    <View style={styles.container}>
+      <WebView
+        ref={webViewRef}
+        originWhitelist={['*']}
+        source={{ html: autoSubmitHtml }}
+        javaScriptEnabled
+        sharedCookiesEnabled
+        startInLoadingState
+        style={styles.webview}
+        renderLoading={() => (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" />
+          </View>
+        )}
+        onNavigationStateChange={handleNavigationChange}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingTop: 50
+  },
+  webview: {
+    flex: 1,
+    margin: 0,
+    backgroundColor: 'transparent'
+  },
   loader: {
     flex: 1,
     justifyContent: 'center',

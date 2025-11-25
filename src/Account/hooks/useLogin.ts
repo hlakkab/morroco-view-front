@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import { login, loginWithApple } from '../../service';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const useLogin = () => {
+  const { checkAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +14,8 @@ export const useLogin = () => {
     setLoading(true);
     try {
       await login(email, password);
+      // Refresh auth state to update user info
+      await checkAuth();
       onSuccess();
     } catch (error) {
       Alert.alert("Error", "Username or password is incorrect");
@@ -62,6 +66,9 @@ export const useLogin = () => {
       // Send authorization code to Keycloak via backend
       console.log('🔄 Sending auth code to Keycloak...');
       await loginWithGoogle(serverAuthCode);
+      
+      // Refresh auth state to update user info
+      await checkAuth();
       
       onSuccess();
     } catch (error: any) {
@@ -127,6 +134,9 @@ export const useLogin = () => {
       await loginWithApple(authorizationCode || '', identityToken);
 
       console.log('✅ Apple authentication completed successfully');
+      
+      // Refresh auth state to update user info
+      await checkAuth();
       
       onSuccess();
     } catch (error: any) {

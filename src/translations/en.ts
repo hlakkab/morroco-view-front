@@ -10,6 +10,7 @@ export default {
     password: 'Password',
     confirmPassword: 'Confirm Password',
     registerButton: 'Register',
+    googleButton: 'Continue with Google',
     alreadyHaveAccount: 'Already have an account?',
     login: 'Login',
     passwordMismatch: 'Passwords do not match',

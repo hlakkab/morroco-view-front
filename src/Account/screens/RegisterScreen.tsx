@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState, useMemo } from 'react';
-import { Alert, StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
+import { Alert, StyleSheet, Text, View, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import GoogleIcon from '../../assets/img/icons8-google.svg';
 import LogoSvg from '../../assets/img/morroco-view-logo.svg';
 import Button from '../../components/Button';
@@ -10,9 +10,11 @@ import AppleSignInButton from '../../components/AppleSignInButton';
 import i18n from '../../translations/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import { register } from '../../service';
+import { useLogin } from '../hooks/useLogin';
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
+  const { handleGoogleAuth: loginHandleGoogleAuth, loading: socialAuthLoading } = useLogin();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -46,6 +48,10 @@ const RegisterScreen = () => {
     );
   }, [firstName, lastName, isEmailValid, isPasswordValid, isPasswordMatch]);
 
+  const handleSocialAuthSuccess = () => {
+    navigation.navigate('Home' as never);
+  };
+
   const handleRegister = async () => {
     if (!isFormValid) {
       Alert.alert(i18n.t('register.registrationFailed'));
@@ -78,9 +84,8 @@ const RegisterScreen = () => {
     }
   };
 
-  const handleGoogleAuth = () => {
-    // Implement Google authentication logic here
-    
+  const handleGoogleButtonPress = () => {
+    loginHandleGoogleAuth(handleSocialAuthSuccess);
   };
 
   const PasswordCriteriaList = () => (
@@ -140,37 +145,29 @@ const RegisterScreen = () => {
           <Text style={styles.accessText}>{i18n.t('register.createAccount')}</Text>
         </View>
         <Text style={styles.connectText}>{i18n.t('register.connectWith')}</Text>
+        <View style={styles.socialButtonsContainer}>
+          <TouchableOpacity
+            onPress={handleGoogleButtonPress}
+            style={[styles.googleButton, socialAuthLoading && styles.socialButtonDisabled]}
+            disabled={socialAuthLoading}
+          >
+            {socialAuthLoading ? (
+              <ActivityIndicator color="#AE1913" />
+            ) : (
+              <>
+                <GoogleIcon width={24} height={24} />
+                <Text style={styles.googleButtonText}>{i18n.t('register.googleButton')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          {Platform.OS === 'ios' && (
+            <AppleSignInButton
+              onSuccess={handleSocialAuthSuccess}
+              style={styles.appleButtonWrapper}
+            />
+          )}
+        </View>
         
-        {Platform.OS !== 'ios' && (
-          <>
-            <Button
-              title="Google"
-              onPress={handleGoogleAuth}
-              style={styles.googleButton}
-              icon={<GoogleIcon width={24} height={24} />}
-            />
-            
-            <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.orText}>{i18n.t('register.or')}</Text>
-              <View style={styles.divider} />
-            </View>
-          </>
-        )}
-
-        {Platform.OS === 'ios' && (
-          <>
-            <AppleSignInButton 
-              onSuccess={() => navigation.navigate('Home' as never)}
-            />
-            
-            <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.orText}>{i18n.t('register.or')}</Text>
-              <View style={styles.divider} />
-            </View>
-          </>
-        )}
         <Text style={styles.title}>{i18n.t('register.enterDetails')}</Text>
         <Input 
           placeholder={i18n.t('register.firstName')} 
@@ -264,6 +261,12 @@ const styles = StyleSheet.create({
     color: '#FFF',
     marginBottom: 10,
   },
+  socialButtonsContainer: {
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -276,6 +279,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#AE191344',
     borderRadius: 25,
     paddingVertical: 12,
+  },
+  googleButtonText: {
+    marginLeft: 10,
+    color: '#FFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  socialButtonDisabled: {
+    opacity: 0.6,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -290,6 +302,10 @@ const styles = StyleSheet.create({
   orText: {
     marginHorizontal: 10,
     color: '#FFF',
+  },
+  appleButtonWrapper: {
+    width: '100%',
+    alignItems: 'center',
   },
   title: {
     fontSize: 18,

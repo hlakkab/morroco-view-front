@@ -15,6 +15,8 @@ import { Asset } from 'expo-asset';
 import * as SplashScreen from 'expo-splash-screen';
 import { Ionicons, AntDesign, MaterialIcons, Feather, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 import { setGlobalAuthStateHandler } from './src/service';
+import AppUpdateModal from './src/components/AppUpdateModal';
+import { useAppVersionCheck } from './src/hooks/useAppVersionCheck';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -92,6 +94,8 @@ export default function App() {
     ensureIconsReady();
   }, [fontsLoaded, fontError]);
 
+  const versionCheck = useAppVersionCheck();
+
   if (!fontsLoaded && !fontError) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -113,6 +117,14 @@ export default function App() {
                   </SafeNavigationWrapper>
                   <StatusBar style="auto" />
                 </NavigationContainer>
+                <AppUpdateModal
+                  visible={versionCheck.visible}
+                  currentVersion={versionCheck.currentVersion}
+                  latestVersion={versionCheck.latestVersion}
+                  forceUpdate={versionCheck.forceUpdate}
+                  onUpdate={versionCheck.onUpdate}
+                  onLater={versionCheck.onLater}
+                />
               </AuthStateConnector>
             </AuthProvider>
           </LanguageProvider>

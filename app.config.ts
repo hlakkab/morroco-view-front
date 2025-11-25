@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Morocco View',
   slug: 'morocco-view',
-  version: '1.4.2',
+  version: '1.4.8',
   orientation: 'portrait',
   userInterfaceStyle: 'light',
   splash: {
