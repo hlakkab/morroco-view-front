@@ -166,14 +166,10 @@ export const useReservationPopup = ({
     setShowModernDatePicker(false);
   }, [setSelectedDate, setShowModernDatePicker]);
 
-  const handleTimeConfirm = useCallback((time: Date) => {
-    if (!(time instanceof Date) || Number.isNaN(time.getTime())) {
-      return;
-    }
-
+  const handleTimeConfirm = useCallback((hour: number, minute: number) => {
     const baseDate = selectedDate ? new Date(selectedDate) : new Date();
-    baseDate.setHours(time.getHours());
-    baseDate.setMinutes(time.getMinutes());
+    baseDate.setHours(hour);
+    baseDate.setMinutes(minute);
     baseDate.setSeconds(0);
     baseDate.setMilliseconds(0);
 

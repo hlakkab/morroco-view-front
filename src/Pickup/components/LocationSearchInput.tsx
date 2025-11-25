@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -36,6 +37,9 @@ export const LocationSearchInput: React.FC<LocationSearchInputProps> = ({
 
   return (
     <View style={styles.locationInputContainer}>
+      <View style={styles.iconPrefix}>
+        <Ionicons name="map" size={20} color="#666" />
+      </View>
       <GooglePlacesAutocomplete
         ref={googlePlacesRef}
         placeholder={i18n.t('reservation.searchForLocation')}
@@ -109,9 +113,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    paddingHorizontal: 16,
+    paddingLeft: 44,
+    paddingRight: 16,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
+  },
+  iconPrefix: {
+    position: 'absolute',
+    left: 12,
+    top: 10,
+    zIndex: 20,
   },
   listView: {
     borderWidth: 1,

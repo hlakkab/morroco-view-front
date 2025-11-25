@@ -6,7 +6,7 @@ import { CopilotProvider, CopilotStep, walkthroughable } from 'react-native-copi
 import "react-native-get-random-values";
 import Button from '../../components/Button';
 import DatePickerModal from '../components/DatePickerModal';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { TimePickerModal } from '../components/TimePickerModal';
 import { DirectionSelector } from '../components/DirectionSelector';
 import { LocationSearchInput } from '../components/LocationSearchInput';
 import { MapDisplay } from '../components/MapDisplay';
@@ -205,13 +205,12 @@ const ReservationPopupContent = ({
         formatDisplayDate={formatDisplayDate}
         color="#008060"
       />
-      <DateTimePickerModal
-        isVisible={showTimePicker}
-        mode="time"
+      <TimePickerModal
+        visible={showTimePicker}
+        onClose={handleTimeCancel}
         onConfirm={handleTimeConfirm}
-        onCancel={handleTimeCancel}
-        date={selectedTime || new Date()}
-        is24Hour
+        initialHour={selectedTime?.getHours()}
+        initialMinute={selectedTime?.getMinutes()}
       />
     </KeyboardAvoidingView>
   );

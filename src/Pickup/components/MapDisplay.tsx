@@ -62,38 +62,10 @@ export const MapDisplay: React.FC<MapDisplayProps> = ({
 
   return (
     <View style={styles.mapPlaceholderContainer}>
-      <View style={styles.mapPlaceholderContent}>
-        <Ionicons name="map-outline" size={50} color="#CE1126" />
-        <Text style={styles.mapPlaceholderText}>
-          {i18n.t('reservation.searchToSeeMapLocation') || "Search for a location to see it on the map"}
-        </Text>
-      </View>
-      <View style={styles.mapPlaceholderGrid}>
-        <View style={styles.mapPlaceholderGridRow}>
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-          <View style={styles.mapPlaceholderGridItem} />
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-          <View style={styles.mapPlaceholderGridItem} />
-        </View>
-        <View style={styles.mapPlaceholderGridRow}>
-          <View style={styles.mapPlaceholderGridItem} />
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-          <View style={styles.mapPlaceholderGridItem} />
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-        </View>
-        <View style={styles.mapPlaceholderGridRow}>
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-          <View style={styles.mapPlaceholderGridItem} />
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemDark]} />
-          <View style={styles.mapPlaceholderGridItem} />
-        </View>
-        <View style={styles.mapPlaceholderGridRow}>
-          <View style={styles.mapPlaceholderGridItem} />
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-          <View style={styles.mapPlaceholderGridItem} />
-          <View style={[styles.mapPlaceholderGridItem, styles.mapPlaceholderGridItemRed]} />
-        </View>
-      </View>
+      <Ionicons name="map-outline" size={50} color="#CE1126" />
+      <Text style={styles.mapPlaceholderText}>
+        {i18n.t('reservation.searchToSeeMapLocation') || "Search for a location to see it on the map"}
+      </Text>
     </View>
   );
 };
@@ -132,40 +104,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  mapPlaceholderContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    zIndex: 2,
+    gap: 12,
   },
   mapPlaceholderText: {
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
     width: 200,
-  },
-  mapPlaceholderGrid: {
-    width: '100%',
-    height: '100%',
-    opacity: 0.5,
-    padding: 20,
-  },
-  mapPlaceholderGridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    flex: 1,
-  },
-  mapPlaceholderGridItem: {
-    flex: 1,
-    margin: 2,
-    backgroundColor: '#f0f0f0',
-  },
-  mapPlaceholderGridItemDark: {
-    backgroundColor: '#ccc',
-  },
-  mapPlaceholderGridItemRed: {
-    backgroundColor: '#CE1126',
   },
 });
 
