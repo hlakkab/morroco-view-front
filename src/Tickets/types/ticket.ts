@@ -53,16 +53,37 @@ export interface MatchTicketObject {
   date: string;
 }
 
+export interface EntertainmentTicketObject {
+  id: string;
+  code: string;
+  name: string;
+  address?: string;
+  city?: string;
+  reservation: {
+    id: string;
+    date: string;
+    time: string;
+    numberOfPeople: number;
+    selectedPricing: {
+      id: string;
+      category: string;
+      price: number;
+      duration: number;
+      unitLabel: string;
+    };
+  };
+}
+
 export type Ticket = {
   id: string;
   images: string[];
   saved: boolean;
   clientId?: string;
   elementId: string;
-  type: "MATCH" | "PICKUP" | "E_SIM";
+  type: "MATCH" | "PICKUP" | "E_SIM" | "ENTERTAINMENT";
   price: number;
-  status: "PAID" | "PENDING" | "CANCELLED";
-  object: MatchTicketObject | PickupTicketObject;
+  status: "PAID" | "PENDING" | "CANCELLED" | "ACTIVE";
+  object: MatchTicketObject | PickupTicketObject | EntertainmentTicketObject;
   // Legacy fields for backward compatibility
   createdAt?: string;
   updatedAt?: string;

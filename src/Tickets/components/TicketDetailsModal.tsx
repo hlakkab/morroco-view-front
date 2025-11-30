@@ -15,7 +15,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Ticket, PickupTicketObject, PickupTicketDetailObject, MatchTicketObject } from '../types/ticket';
+import { Ticket, PickupTicketObject, PickupTicketDetailObject, MatchTicketObject, EntertainmentTicketObject } from '../types/ticket';
 import { AppDispatch, RootState } from '../../store/store';
 import { fetchTicketById, clearSelectedTicket, clearDetailError } from '../store/ticketSlice';
 import { getFlagUrl } from '../../utils/flagResolver';
@@ -423,6 +423,181 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
     }
   };
 
+  const renderEntertainmentDetails = () => {
+    const entertainmentData = displayTicket.object as EntertainmentTicketObject;
+    const reservation = entertainmentData?.reservation;
+    
+    // Combine date and time for reservation
+    let formattedDate = 'Date not available';
+    let formattedTime = 'Time not available';
+    
+    if (reservation?.date && reservation?.time) {
+      try {
+        const timeParts = reservation.time.split(':');
+        const hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+        
+        const date = new Date(reservation.date);
+        date.setHours(hours, minutes, 0, 0);
+        
+        formattedDate = safeFormatDate(date.toISOString(), 'EEEE, MMMM dd, yyyy', 'Date not available');
+        formattedTime = safeFormatDate(date.toISOString(), 'h:mm a', 'Time not available');
+      } catch (error) {
+        console.error('Error parsing entertainment reservation date/time:', error);
+      }
+    }
+
+    const getPricingLabel = (category: string) => {
+      return category.charAt(0) + category.slice(1).toLowerCase();
+    };
+
+    return (
+      <>
+        {/* Entertainment Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Entertainment Information</Text>
+          
+          <View style={styles.detailsGrid}>
+            <View style={styles.detailItem}>
+              <Ionicons name="ticket-outline" size={16} color="#c1272d" />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Name</Text>
+                <Text style={styles.detailValue} numberOfLines={2}>{entertainmentData?.name || 'N/A'}</Text>
+              </View>
+            </View>
+
+            {entertainmentData?.city && (
+              <View style={styles.detailItem}>
+                <Ionicons name="location-outline" size={16} color="#c1272d" />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>City</Text>
+                  <Text style={styles.detailValue}>{entertainmentData.city}</Text>
+                </View>
+              </View>
+            )}
+
+            {entertainmentData?.address && (
+              <View style={styles.detailItemFullWidth}>
+                <Ionicons name="map-outline" size={16} color="#c1272d" />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Address</Text>
+                  <Text style={styles.detailValue} numberOfLines={2}>{entertainmentData.address}</Text>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.detailItem}>
+              <Ionicons name="cash-outline" size={16} color="#c1272d" />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Total Price</Text>
+                <Text style={styles.detailValue}>
+                  {displayTicket.price % 1 === 0
+                    ? displayTicket.price.toString()
+                    : displayTicket.price.toFixed(2)}{' '}
+                  MAD
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Reservation Information */}
+        {reservation && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Reservation Information</Text>
+            
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailItem}>
+                <Ionicons name="calendar-outline" size={16} color="#c1272d" />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Date</Text>
+                  <Text style={styles.detailValue} numberOfLines={2}>{formattedDate}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailItem}>
+                <Ionicons name="time-outline" size={16} color="#c1272d" />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Time</Text>
+                  <Text style={styles.detailValue}>{formattedTime}</Text>
+                </View>
+              </View>
+
+              {reservation.numberOfPeople && (
+                <View style={styles.detailItem}>
+                  <Ionicons name="people-outline" size={16} color="#c1272d" />
+                  <View style={styles.detailContent}>
+                    <Text style={styles.detailLabel}>Number of People</Text>
+                    <Text style={styles.detailValue}>{reservation.numberOfPeople}</Text>
+                  </View>
+                </View>
+              )}
+
+              {reservation.selectedPricing && (
+                <>
+                  <View style={styles.detailItem}>
+                    <Ionicons name="pricetag-outline" size={16} color="#c1272d" />
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Pricing Category</Text>
+                      <Text style={styles.detailValue}>
+                        {getPricingLabel(reservation.selectedPricing.category)}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.detailItem}>
+                    <Ionicons name="cash-outline" size={16} color="#c1272d" />
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Price per Unit</Text>
+                      <Text style={styles.detailValue}>
+                        {reservation.selectedPricing.price % 1 === 0
+                          ? reservation.selectedPricing.price.toString()
+                          : reservation.selectedPricing.price.toFixed(2)}{' '}
+                        MAD
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.detailItem}>
+                    <Ionicons name="hourglass-outline" size={16} color="#c1272d" />
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Duration</Text>
+                      <Text style={styles.detailValue}>
+                        {reservation.selectedPricing.duration} min
+                      </Text>
+                    </View>
+                  </View>
+
+                  {reservation.selectedPricing.unitLabel && (
+                    <View style={styles.detailItem}>
+                      <Ionicons name="information-circle-outline" size={16} color="#c1272d" />
+                      <View style={styles.detailContent}>
+                        <Text style={styles.detailLabel}>Unit</Text>
+                        <Text style={styles.detailValue}>
+                          {reservation.selectedPricing.unitLabel}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </>
+              )}
+
+              {reservation.id && (
+                <View style={styles.detailItemFullWidth}>
+                  <Ionicons name="document-outline" size={16} color="#c1272d" />
+                  <View style={styles.detailContent}>
+                    <Text style={styles.detailLabel}>Reservation ID</Text>
+                    <Text style={styles.detailValue} numberOfLines={1}>{reservation.id}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+      </>
+    );
+  };
+
   return (
     <Modal
       animationType="slide"
@@ -468,7 +643,13 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
               </View>
             ) : (
               <>
-                {displayTicket.type === 'MATCH' ? renderMatchDetails() : displayTicket.type === 'PICKUP' ? renderPickupDetails() : null}
+                {displayTicket.type === 'MATCH' 
+                  ? renderMatchDetails() 
+                  : displayTicket.type === 'PICKUP' 
+                  ? renderPickupDetails() 
+                  : displayTicket.type === 'ENTERTAINMENT'
+                  ? renderEntertainmentDetails()
+                  : null}
               </>
             )}
           </ScrollView>

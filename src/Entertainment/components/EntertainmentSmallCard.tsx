@@ -46,6 +46,8 @@ const EntertainmentSmallCard: FC<EntertainmentSmallCardProps> = ({
 		</View>
 	) : undefined;
 
+	const isPartner = (entertainment as any).isPartner === true;
+
 	return (
 		<CardItem
 			imageUrl={displayImage}
@@ -59,6 +61,12 @@ const EntertainmentSmallCard: FC<EntertainmentSmallCardProps> = ({
 					style: { backgroundColor: '#E8F5F0', borderWidth: 1, borderColor: '#008060' },
 					textStyle: { color: '#008060', fontWeight: '600' },
 				},
+				...(isPartner ? [{
+					id: 'partner',
+					label: 'Partner',
+					style: { backgroundColor: '#FFD700', borderWidth: 1, borderColor: '#FFD700' },
+					textStyle: { color: '#000', fontWeight: 'bold', fontSize: 10 },
+				}] : []),
 			]}
 			price={entertainment.price ? {
 				value: entertainment.price,
@@ -74,7 +82,7 @@ const EntertainmentSmallCard: FC<EntertainmentSmallCardProps> = ({
 			}
 			onActionPress={() => handleSaveEntertainment(entertainment)}
 			onCardPress={() => handleEntertainmentPress(entertainment)}
-			containerStyle={styles.cardContainer}
+			containerStyle={[styles.cardContainer, isPartner && styles.partnerCard]}
 			svgImage={!hasImage && !loading ? <Ionicons name="game-controller" size={32} color="#fff" /> : loadingPlaceholder}
 			isSaved={entertainment.saved}
 		/>
@@ -84,6 +92,11 @@ const EntertainmentSmallCard: FC<EntertainmentSmallCardProps> = ({
 const styles = StyleSheet.create({
 	cardContainer: {
 		marginBottom: 10,
+	},
+	partnerCard: {
+		borderWidth: 2,
+		borderColor: '#FFD700',
+		borderRadius: 8,
 	},
 	loadingContainer: {
 		width: 120,

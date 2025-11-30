@@ -154,6 +154,7 @@ export interface Entertainment {
   logistics?: Logistics;
   ticketInfo?: TicketInfo;
   languageGuides?: LanguageGuide[];
+  isPartner?: boolean;
 }
 
 // Pageable response structure

@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { Entertainment, entertainmentHelpers } from '../types/Entertainment';
 import { RootStackParamList } from '../../types/navigation';
 import { useImages } from '../../utils/useImages';
+import EntertainmentReservationPopup from '../components/EntertainmentReservationPopup';
 
 const { width } = Dimensions.get('window');
 
@@ -54,6 +55,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   const [isSaved, setIsSaved] = useState(false);
   const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showReservationPopup, setShowReservationPopup] = useState(false);
 
   // Get entertainment code directly for image fetching (same pattern as Monument)
   const entertainmentCode = entertainment?.code || productCode;
@@ -65,7 +67,6 @@ const EntertainmentDetailScreenContent: React.FC = () => {
     100 // Large number to fetch all available images
   );
 
-  // Appel à l'API pour récupérer les données détaillées du produit seulement si nécessaire
   useEffect(() => {
     const fetchDetail = async () => {
       // If we already have the selected entertainment, use it
@@ -81,15 +82,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
         return;
       }
 
-      try {
-        
-        
-
-
-
-        
-
-       
+      try { 
         setLoading(false);
       } catch (err: any) {
         console.error('Error fetching entertainment details:', err);
@@ -196,6 +189,10 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   // Calcul du rating - support both new and legacy formats
   const { rating, ratingCount } = entertainmentHelpers.getRatingInfo(entertainment);
 
+  // Log the whole entertainment response
+  console.log('Entertainment Full Response:', JSON.stringify(entertainment, null, 2));
+  console.log('Entertainment isPartner:', entertainment.isPartner);
+
   // Use fetched images from hook, or fallback to existing images, or placeholder
   const images: string[] = (() => {
     // Use fetched images from hook if available
@@ -296,8 +293,8 @@ const EntertainmentDetailScreenContent: React.FC = () => {
   };
 
   const handleBook = () => {
-    // Implémentation future pour la réservation
-    
+    if (!entertainment) return;
+    setShowReservationPopup(true);
   };
 
   // Get display name
@@ -377,7 +374,9 @@ const EntertainmentDetailScreenContent: React.FC = () => {
                 {entertainment.startTime && entertainment.endTime && (
                   <View style={styles.specItem}>
                     <Ionicons name="time-outline" size={20} color="#666" />
-                    <Text style={styles.specText}>{entertainment.startTime} - {entertainment.endTime}</Text>
+                    <Text style={styles.specText}>
+                      {i18n.t('entertainment.operatingHours') || 'Operating Hours'}: {entertainment.startTime} - {entertainment.endTime}
+                    </Text>
                   </View>
                 )}
                 
@@ -452,7 +451,7 @@ const EntertainmentDetailScreenContent: React.FC = () => {
                             {pricing.duration} min • {pricing.unitLabel}
                           </Text>
                         </View>
-                        <Text style={styles.pricingPrice}>${pricing.price.toFixed(2)}</Text>
+                        <Text style={styles.pricingPrice}>{pricing.price.toFixed(2)} MAD</Text>
                       </View>
                     ))}
                   </View>
@@ -490,20 +489,30 @@ const EntertainmentDetailScreenContent: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* <CopilotStep
-        text={i18n.t('copilot.bookEntertainment')}
-        order={5}
-        name="bookButton"
-      >
-        <WalkthroughableView style={styles.walkthroughContainer}>
-          <ButtonFixe title={i18n.t('entertainment.bookReservation')} onPress={handleBook} />
-        </WalkthroughableView>
-      </CopilotStep> */}
+      {entertainment.pricings && entertainment.pricings.length > 0 && (
+        <CopilotStep
+          text={i18n.t('copilot.bookEntertainment')}
+          order={5}
+          name="bookButton"
+        >
+          <WalkthroughableView style={styles.walkthroughContainer}>
+            <ButtonFixe title={i18n.t('entertainment.bookReservation')} onPress={handleBook} />
+          </WalkthroughableView>
+        </CopilotStep>
+      )}
 
       <AuthModal
         visible={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
+
+      {entertainment && (
+        <EntertainmentReservationPopup
+          visible={showReservationPopup}
+          onClose={() => setShowReservationPopup(false)}
+          entertainment={entertainment}
+        />
+      )}
     </SafeAreaView>
   );
 };

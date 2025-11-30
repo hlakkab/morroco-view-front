@@ -39,11 +39,15 @@ export const fetchTickets = createAsyncThunk(
   'ticket/fetchTickets',
   async (params: PaginationParams | undefined, { rejectWithValue }) => {
     try {
-      const { page = 0, size = 10, sort } = params || {};
+      const { page = 0, size = 10, sort, type } = params || {};
       let url = `/tickets?page=${page}&size=${size}`;
       
       if (sort) {
         url += `&sort=${sort}`;
+      }
+      
+      if (type) {
+        url += `&type=${type}`;
       }
       
       const response = await api.get<PaginatedResponse<Ticket>>(url);

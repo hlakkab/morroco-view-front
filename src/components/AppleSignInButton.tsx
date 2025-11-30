@@ -1,6 +1,9 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, View, Platform } from 'react-native';
+import { 
+  ActivityIndicator, Alert, 
+  View, Platform, StyleSheet
+} from 'react-native';
 import { loginWithApple } from '../service';
 
 interface AppleSignInButtonProps {
@@ -120,27 +123,43 @@ export default function AppleSignInButton({
   }
 
   return (
-    <View style={[{ alignItems: 'center', marginVertical: 10 }, style]}>
+    <View style={[styles.wrapper, style]}>
       {loading ? (
-        <View style={{ 
-          width: 250, 
-          height: 50, 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          backgroundColor: '#000',
-          borderRadius: 8,
-        }}>
+        <View style={styles.loadingButton}>
           <ActivityIndicator color="#fff" />
         </View>
       ) : (
         <AppleAuthentication.AppleAuthenticationButton
           buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
           buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-          cornerRadius={8}
-          style={{ width: 250, height: 50 }}
+          cornerRadius={25}
+          style={styles.appleButton}
           onPress={disabled ? () => {} : handleSignIn}
         />
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    width: '100%',
+    maxWidth: 300,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  loadingButton: {
+    width: '100%',
+    maxWidth: 300,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    borderRadius: 25,
+  },
+  appleButton: {
+    width: '100%',
+    maxWidth: 300,
+    height: 48,
+  },
+});

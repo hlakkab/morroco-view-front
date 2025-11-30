@@ -34,6 +34,7 @@ export const useReservationPopup = ({
   const dispatch = useAppDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
   const { user } = useAuth();
+  const isDevMode = __DEV__;
 
   const { bookingStatus, bookingError } = useAppSelector(
     (state) => state.hotelPickupDetails
@@ -181,7 +182,7 @@ export const useReservationPopup = ({
     setShowTimePicker(false);
   }, [setShowTimePicker]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!selectedDate || !selectedTime || !destination) {
       return;
     }
@@ -196,9 +197,23 @@ export const useReservationPopup = ({
       pickupDate: format(selectedDate, 'yyyy-MM-dd'),
       pickupTime: format(selectedTime, 'HH:mm'),
       destination,
+      email: user.email,
     };
 
-    const onSuccessCallbackId = registerPaywallCallback(async (orderId, status) => {
+    const handleReservationFailure = (reason: string, extra?: Record<string, unknown>) => {
+      trackEvent('Pickup_Reservation_Failed', {
+        pickupId,
+        reason,
+        ...extra,
+      });
+      Alert.alert(
+        i18n.t('reservation.errorTitle'),
+        i18n.t('reservation.bookingFailed'),
+        [{ text: i18n.t('common.close') }]
+      );
+    };
+
+    const completeReservation = async (orderId?: string) => {
       try {
         const payloadWithOrder = { ...reservationPayload, orderId };
         await dispatch(bookPickupReservation(payloadWithOrder)).unwrap();
@@ -209,7 +224,7 @@ export const useReservationPopup = ({
           pickupTime: reservationPayload.pickupTime,
           direction: pickupDirection,
           location: hotelLocation,
-          status
+          status: 'success'
         });
 
         Alert.alert(
@@ -218,20 +233,34 @@ export const useReservationPopup = ({
           [{ text: i18n.t('common.close'), onPress: onClose }]
         );
       } catch (error) {
-        trackEvent('Pickup_Reservation_Failed', {
-          pickupId,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
         console.error('Failed to book pickup:', error);
-        Alert.alert(
-          i18n.t('reservation.errorTitle'),
-          i18n.t('reservation.bookingFailed'),
-          [{ text: i18n.t('common.close') }]
-        );
+        handleReservationFailure('booking_error', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
-    });
+    };
 
     onClose();
+
+    if (isDevMode) {
+      // In dev mode, actually send the POST request without orderId
+      try {
+        await completeReservation();
+      } catch (error) {
+        // Error handling is done in completeReservation
+        console.error('Dev mode reservation failed:', error);
+      }
+      return;
+    }
+
+    const onSuccessCallbackId = registerPaywallCallback(async (orderId, status) => {
+    if (status === 'failure') {
+        handleReservationFailure('payment_failed');
+        return;
+      }
+
+      await completeReservation(orderId);
+    });
 
     navigation.navigate('PaymentCheckout', {
       amount: price,

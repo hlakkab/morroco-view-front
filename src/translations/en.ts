@@ -505,6 +505,9 @@ export default {
     searchPlaceholder: 'Search by a reference, match',
     noTickets: 'No tickets found',
     loading: 'Loading tickets...',
+    all: 'All',
+    pickup: 'Pickup',
+    entertainment: 'Entertainment',
   },
   eventDetail: {
     about: 'About',

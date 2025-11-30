@@ -502,6 +502,9 @@ export default {
     searchPlaceholder: 'Rechercher par référence, match',
     noTickets: 'Aucun billet trouvé',
     loading: 'Chargement des billets...',
+    all: 'Tous',
+    pickup: 'Transport',
+    entertainment: 'Divertissement',
   },
   
   eventDetail: {

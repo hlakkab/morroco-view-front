@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
@@ -106,81 +107,91 @@ const EntertainmentListContainerVo: React.FC<EntertainmentListContainerProps> = 
           <FlatList
             data={entertainments}
             keyExtractor={(item) => item.id || item.productCode || item.code}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             renderItem={({ item }) => {
               const displayName = entertainmentHelpers.getDisplayName(item);
               const price = entertainmentHelpers.getFormattedPrice(item);
-              const subtitle = price ? `From $${price}` : item.address || '';
+              const subtitle = price ? `From ${price} MAD` : item.address || '';
+              const isPartner = item.isPartner === true;
 
               return (
                 <View style={styles.CardEntertainmentContainer}>
-                  <CardItem
-                    imageUrl={entertainmentHelpers.getPrimaryImageUrl(item)}
-                    title={displayName}
-                    subtitle={subtitle}
-                    customStyles={{
-                      mainTag: {
-                        marginTop: 10,
-                        backgroundColor: '#F6FAFF',
-                        borderWidth: 0,
-                        borderColor: '#FFD700',
-                        paddingHorizontal: 6,
-                        paddingVertical: 3,
-                        borderRadius: 16,
-                      },
-                      mainTagText: {
-                        left: 2,
-                        color: 'black',
-                        fontWeight: '700',
-                        fontSize: 14.5,
-                      },
-                      container: {
-                        backgroundColor: 'white',
-                        borderRadius: 12,
-                        marginBottom: 16,
-                        overflow: 'hidden',
-                        elevation: 3,
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                        flexDirection: 'column',
-                        paddingHorizontal: 0,
-                        paddingVertical: 0,
-                      },
-                      image: {
-                        width: '106%',
-                        height: 200,
-                        paddingBottom: 30,
-                        left: 3,
-                      },
-                      content: {
-                        padding: 16,
-                        paddingTop: 8,
-                        gap: 8,
-                        paddingBottom: 8,
-                      },
-                      title: {
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                        marginBottom: 8,
-                        color: '#000',
-                      },
-                      subtitle: {
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                        color: '#006400',
-                      },
-                    }}
-                    tags={[
-                      {
-                        id: 'rating',
-                        icon: renderStars(item),
-                        label: '',
-                      },
-                    ]}
-                    onCardPress={() => handleEntertainmentPress(item)}
-                    containerStyle={{ marginBottom: 16 }}
-                  />
+                  <View style={[styles.cardWrapper, isPartner && styles.partnerCardWrapper]}>
+                    {isPartner && (
+                      <View style={styles.partnerBadge}>
+                        <Ionicons name="star" size={10} color="#FFF" />
+                        <Text style={styles.partnerBadgeText}>Partner</Text>
+                      </View>
+                    )}
+                    <CardItem
+                      imageUrl={entertainmentHelpers.getPrimaryImageUrl(item)}
+                      title={displayName}
+                      subtitle={subtitle}
+                      customStyles={{
+                        mainTag: {
+                          marginTop: 10,
+                          backgroundColor: '#F6FAFF',
+                          borderWidth: 0,
+                          borderColor: '#FFD700',
+                          paddingHorizontal: 6,
+                          paddingVertical: 3,
+                          borderRadius: 16,
+                        },
+                        mainTagText: {
+                          left: 2,
+                          color: 'black',
+                          fontWeight: '700',
+                          fontSize: 14.5,
+                        },
+                        container: {
+                          backgroundColor: 'white',
+                          borderRadius: 10,
+                          marginBottom: 0,
+                          overflow: 'hidden',
+                          elevation: isPartner ? 6 : 3,
+                          shadowColor: isPartner ? '#AE1913' : '#000',
+                          shadowOffset: { width: 0, height: isPartner ? 4 : 2 },
+                          shadowOpacity: isPartner ? 0.4 : 0.1,
+                          shadowRadius: isPartner ? 8 : 4,
+                          flexDirection: 'column',
+                          paddingHorizontal: 0,
+                          paddingVertical: 0,
+                        },
+                        image: {
+                          width: '106%',
+                          height: 200,
+                          paddingBottom: 30,
+                          left: 3,
+                        },
+                        content: {
+                          padding: 16,
+                          paddingTop: 8,
+                          gap: 8,
+                          paddingBottom: 8,
+                        },
+                        title: {
+                          fontSize: 18,
+                          fontWeight: 'bold',
+                          marginBottom: 8,
+                          color: '#000',
+                        },
+                        subtitle: {
+                          fontSize: 14,
+                          fontWeight: 'bold',
+                          color: '#006400',
+                        },
+                      }}
+                      tags={[
+                        {
+                          id: 'rating',
+                          icon: renderStars(item),
+                          label: '',
+                        }
+                      ]}
+                      onCardPress={() => handleEntertainmentPress(item)}
+                      containerStyle={{ marginBottom: 16 }}
+                    />
+                  </View>
                   <SaveButton
                     onPress={() => handleSaveEntertainment(item)}
                     isSaved={item.saved}
@@ -246,7 +257,47 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   CardEntertainmentContainer: {
-    
+    position: 'relative',
+  },
+  separator: {
+    height: 10,
+  },
+  cardWrapper: {
+    position: 'relative',
+  },
+  partnerCardWrapper: {
+    borderWidth: 3,
+    borderColor: '#AE1913',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  partnerBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#AE1913',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+    zIndex: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#8B1410',
+  },
+  partnerBadgeText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginLeft: 3,
   },
 });
 

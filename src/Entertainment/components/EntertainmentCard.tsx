@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Entertainment, entertainmentHelpers } from "../types/Entertainment";
 import { useFirstImage } from '../../utils/useImages';
 import { updateEntertainmentImage } from '../store/entertainmentSlice';
@@ -92,9 +92,18 @@ const EntertainmentCard: FC<EntertainmentCardProps> = ({ item, onPress }) => {
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, item.isPartner && styles.partnerCard]}
       onPress={() => onPress(item)}
     >
+      {item.isPartner && (
+        <>
+          <View style={styles.partnerBadge}>
+            <Ionicons name="star" size={12} color="#000" style={styles.partnerIcon} />
+            <Text style={styles.partnerBadgeText}>Partner</Text>
+          </View>
+          <View style={styles.partnerOverlay} />
+        </>
+      )}
       <View style={styles.imageContainer}>
         {hasImage ? (
           <Image
@@ -125,12 +134,18 @@ const EntertainmentCard: FC<EntertainmentCardProps> = ({ item, onPress }) => {
           <Text style={styles.ratingText}>
             {`${formattedRating}${ratingCount > 0 ? ` (${ratingCount})` : ''}`}
           </Text>
+          {item.isPartner && (
+            <View style={styles.partnerTag}>
+              <Ionicons name="star" size={10} color="#000" />
+              <Text style={styles.partnerTagText}>Partner</Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.cardTitle} numberOfLines={2}>{displayName}</Text>
+        <Text style={[styles.cardTitle, item.isPartner && styles.partnerTitle]} numberOfLines={2}>{displayName}</Text>
         {/* from price element */}
         {formattedPrice && (
           <View style={styles.priceContainer}>
-            <Text style={styles.priceText}>{`From ${formattedPrice}$`}</Text>
+            <Text style={styles.priceText}>{`From ${formattedPrice} MAD`}</Text>
           </View>
         )}
       </View>
@@ -149,6 +164,55 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  partnerCard: {
+    borderWidth: 2.5,
+    borderColor: '#FFD700',
+    elevation: 6,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  partnerBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    zIndex: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FFA500',
+  },
+  partnerIcon: {
+    marginRight: 4,
+  },
+  partnerBadgeText: {
+    color: '#000',
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  partnerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+    zIndex: 1,
+    pointerEvents: 'none',
   },
   cardImage: {
     width: '100%',
@@ -211,6 +275,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#666',
+  },
+  partnerTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  partnerTagText: {
+    color: '#000',
+    fontSize: 9,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginLeft: 3,
+    letterSpacing: 0.3,
+  },
+  partnerTitle: {
+    color: '#1a1a1a',
   },
   priceContainer: {
     flexDirection: 'row',

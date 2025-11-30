@@ -17,9 +17,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MatchTicketCard from '../components/MatchTicketCard';
 import PickupTicketCard from '../../Pickup/components/PickupTicketCard';
+import EntertainmentTicketCard from '../components/EntertainmentTicketCard';
 import ScreenHeader from '../../components/ScreenHeader';
 import BottomNavBar from '../../containers/BottomNavBar';
 import Pagination from '../../components/Pagination';
+import FilterSelector from '../../components/FilterSelector';
 import { AppDispatch, RootState } from '../../store/store';
 import { fetchTickets } from '../store/ticketSlice';
 import i18n from '../../translations/i18n';
@@ -41,15 +43,44 @@ const TicketsScreenContent: React.FC = () => {
   const { start: startTour, copilotEvents, visible } = useCopilot();
   const [tourStarted, setTourStarted] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null);
+  const [selectedType, setSelectedType] = useState<string>('all');
 
   useEffect(() => {
-    dispatch(fetchTickets({ page: 0, size: pageSize || 10 }));
-  }, [dispatch, pageSize]);
+    const typeParam = selectedType === 'all' ? undefined : selectedType;
+    dispatch(fetchTickets({ page: 0, size: pageSize || 10, type: typeParam }));
+  }, [dispatch, pageSize, selectedType]);
 
   const handlePageChange = (page: number) => {
     // Pagination component uses 1-indexed pages, API uses 0-indexed
-    dispatch(fetchTickets({ page: page - 1, size: pageSize }));
+    const typeParam = selectedType === 'all' ? undefined : selectedType;
+    dispatch(fetchTickets({ page: page - 1, size: pageSize, type: typeParam }));
   };
+
+  const handleTypeFilter = (optionId: string) => {
+    setSelectedType(optionId);
+    // Reset to first page when filter changes
+    const typeParam = optionId === 'all' ? undefined : optionId;
+    dispatch(fetchTickets({ page: 0, size: pageSize || 10, type: typeParam }));
+  };
+
+  // Create filter options for FilterSelector
+  const typeOptions = [
+    {
+      id: 'all',
+      label: i18n.t('tickets.all') || 'All',
+      icon: <Ionicons name="grid-outline" size={16} color="#888" style={{ marginRight: 4 }} />
+    },
+    {
+      id: 'PICKUP',
+      label: i18n.t('tickets.pickup') || 'Pickup',
+      icon: <Ionicons name="car-outline" size={16} color="#888" style={{ marginRight: 4 }} />
+    },
+    {
+      id: 'ENTERTAINMENT',
+      label: i18n.t('tickets.entertainment') || 'Entertainment',
+      icon: <Ionicons name="ticket-outline" size={16} color="#888" style={{ marginRight: 4 }} />
+    }
+  ];
 
   // ─── 1.  ─────────────────
   useEffect(() => {
@@ -166,6 +197,16 @@ const TicketsScreenContent: React.FC = () => {
         />
       </View>
 
+      {/* Type Filter Selector */}
+      <View style={styles.filterContainer}>
+        <FilterSelector
+          options={typeOptions}
+          selectedOptionId={selectedType}
+          onSelectOption={handleTypeFilter}
+          containerStyle={styles.filterSelectorContainer}
+        />
+      </View>
+
       {/* <CopilotStep
         text={i18n.t('copilot.tickets.search')}
         order={1}
@@ -206,11 +247,16 @@ const TicketsScreenContent: React.FC = () => {
                   <Text style={styles.emptyText}>{i18n.t('tickets.noTickets')}</Text>
                 </View>
               ) : (
-                filteredTickets.filter(ticket => ticket.type !== 'E_SIM').map(ticket => (
-                  ticket.type === 'MATCH' 
-                    ? <MatchTicketCard key={ticket.id} ticket={ticket} /> 
-                    : <PickupTicketCard key={ticket.id} ticket={ticket} />
-                ))
+                filteredTickets.filter(ticket => ticket.type !== 'E_SIM').map(ticket => {
+                  if (ticket.type === 'MATCH') {
+                    return <MatchTicketCard key={ticket.id} ticket={ticket} />;
+                  } else if (ticket.type === 'PICKUP') {
+                    return <PickupTicketCard key={ticket.id} ticket={ticket} />;
+                  } else if (ticket.type === 'ENTERTAINMENT') {
+                    return <EntertainmentTicketCard key={ticket.id} ticket={ticket} />;
+                  }
+                  return null;
+                })
               )}
             </ScrollView>
             <View style={styles.paginationContainer}>
@@ -288,7 +334,6 @@ const styles = StyleSheet.create({
   ticketsContainer: {
     flex: 1,
     paddingHorizontal: 15,
-    marginBottom: 80,
   },
   paginationContainer: {
     paddingBottom: Platform.OS === 'ios' ? 50 : 55,
@@ -362,6 +407,14 @@ const styles = StyleSheet.create({
   },
   ticketsListHighlight: {
     flex: 1,
+  },
+  filterContainer: {
+    paddingHorizontal: 15,
+    paddingTop: 0,
+    paddingBottom: 10,
+  },
+  filterSelectorContainer: {
+    paddingVertical: 0,
   },
 });
 

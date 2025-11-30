@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF',
     borderRadius: 32,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     marginVertical: 8,
     borderWidth: 1,
     borderColor: '#AE191344',
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     height: 50,
     fontSize: 16,
     color: '#333',
-    paddingVertical: 6,
+    paddingVertical: 2,
   },
 });
 

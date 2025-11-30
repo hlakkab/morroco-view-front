@@ -81,10 +81,15 @@ const getEntertainments = async (filters: EntertainmentFilters) => {
 const adaptApiData = (apiData: any): Entertainment => {
   // Check if it's the new API format
   if (apiData.code && apiData.spotType) {
+    // Map partner (lowercase) to isPartner (camelCase) - do this before spread to ensure it's set
+    const isPartner = apiData.isPartner !== undefined ? apiData.isPartner : (apiData.partner !== undefined ? apiData.partner : false);
+    
     return {
       ...apiData,
       // Ensure pricings is an array (default to empty array if not present)
       pricings: apiData.pricings || [],
+      // Explicitly set isPartner to ensure it's not overwritten by spread
+      isPartner: isPartner,
       // Add legacy fields for backward compatibility
       productCode: apiData.code,
       title: apiData.name,
@@ -131,6 +136,8 @@ const adaptApiData = (apiData: any): Entertainment => {
     fullStars: Math.floor(apiData.reviews?.combinedAverageRating || 0),
     hasHalfStar: ((apiData.reviews?.combinedAverageRating || 0) % 1) >= 0.5,
     mapUrl: apiData.productUrl || '',
+    // Map partner (lowercase) to isPartner (camelCase)
+    isPartner: apiData.isPartner !== undefined ? apiData.isPartner : (apiData.partner !== undefined ? apiData.partner : false),
   };
 };
 
