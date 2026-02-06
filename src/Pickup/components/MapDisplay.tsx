@@ -1,12 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import i18n from '../../translations/i18n';
+
+// Conditionally import native map modules only for non-web platforms
+let MapView: any;
+let Marker: any;
+let PROVIDER_DEFAULT: any;
+
+if (Platform.OS !== 'web') {
+  const mapModule = require('react-native-maps');
+  MapView = mapModule.default;
+  Marker = mapModule.Marker;
+  PROVIDER_DEFAULT = mapModule.PROVIDER_DEFAULT;
+}
+
+type Region = {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+};
 
 interface MapDisplayProps {
   mapVisible: boolean;
-  mapRef: React.RefObject<MapView | null>;
+  mapRef: React.RefObject<any>;
   mapRegion: Region | null;
   destination: [number, number] | null;
   hotelLocation: string;
@@ -23,6 +41,18 @@ export const MapDisplay: React.FC<MapDisplayProps> = ({
   onZoomIn,
   onZoomOut,
 }) => {
+  // Show message for web platform
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.mapPlaceholderContainer}>
+        <Ionicons name="map-outline" size={50} color="#CE1126" />
+        <Text style={styles.mapPlaceholderText}>
+          Map is not available on web platform
+        </Text>
+      </View>
+    );
+  }
+
   if (mapVisible && destination) {
     return (
       <View style={styles.mapContainer}>

@@ -41,8 +41,8 @@ export const useLogin = () => {
 
       // Configure on first use
       GoogleSignin.configure({
-        webClientId: '195947548174-uvl4u54c15ckrsu5qo37ah4d229beh6o.apps.googleusercontent.com',
-        iosClientId: '195947548174-5nt0h78r2en3caqa74s7bjfud28t8rao.apps.googleusercontent.com',
+        webClientId: '27468884706-ss2q9umun6jcmo2r7cv9c4duvouj5g94.apps.googleusercontent.com',
+        iosClientId: '27468884706-1vsc596h0d76qq1grrmstfhjig5cdnjc.apps.googleusercontent.com',
         offlineAccess: true,
         scopes: ['openid', 'email', 'profile']
       });

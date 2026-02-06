@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, Linking, BackHandler } from 'react-native';
 import WebView, { WebViewNavigation } from 'react-native-webview';
 import type { PaywallResult, PaywallOrderResult } from '../types';
 
@@ -64,6 +64,25 @@ const PaywallWebView: React.FC<PaywallWebViewProps> = ({
   onClose
 }) => {
   const hasProcessedResponseRef = useRef(false);
+  const webViewRef = useRef<WebView>(null);
+  const [canGoBack, setCanGoBack] = useState(false);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (canGoBack && webViewRef.current) {
+        // If WebView can go back, navigate back in WebView
+        webViewRef.current.goBack();
+        return true; // Prevent default back behavior
+      } else {
+        // If WebView can't go back, close the payment screen
+        onClose();
+        return true; // Prevent default back behavior
+      }
+    });
+
+    return () => backHandler.remove();
+  }, [canGoBack, onClose]);
 
 
   const autoSubmitHtml = useMemo(() => {
@@ -101,6 +120,9 @@ const PaywallWebView: React.FC<PaywallWebViewProps> = ({
 
 
   const handleNavigationChange = useCallback((navState: WebViewNavigation) => {
+    // Update canGoBack state
+    setCanGoBack(navState.canGoBack);
+
     if (hasProcessedResponseRef.current) {
       return;
     }
@@ -149,7 +171,22 @@ const PaywallWebView: React.FC<PaywallWebViewProps> = ({
     }
   }, [onResult, onClose]);
 
-  const webViewRef = useRef<WebView>(null);
+  const handleShouldStartLoadWithRequest = useCallback((request: any) => {
+    const url = request.url;
+
+    // Check if user is trying to navigate to the terms and conditions page
+    if (url.includes('mview.ma/conditions-generales-de-vente')) {
+      // Open in external browser
+      Linking.openURL(url).catch(err => {
+        console.error('[PaywallWebView] Failed to open URL:', err);
+      });
+      // Return false to prevent WebView navigation
+      return false;
+    }
+
+    // Allow all other navigation
+    return true;
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -167,6 +204,7 @@ const PaywallWebView: React.FC<PaywallWebViewProps> = ({
           </View>
         )}
         onNavigationStateChange={handleNavigationChange}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
       />
     </View>
   );

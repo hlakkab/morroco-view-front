@@ -150,15 +150,17 @@ const ReservationPopupContent = ({
                   selectedCity={selectedCity}
                 />
 
-                <MapDisplay
-                  mapVisible={mapVisible}
-                  mapRef={mapRef}
-                  mapRegion={mapRegion}
-                  destination={destination}
-                  hotelLocation={hotelLocation}
-                  onZoomIn={zoomIn}
-                  onZoomOut={zoomOut}
-                />
+                {Platform.OS !== 'web' && (
+                  <MapDisplay
+                    mapVisible={mapVisible}
+                    mapRef={mapRef}
+                    mapRegion={mapRegion}
+                    destination={destination}
+                    hotelLocation={hotelLocation}
+                    onZoomIn={zoomIn}
+                    onZoomOut={zoomOut}
+                  />
+                )}
               </View>
             </WalkthroughableView>
           </CopilotStep>

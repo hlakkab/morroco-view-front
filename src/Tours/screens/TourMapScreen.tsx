@@ -7,11 +7,24 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSelector } from 'react-redux';
 import ScreenHeader from '../../components/ScreenHeader';
 import i18n from '../../translations/i18n';
 import { RootStackParamList } from '../../types/navigation';
+
+// Conditionally import native map modules only for non-web platforms
+let MapView: any;
+let Marker: any;
+let Polyline: any;
+let PROVIDER_DEFAULT: any;
+
+if (Platform.OS !== 'web') {
+  const mapModule = require('react-native-maps');
+  MapView = mapModule.default;
+  Marker = mapModule.Marker;
+  Polyline = mapModule.Polyline;
+  PROVIDER_DEFAULT = mapModule.PROVIDER_DEFAULT;
+}
 
 // Morocco cities coordinates
 const CITY_COORDINATES = {
@@ -207,14 +220,15 @@ const TourMapScreen: React.FC = () => {
   const [imageLoadErrors, setImageLoadErrors] = useState<{[key: string]: boolean}>({});
   const [apiKeyStatus, setApiKeyStatus] = useState<string>('checking');
   
-  // Reference to the map
-  const mapRef = React.useRef<MapView>(null);
+  // Reference to the map (only used on native platforms)
+  const mapRef = React.useRef<any>(null);
 
   // Get Google Maps API key from centralized Expo config helper
   const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 
   // Log API key status for debugging
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     console.log('🔑 Google Maps API Key Status:');
     console.log('   Key length:', GOOGLE_MAPS_API_KEY?.length || 0);
     console.log('   Key preview:', GOOGLE_MAPS_API_KEY?.substring(0, 10) + '...');
@@ -329,6 +343,7 @@ const TourMapScreen: React.FC = () => {
 
   // Initialize available days and selected day
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     if (!tourItems || tourItems.length === 0) {
       alert(i18n.t('tours.noTourItemsAvailable'));
       navigation.goBack();
@@ -347,6 +362,7 @@ const TourMapScreen: React.FC = () => {
 
   // Update display items and fetch routes when selected day changes
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     if (selectedDay && tourItems.length > 0) {
       const dayItems = tourItems.filter(item => (item.day || 1) === selectedDay);
       if (dayItems.length > 0) {
@@ -454,6 +470,20 @@ const TourMapScreen: React.FC = () => {
   // ############ 
 
 
+
+  // Show message for web platform
+  if (Platform.OS === 'web') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.headerContainer}>
+          <ScreenHeader title={`${currentCity} - ${getDateForDay(selectedDay)}`} />
+        </View>
+        <View style={styles.webMessageContainer}>
+          <Text style={styles.webMessageText}>Map is not available on web platform</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -720,6 +750,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     resizeMode: 'cover',
+  },
+  webMessageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  webMessageText: {
+    fontSize: 18,
+    color: '#333',
+    textAlign: 'center',
   },
 });
 
